@@ -1,69 +1,54 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dtmcli
 {
     public class TccGlobalTransaction
     {
-        public string dtm;
-        private HttpClient httpClient;
+        private IDtmClient dtmClient;
+        private ILogger logger;
 
-        public TccGlobalTransaction(string dtmUrl)
+        public TccGlobalTransaction(IDtmClient dtmClient, ILoggerFactory factory)
         {
-            this.dtm = dtmUrl;
+            this.dtmClient = dtmClient;
+            logger = factory.CreateLogger<TccGlobalTransaction>();
         }
 
-        public async Task<string> Excecute(Action<Tcc> tcc_cb)
+        public async Task<string> Excecute(Action<Tcc> tcc_cb, CancellationToken cancellationToken =default)
         {
-            var tcc = new Tcc(this.dtm, await this.GenGid());
+            var tcc = new Tcc(this.dtmClient, await this.GenGid());
 
             var tbody = new TccBody
             { 
                 Gid = tcc.Gid,
                 Trans_Type ="tcc"
             };
-            var content = new StringContent(JsonSerializer.Serialize(tbody));
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-
-            httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(this.dtm);
-
+ 
             try
             {
-                var response = await httpClient.PostAsync("/prepare", content);
-                CheckStatus(response.StatusCode);
+                await this.dtmClient.TccPrepare(tbody, cancellationToken);
                 tcc_cb(tcc);
-                response = await httpClient.PostAsync("/submit", content);
-                CheckStatus(response.StatusCode);
+                await this.dtmClient.TccSubmit(tbody, cancellationToken);
             }
             catch(Exception ex)
             {
-                var response = await httpClient.PostAsync("/abort", content);
-                CheckStatus(response.StatusCode);
+                logger.LogError(ex,"submitting or abort global transaction error");
+                await this.dtmClient.TccAbort(tbody, cancellationToken);
                 return string.Empty;
             }
             return tcc.Gid;
         }
 
-        public async Task<string> GenGid()
+        public async Task<string> GenGid(CancellationToken cancellationToken =default)
         {
-            httpClient = new HttpClient();
-            var response = await httpClient.GetAsync(this.dtm + "/newGid");
-            CheckStatus(response.StatusCode);
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        public void CheckStatus(HttpStatusCode status)
-        {
-            if (status != HttpStatusCode.OK)
-            {
-                throw new Exception($"bad http response status: {status}");
-            }
-        }
+            return await dtmClient.GenGid(cancellationToken);
+        }       
     }
 }
