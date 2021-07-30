@@ -14,11 +14,11 @@ namespace Dtmcli
         public IdGenerator idGen;
         public string dtm;
         private string gid;
-        private IDtmClient httpClient;
+        private IDtmClient dtmClient;
 
         public Tcc(IDtmClient dtmHttpClient, string gid)
         {
-            this.httpClient = dtmHttpClient;
+            this.dtmClient = dtmHttpClient;
             this.Gid = gid;
             this.idGen = new IdGenerator();
         }
@@ -38,7 +38,7 @@ namespace Dtmcli
                 Data = JsonSerializer.Serialize(body)
             };
             
-            await httpClient.RegisterTccBranch(registerTccBranch,cancellationToken);
+            await dtmClient.RegisterTccBranch(registerTccBranch,cancellationToken);
 
             var tryHttpClient = new HttpClient();
             var tryContent = new StringContent(JsonSerializer.Serialize(body));
