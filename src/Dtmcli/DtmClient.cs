@@ -12,70 +12,85 @@ namespace Dtmcli
     public class DtmClient : IDtmClient
     {
         private HttpClient httpClient;
+        private JsonSerializerOptions options;
 
         public DtmClient(HttpClient httpclient)
         {
             this.httpClient = httpclient;
+            options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNameCaseInsensitive = true
+            };
+
         }
 
         public async Task<bool> RegisterTccBranch(RegisterTccBranch registerTcc, CancellationToken cancellationToken = default)
         {
-            var content = new StringContent(JsonSerializer.Serialize(registerTcc));
+            var content = new StringContent(JsonSerializer.Serialize(registerTcc,options));
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
-            var response = await httpClient.PostAsync("/registerTccBranch", content);
-
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new Exception($"bad http response status: {response.StatusCode}");
-            }
-
-            return true;
+            var response = await httpClient.PostAsync("/api/dtmsvr/registerTccBranch", content);
+            var dtmcontent = await response.Content.ReadAsStringAsync();
+            var dtmResult = JsonSerializer.Deserialize<DtmResult>(dtmcontent, options);
+            CheckStatus(response.StatusCode, dtmResult);
+            return dtmResult.Success;
         }
 
 
         public async Task<bool> TccPrepare(TccBody tccBody, CancellationToken cancellationToken)
         {
-            var content = new StringContent(JsonSerializer.Serialize(tccBody));
+            var content = new StringContent(JsonSerializer.Serialize(tccBody,options));
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-            var response = await httpClient.PostAsync("/prepare", content);
-            CheckStatus(response.StatusCode);
-            return true;
+            var response = await httpClient.PostAsync("/api/dtmsvr/prepare", content);
+            var dtmcontent = await response.Content.ReadAsStringAsync();
+            var dtmResult = JsonSerializer.Deserialize<DtmResult>(dtmcontent, options);
+            CheckStatus(response.StatusCode, dtmResult);
+            return dtmResult.Success;
         }
 
         public async Task<bool> TccSubmit(TccBody tccBody, CancellationToken cancellationToken)
         {
-            var content = new StringContent(JsonSerializer.Serialize(tccBody));
+            var content = new StringContent(JsonSerializer.Serialize(tccBody, options));
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
-            var response = await httpClient.PostAsync("/submit", content);
-            CheckStatus(response.StatusCode);
-
-            return true;
+            var response = await httpClient.PostAsync("/api/dtmsvr/submit", content);
+            var dtmcontent = await response.Content.ReadAsStringAsync();
+            var dtmResult = JsonSerializer.Deserialize<DtmResult>(dtmcontent, options);
+            CheckStatus(response.StatusCode, dtmResult);
+            return dtmResult.Success;
         }
 
         public async Task<bool> TccAbort(TccBody tccBody, CancellationToken cancellationToken)
         {
-            var content = new StringContent(JsonSerializer.Serialize(tccBody));
+            var content = new StringContent(JsonSerializer.Serialize(tccBody, options));
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
-            var response = await httpClient.PostAsync("/abort", content);
-            CheckStatus(response.StatusCode);
-            return true;
+            var response = await httpClient.PostAsync("/api/dtmsvr/abort", content);
+            var dtmcontent = await response.Content.ReadAsStringAsync();
+            var dtmResult = JsonSerializer.Deserialize<DtmResult>(dtmcontent, options);
+            CheckStatus(response.StatusCode, dtmResult);
+            return dtmResult.Success;
         }
 
         public async Task<string> GenGid(CancellationToken cancellationToken)
         {
-            var response = await httpClient.GetAsync("/newGid");
-            CheckStatus(response.StatusCode);
-            return await response.Content.ReadAsStringAsync();  
+            var response = await httpClient.GetAsync("/api/dtmsvr/newGid");
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception($"bad http response status: {response.StatusCode}");
+            }
+            var content = await response.Content.ReadAsStringAsync();
+            
+            var dtmgid = JsonSerializer.Deserialize<DtmGid>(content, options);
+            return dtmgid.Gid;
         }
 
-        private void CheckStatus(HttpStatusCode status)
+        private void CheckStatus(HttpStatusCode status, DtmResult dtmResult)
         {
-            if (status != HttpStatusCode.OK)
+            if (status != HttpStatusCode.OK || dtmResult.Success != true)
             {
-                throw new Exception($"bad http response status: {status}");
+                throw new Exception($"http response status: {status}, Message :{ dtmResult.Message }");
             }
         }
 
