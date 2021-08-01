@@ -25,7 +25,7 @@ namespace Dtmcli
 
         public string Gid { get => gid; set => gid = value; }
 
-        public async Task<HttpResponseMessage> CallBranch(object body, string tryUrl, string confirmUrl, string cancelUrl, CancellationToken cancellationToken = default)
+        public async Task<string> CallBranch(object body, string tryUrl, string confirmUrl, string cancelUrl, CancellationToken cancellationToken = default)
         {
             var branchId = this.idGen.NewBranchId();
             var registerTccBranch = new RegisterTccBranch()
@@ -47,7 +47,8 @@ namespace Dtmcli
             tryContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
             tryUrl = $"{tryUrl}?gid={this.Gid}&trans_type=tcc&branch_id={branchId}&branch_type=try";
  
-            return await tryHttpClient.PostAsync(tryUrl, tryContent); 
+            var response = await tryHttpClient.PostAsync(tryUrl, tryContent);
+            return await response.Content.ReadAsStringAsync();
         }
  
     }
