@@ -33,6 +33,8 @@ namespace Dtmcli
                 Branch_id = branchId,
                 Cancel = cancelUrl,
                 Confirm = confirmUrl,
+                Status = "prepared",
+                Trans_type = "tcc",
                 Gid = this.Gid,
                 Try = tryUrl,
                 Data = JsonSerializer.Serialize(body)
