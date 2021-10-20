@@ -25,7 +25,7 @@ namespace Dtmcli
             }
             this.branchId = this.branchId + 1;
 
-            return this.parentId + this.branchId.ToString().PadRight(2, '0');
+            return this.parentId + this.branchId.ToString().PadLeft(2, '0');
         }
     }
 }
