@@ -12,5 +12,11 @@ namespace Dtmcli
 
         [JsonPropertyName("trans_type")]
         public string Trans_Type { get; set; }
+        [JsonPropertyName("wait_result")]
+        public bool? WaitResult { get; set; }
+        [JsonPropertyName("retry_interval")]
+        public int? RetryInterval { get; set; }
+        [JsonPropertyName("timeout_to_fail")]
+        public int? TimeoutToFail { get; set; }
     }
 }

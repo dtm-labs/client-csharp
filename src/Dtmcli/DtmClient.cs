@@ -49,16 +49,16 @@ namespace Dtmcli
             return dtmResult.Success;
         }
 
-        public async Task<bool> TccSubmit(TccBody tccBody, CancellationToken cancellationToken)
+        public async Task<DtmResult> TccSubmit(TccBody tccBody, CancellationToken cancellationToken)
         {
             var content = new StringContent(JsonSerializer.Serialize(tccBody, options));
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
             var response = await httpClient.PostAsync("/api/dtmsvr/submit", content);
             var dtmcontent = await response.Content.ReadAsStringAsync();
-            var dtmResult = JsonSerializer.Deserialize<DtmResult>(dtmcontent, options);
-            CheckStatus(response.StatusCode, dtmResult);
-            return dtmResult.Success;
+            if(response.StatusCode != HttpStatusCode.OK)
+                throw new Exception($"http response status: {response.StatusCode}, Message :{ dtmcontent}");
+            return JsonSerializer.Deserialize<DtmResult>(dtmcontent, options);
         }
 
         public async Task<bool> TccAbort(TccBody tccBody, CancellationToken cancellationToken)

@@ -13,7 +13,7 @@ namespace Dtmcli
         Task<bool> TccPrepare(TccBody tccBody, CancellationToken cancellationToken);
 
 
-        Task<bool> TccSubmit(TccBody tccBody, CancellationToken cancellationToken);
+        Task<DtmResult> TccSubmit(TccBody tccBody, CancellationToken cancellationToken);
 
 
         Task<bool> TccAbort(TccBody tccBody, CancellationToken cancellationToken);

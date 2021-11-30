@@ -20,5 +20,9 @@ namespace Dtmcli
                 return Dtm_Result.ToUpper() == "SUCCESS";
             }
         }
+        /// <summary>
+        /// dtm服务暂时不会返回该字段：但TccGlobalTransaction.Excecute方法会组装上去返回
+        /// </summary>
+        public string Gid { get; set; }
     }
 }
