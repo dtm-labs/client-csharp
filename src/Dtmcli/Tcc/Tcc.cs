@@ -12,7 +12,6 @@ namespace Dtmcli
     public class Tcc
     {
         public IdGenerator idGen;
-        public string dtm;
         private string gid;
         private IDtmClient dtmClient;
 
@@ -45,10 +44,13 @@ namespace Dtmcli
             var tryHttpClient = new HttpClient();
             var tryContent = new StringContent(JsonSerializer.Serialize(body));
             tryContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-            tryUrl = $"{tryUrl}?gid={this.Gid}&trans_type=tcc&branch_id={branchId}&branch_type=try";
+            tryUrl = $"{tryUrl}?gid={this.Gid}&trans_type=tcc&branch_id={branchId}&op=try";
  
             var response = await tryHttpClient.PostAsync(tryUrl, tryContent);
-            return await response.Content.ReadAsStringAsync();
+            var responseContent= await response.Content.ReadAsStringAsync(cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"服务[{tryUrl}]异常，httpStatus[{response.StatusCode.GetHashCode()}]，reasonPhrase[{response.ReasonPhrase}]，content[{responseContent}]");
+            return responseContent;
         }
  
     }
