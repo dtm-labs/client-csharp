@@ -49,7 +49,7 @@ namespace Dtmcli
             var response = await tryHttpClient.PostAsync(tryUrl, tryContent);
             var responseContent= await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
-                throw new Exception($"failed to request during try phase[{tryUrl}],httpStatus[{(int)response.StatusCode}],reasonPhrase[{response.ReasonPhrase}],content[{responseContent}]");
+                throw new Exception($"failed to request during try phase[{tryUrl}],httpStatus[{(int)response.StatusCode}],reasonPhrase[{response.ReasonPhrase}],responseContent[{responseContent}]");
             return responseContent;
         }
  

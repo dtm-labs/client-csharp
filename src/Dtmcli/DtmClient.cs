@@ -56,8 +56,8 @@ namespace Dtmcli
 
             var response = await httpClient.PostAsync("/api/dtmsvr/submit", content);
             var dtmcontent = await response.Content.ReadAsStringAsync();
-            if(response.StatusCode != HttpStatusCode.OK)
-                throw new Exception($"http response status: {response.StatusCode}, Message :{ dtmcontent}");
+            if(!response.IsSuccessStatusCode)
+                throw new Exception($"failed to request during tcc submit,httpStatus:[{(int)response.StatusCode}],reasonPhrase[{response.ReasonPhrase}],responseContent:[{dtmcontent}]");
             return JsonSerializer.Deserialize<DtmResult>(dtmcontent, options);
         }
 
