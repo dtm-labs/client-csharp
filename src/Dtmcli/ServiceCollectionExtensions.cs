@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
 
 namespace Dtmcli
 {
@@ -11,7 +8,7 @@ namespace Dtmcli
         internal static IServiceCollection ServiceCollection;
 
 
-        public static IServiceCollection AddDtmcli(this IServiceCollection services,Action<DtmOptions> setupAction)
+        public static IServiceCollection AddDtmcli(this IServiceCollection services, Action<DtmOptions> setupAction)
         {
             if(setupAction == null)
             {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,45 +7,38 @@ namespace Dtmcli
 {
     public class Tcc
     {
-        public IdGenerator idGen;
-        public string dtm;
-        private string gid;
-        private IDtmClient dtmClient;
+        private readonly DtmImp.TransBase _transBase;
+        private readonly IDtmClient _dtmClient;
 
-        public Tcc(IDtmClient dtmHttpClient, string gid)
+        public Tcc(IDtmClient dtmHttpClient, DtmImp.TransBase transBase)
         {
-            this.dtmClient = dtmHttpClient;
-            this.Gid = gid;
-            this.idGen = new IdGenerator();
+            this._dtmClient = dtmHttpClient;
+            this._transBase = transBase;
         }
-
-        public string Gid { get => gid; set => gid = value; }
 
         public async Task<string> CallBranch(object body, string tryUrl, string confirmUrl, string cancelUrl, CancellationToken cancellationToken = default)
         {
-            var branchId = this.idGen.NewBranchId();
-            var registerTccBranch = new RegisterTccBranch()
-            {
-                Branch_id = branchId,
-                Cancel = cancelUrl,
-                Confirm = confirmUrl,
-                Status = "prepared",
-                Trans_type = "tcc",
-                Gid = this.Gid,
-                Try = tryUrl,
-                Data = JsonSerializer.Serialize(body)
-            };
-            
-            await dtmClient.RegisterTccBranch(registerTccBranch,cancellationToken);
+            var branchId = this._transBase.BranchIDGen.NewSubBranchID();
 
-            var tryHttpClient = new HttpClient();
-            var tryContent = new StringContent(JsonSerializer.Serialize(body));
-            tryContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-            tryUrl = $"{tryUrl}?gid={this.Gid}&trans_type=tcc&branch_id={branchId}&branch_type=try";
- 
-            var response = await tryHttpClient.PostAsync(tryUrl, tryContent);
-            return await response.Content.ReadAsStringAsync();
+            await _dtmClient.TransRegisterBranch(_transBase, new Dictionary<string, string> 
+            {
+                { Constant.Request.DATA, JsonSerializer.Serialize(body) },
+                { Constant.Request.BRANCH_ID, branchId },
+                { Constant.Request.CONFIRM, confirmUrl },
+                { Constant.Request.CANCEL, cancelUrl },
+            }, Constant.Request.OPERATION_REGISTERBRANCH, cancellationToken);
+
+            var response = await _dtmClient.TransRequestBranch(
+                _transBase,
+                body,
+                branchId,
+                Constant.BranchTry,
+                tryUrl,
+                cancellationToken).ConfigureAwait(false);
+          
+            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
- 
+
+        public DtmImp.TransBase GetTransBase() => _transBase; 
     }
 }
