@@ -44,16 +44,6 @@
         internal static readonly string BranchCancel = "cancel";
 
         /// <summary>
-        /// branch type for message, SAGA, XA
-        /// </summary>
-        internal static readonly string BranchAction = "action";
-
-        /// <summary>
-        /// branch type for SAGA
-        /// </summary>
-        internal static readonly string BranchCompensate = "compensate";
-
-        /// <summary>
         /// branch type for XA
         /// </summary>
         internal static readonly string BranchCommit = "commit";
@@ -99,7 +89,19 @@
 
             internal static readonly string OPERATION_REGISTERBRANCH = "registerBranch";
 
+            /// <summary>
+            /// branch type for message, SAGA, XA
+            /// </summary>
+            internal static readonly string BRANCH_ACTION = "action";
+
+            /// <summary>
+            /// branch type for SAGA
+            /// </summary>
+            internal static readonly string BRANCH_COMPENSATE = "compensate";
+
             internal static readonly string TYPE_TCC = "tcc";
+
+            internal static readonly string TYPE_SAGA = "saga";
         }
     }
 }
