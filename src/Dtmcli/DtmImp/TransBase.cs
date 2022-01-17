@@ -33,7 +33,7 @@ namespace Dtmcli.DtmImp
         /// use in MSG/SAGA
         /// </summary>
         [JsonPropertyName("steps")]
-        public Dictionary<string, string> Steps { get; set; }
+        public List<Dictionary<string, string>> Steps { get; set; }
 
         /// <summary>
         /// used in MSG/SAGA
