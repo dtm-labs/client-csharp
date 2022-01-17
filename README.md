@@ -1,7 +1,7 @@
 # dtmcli-csharp
 a c# client for distributed transaction framework dtm. 分布式事务管理器dtm的c#客户端
 
-`dtmcli` 是分布式事务管理器[dtm](https://github.com/yedf/dtm)的客户端sdk
+`dtmcli` 是分布式事务管理器[dtm](https://github.com/dtm-labs/dtm)的客户端sdk
 
 ## dtm分布式事务管理服务
 
@@ -69,4 +69,4 @@ await globalTransaction.Excecute(async (tcc) =>
 
 # 可运行的使用示例
 
-见[https://github.com/yedf/dtmcli-csharp-sample](https://github.com/yedf/dtmcli-csharp-sample)
+见[https://github.com/dtm-labs/dtmcli-csharp-sample](https://github.com/dtm-labs/dtmcli-csharp-sample)
