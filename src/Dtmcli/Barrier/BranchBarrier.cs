@@ -34,6 +34,10 @@ namespace Dtmcli
         {
             this.BarrierID = this.BarrierID + 1;
             var bid = this.BarrierID.ToString().PadLeft(2, '0');
+
+            // check the connection state
+            if(db.State != System.Data.ConnectionState.Open) await db.OpenAsync();
+
             var tx = db.BeginTransaction();
 
             try
@@ -45,8 +49,12 @@ namespace Dtmcli
 
                 Logger?.LogDebug("originAffected: {originAffected} currentAffected: {currentAffected}", originAffected, currentAffected);
 
-                if (IsNullCompensation(this.Op, originAffected) || IsDuplicateOrPend(currentAffected))
+                var isNullCompensation = IsNullCompensation(this.Op, originAffected);
+                var isDuplicateOrPend = IsDuplicateOrPend(currentAffected);
+
+                if (isNullCompensation || isDuplicateOrPend)
                 {
+                    Logger?.LogInformation("Will not exec busiCall, isNullCompensation={isNullCompensation}, isDuplicateOrPend={isDuplicateOrPend}", isNullCompensation, isDuplicateOrPend);
                     tx.Commit();
                     return;
                 }
