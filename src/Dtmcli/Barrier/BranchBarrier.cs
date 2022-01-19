@@ -30,7 +30,7 @@ namespace Dtmcli
 
         public int BarrierID { get; set; }
 
-        public async Task Call(DbConnection db, Func<Task> busiCall)
+        public async Task Call(DbConnection db, Func<DbTransaction, Task> busiCall)
         {
             this.BarrierID = this.BarrierID + 1;
             var bid = this.BarrierID.ToString().PadLeft(2, '0');
@@ -59,7 +59,7 @@ namespace Dtmcli
                     return;
                 }
 
-                await busiCall.Invoke();
+                await busiCall.Invoke(tx);
                 tx.Commit();
             }
             catch (Exception ex)
