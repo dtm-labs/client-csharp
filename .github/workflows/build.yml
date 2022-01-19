@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  push:
+    branches: [ dev, main ]
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+
+  linux:    
+    name: build on linux
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x   
+    - name: Show dotnet Version
+      run: dotnet --version   
+    - name: Build with dotnet
+      run: |
+        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmcli/Dtmcli.csproj
+        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmcli.Tests/Dtmcli.Tests.csproj        
+    - name: Test with dotnet
+      run: |
+        dotnet test src/Dtmcli.Tests/Dtmcli.Tests.csproj --no-restore
