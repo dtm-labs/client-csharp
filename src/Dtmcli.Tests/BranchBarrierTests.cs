@@ -1,4 +1,5 @@
 ﻿using Apps72.Dev.Data.DbMocker;
+using Apps72.Dev.Data.DbMocker.Data;
 using Xunit;
 using Dapper;
 using System;
@@ -25,11 +26,11 @@ namespace Dtmcli.Tests
             // mock currentAffected != 0
             conn.Mocks.When(cmd => cmd.Parameters.AsList().Select(x => x.Value).Contains(op)).ReturnsScalar(cmd => 1);
 
-            var mockBusiCall = new Mock<Func<Task>>();
+            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task>>();
 
             await branchBarrier.Call(conn, mockBusiCall.Object);
 
-            mockBusiCall.Verify(x => x.Invoke(), Times.Never);
+            mockBusiCall.Verify(x => x.Invoke(It.IsAny<System.Data.Common.DbTransaction>()), Times.Never);
         }
 
         [Theory]
@@ -46,11 +47,11 @@ namespace Dtmcli.Tests
             // mock currentAffected = 0
             conn.Mocks.When(cmd => cmd.Parameters.AsList().Select(x => x.Value).Contains(op)).ReturnsScalar(cmd => 0);
 
-            var mockBusiCall = new Mock<Func<Task>>();
+            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task>>();
 
             await branchBarrier.Call(conn, mockBusiCall.Object);
 
-            mockBusiCall.Verify(x => x.Invoke(), Times.Never);
+            mockBusiCall.Verify(x => x.Invoke(It.IsAny<System.Data.Common.DbTransaction>()), Times.Never);
         }
 
         [Theory]
@@ -68,12 +69,11 @@ namespace Dtmcli.Tests
             // mock currentAffected > 0
             conn.Mocks.When(cmd => cmd.Parameters.AsList().Select(x => x.Value).Contains(op)).ReturnsScalar(cmd => 1);
 
-            var mockBusiCall = new Mock<Func<Task>>();
-            mockBusiCall.Setup(x => x.Invoke()).Returns(Task.CompletedTask);
+            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task>>();
 
             await branchBarrier.Call(conn, mockBusiCall.Object);
 
-            mockBusiCall.Verify(x => x.Invoke(), Times.Once);
+            mockBusiCall.Verify(x => x.Invoke(It.IsAny<System.Data.Common.DbTransaction>()), Times.Once);
         }
 
         private MockDbConnection GetDbConnection() => new MockDbConnection();
