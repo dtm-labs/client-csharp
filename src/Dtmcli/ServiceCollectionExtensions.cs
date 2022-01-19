@@ -25,6 +25,9 @@ namespace Dtmcli
             .AddTypedClient<IDtmClient, DtmClient>();
 
             services.AddSingleton<TccGlobalTransaction>();
+
+            // 子事务屏障
+            services.AddSingleton<IBranchBarrierFactory, DefaultBranchBarrierFactory>();
             return services;
         }
     }

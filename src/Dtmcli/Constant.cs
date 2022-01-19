@@ -103,5 +103,16 @@
 
             internal static readonly string TYPE_SAGA = "saga";
         }
+
+        internal class Barrier
+        {
+            internal static readonly string TABLE_NAME = "dtm_barrier.barrier";
+
+            internal static readonly string DBTYPE_MYSQL = "mysql";
+
+            internal static readonly string DBTYPE_POSTGRES = "postgres";
+
+            internal static readonly string PG_CONSTRAINT = "uniq_barrier";
+        }
     }
 }
