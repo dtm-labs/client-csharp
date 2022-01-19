@@ -35,8 +35,19 @@ namespace Dtmcli
                 Constant.BranchTry,
                 tryUrl,
                 cancellationToken).ConfigureAwait(false);
-          
-            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            // call branch error should throw exception
+            var isOldVerException = response.StatusCode == System.Net.HttpStatusCode.OK && content.Contains(Constant.ErrFailure);
+            var isNewVerException = (int)response.StatusCode >= Constant.FailureStatusCode;
+
+            if (isOldVerException || isNewVerException)
+            {
+                throw new DtmcliException("An exception occurred when CallBranch");
+            }
+
+            return content;
         }
 
         public DtmImp.TransBase GetTransBase() => _transBase; 
