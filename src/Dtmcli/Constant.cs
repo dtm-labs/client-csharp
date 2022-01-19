@@ -27,7 +27,6 @@
         /// </summary>
         internal static readonly string StatusAborting = "aborting";
 
-
         /// <summary>
         ///  branch type for TCC
         /// </summary>
@@ -52,6 +51,10 @@
         /// branch type for XA
         /// </summary>
         internal static readonly string BranchRollback = "rollback";
+
+        internal static readonly string ErrFailure = "FAILRUE";
+
+        internal static readonly int FailureStatusCode = 400;
 
         internal class Request
         {
