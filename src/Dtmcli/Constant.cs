@@ -52,7 +52,7 @@
         /// </summary>
         internal static readonly string BranchRollback = "rollback";
 
-        internal static readonly string ErrFailure = "FAILRUE";
+        internal static readonly string ErrFailure = "FAILURE";
 
         internal static readonly int FailureStatusCode = 400;
 
