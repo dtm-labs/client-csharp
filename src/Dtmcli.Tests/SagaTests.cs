@@ -45,7 +45,7 @@ namespace Dtmcli.Tests
 
             protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
-                var str = await request.Content?.ReadAsStringAsync(cancellationToken) ?? "";
+                var str = await request.Content?.ReadAsStringAsync() ?? "";
 
                 var transBase = System.Text.Json.JsonSerializer.Deserialize<DtmImp.TransBase>(str);
 
