@@ -21,7 +21,7 @@ jobs:
         dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmcli/Dtmcli.csproj                
     - name: Pack with dotnet
       run: |
-        dotnet pack src/Dtmcli/Dtmcli.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
+        dotnet pack src/Dtmcli/Dtmcli.csproj -o /home/runner/work/nugetpkgs -c Release --no-build
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
