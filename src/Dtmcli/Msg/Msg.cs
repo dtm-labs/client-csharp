@@ -47,7 +47,7 @@ namespace Dtmcli
         }
 
         /// <summary>
-        /// one method for the entire busi->prepare->submit
+        /// one method for the entire prepare->busi->submit
         /// </summary>
         /// <param name="queryPrepared">A url that dtm use to query the prepared status.</param>
         /// <param name="db"></param>
@@ -73,10 +73,7 @@ namespace Dtmcli
 
                 if (!flag && res.Equals(Constant.ErrFailure))
                 {
-                    _ = Task.Run(async () => 
-                    { 
-                        await _dtmClient.TransCallDtm(_transBase, _transBase, Constant.Request.OPERATION_ABORT, default); 
-                    });
+                    await _dtmClient.TransCallDtm(_transBase, _transBase, Constant.Request.OPERATION_ABORT, default);
                 }
             }
 

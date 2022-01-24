@@ -114,7 +114,7 @@ namespace Dtmcli
 
             try
             {
-                reason = await db.QueryFirstOrDefaultAsync(
+                reason = await db.QueryFirstOrDefaultAsync<string>(
                            sql,
                            new { gid = this.Gid, branch_id = Constant.Barrier.MSG_BRANCHID, op = Constant.Request.TYPE_MSG, barrier_id = Constant.Barrier.MSG_BARRIER_ID });
 
