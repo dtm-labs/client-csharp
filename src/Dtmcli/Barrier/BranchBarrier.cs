@@ -38,12 +38,17 @@ namespace Dtmcli
             // check the connection state
             if(db.State != System.Data.ConnectionState.Open) await db.OpenAsync();
 
+            // All should using async method, but netstandard2.0 do not support.
+#if NETSTANDARD2_0
             var tx = db.BeginTransaction();
+#else
+            var tx = await db.BeginTransactionAsync();
+#endif
 
             try
             {
                 var originType = BarrierStatic.TypeDict.TryGetValue(this.Op, out var ot) ? ot : string.Empty;
-                
+
                 var originAffected = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, originType, bid, this.Op, tx);
                 var currentAffected = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, this.Op, bid, this.Op, tx);
 
@@ -55,45 +60,80 @@ namespace Dtmcli
                 if (isNullCompensation || isDuplicateOrPend)
                 {
                     Logger?.LogInformation("Will not exec busiCall, isNullCompensation={isNullCompensation}, isDuplicateOrPend={isDuplicateOrPend}", isNullCompensation, isDuplicateOrPend);
+#if NETSTANDARD2_0
                     tx.Commit();
+#else
+                    await tx.CommitAsync();
+#endif
+
                     return;
                 }
 
-                await busiCall.Invoke(tx);
+                try
+                {
+                    await busiCall.Invoke(tx);
+                }
+                catch (Exception ex)
+                {
+                    throw new DtmcliException(ex.Message);
+                }
+
+#if NETSTANDARD2_0
                 tx.Commit();
+#else
+                await tx.CommitAsync();
+#endif
             }
             catch (Exception ex)
             {
-                Logger?.LogError(ex, "Call exception");
+                Logger?.LogError(ex, "Call error, gid={gid}, trans_type={trans_type}", this.Gid, this.TransType);
+
+#if NETSTANDARD2_0
                 tx.Rollback();
+#else
+                await tx.RollbackAsync();
+#endif
+
+                throw;
             }
         }
 
         public async Task<string> QueryPrepared(DbConnection db)
         {
-            bool isErr = false;
             try
             {
-                var tmp = DbUtils.InsertBarrier(db, this.TransType, this.Gid, "00", "msg", "01", "rollback");
+                var tmp = await DbUtils.InsertBarrier(
+                    db,
+                    this.TransType,
+                    this.Gid,
+                    Constant.Barrier.MSG_BRANCHID,
+                    Constant.Request.TYPE_MSG,
+                    Constant.Barrier.MSG_BARRIER_ID,
+                    Constant.Barrier.MSG_BARRIER_REASON);
             }
             catch (Exception ex)
             {
-                Logger?.LogInformation(ex, "QueryPrepared error");
-                isErr = true;
+                Logger?.LogWarning(ex, "Insert Barrier error, gid={gid}", this.Gid);
+                return ex.Message;
             }
 
             var reason = string.Empty;
+           
+            var sql = string.Format(BarrierStatic.QueryPreparedSqlFormat, Constant.Barrier.TABLE_NAME);
 
-            if (!isErr)
+            try
             {
-                var sql = string.Format("select reason from {0} where gid=@gid and branch_id=@branch_id and op=@op and barrier_id=@barrier_id", Constant.Barrier.TABLE_NAME);
+                reason = await db.QueryFirstOrDefaultAsync<string>(
+                           sql,
+                           new { gid = this.Gid, branch_id = Constant.Barrier.MSG_BRANCHID, op = Constant.Request.TYPE_MSG, barrier_id = Constant.Barrier.MSG_BARRIER_ID });
 
-                reason = await db.QueryFirstOrDefaultAsync(
-                    sql,
-                    new { gid = this.Gid, branch_id = this.BranchID, op = this.Op, barrier_id = this.BarrierID });
+                if (reason.Equals(Constant.Barrier.MSG_BARRIER_REASON)) return Constant.ErrFailure;
             }
-
-            if (reason.Equals("rollback")) return "FAILURE";
+            catch (Exception ex)
+            {
+                Logger?.LogWarning(ex, "Query Prepared error, gid={gid}", this.Gid);
+                return ex.Message;
+            }
 
             return string.Empty;
         }
@@ -134,5 +174,7 @@ namespace Dtmcli
             { Constant.BranchCancel, Constant.BranchTry },
             { Constant.Request.BRANCH_COMPENSATE, Constant.Request.BRANCH_ACTION },
         };
+
+        internal static readonly string QueryPreparedSqlFormat = "select reason from {0} where gid=@gid and branch_id=@branch_id and op=@op and barrier_id=@barrier_id";
     }
 }

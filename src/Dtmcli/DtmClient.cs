@@ -96,7 +96,7 @@ namespace Dtmcli
             return await TransCallDtm(tb, dict, operation, cancellationToken);
         }
 
-        public async Task<HttpResponseMessage> TransRequestBranch(TransBase tb, object body, string branchID, string op, string url, CancellationToken cancellationToken)
+        public async Task<HttpResponseMessage> TransRequestBranch(TransBase tb, HttpMethod method, object body, string branchID, string op, string url, CancellationToken cancellationToken)
         {
             var queryParams = string.Format(
                 "dtm={0}&gid={1}&trans_type={2}&branch_id={3}&op={4}",
@@ -107,18 +107,24 @@ namespace Dtmcli
                 op);
 
             var client = new HttpClient();
-            var content = new StringContent(JsonSerializer.Serialize(body, options));
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(Constant.Request.CONTENT_TYPE);
-
-            foreach (var item in tb.BranchHeaders ?? new Dictionary<string, string>())
-            {
-                content.Headers.TryAddWithoutValidation(item.Key, item.Value);
-            }
-
+          
             if (url.Contains("?")) url = string.Concat(url, "&" ,queryParams);
             else url = string.Concat(url, "?", queryParams);
 
-            var response = await client.PostAsync(url, content, cancellationToken).ConfigureAwait(false);
+            var httpRequestMsg = new HttpRequestMessage(method, url);
+            foreach (var item in tb.BranchHeaders ?? new Dictionary<string, string>())
+            {
+                httpRequestMsg.Headers.TryAddWithoutValidation(item.Key, item.Value);
+            }
+
+            if (body != null)
+            {
+                var content = new StringContent(JsonSerializer.Serialize(body, options));
+                content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(Constant.Request.CONTENT_TYPE);
+                httpRequestMsg.Content = content;
+            }
+
+            var response = await client.SendAsync(httpRequestMsg, cancellationToken).ConfigureAwait(false);
             return response;
         }
     }

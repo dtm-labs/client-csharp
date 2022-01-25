@@ -18,7 +18,7 @@ namespace Dtmcli
 
             var ti = new BranchBarrier(transType, gid, branchID, op, logger);
 
-            if (ti.IsInValid()) throw new Exception($"invalid trans info: {ti.ToString()}");
+            if (ti.IsInValid()) throw new DtmcliException($"invalid trans info: {ti.ToString()}");
 
             return ti;
         }

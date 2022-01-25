@@ -26,7 +26,7 @@ namespace Dtmcli.Tests
             // mock currentAffected != 0
             conn.Mocks.When(cmd => cmd.Parameters.AsList().Select(x => x.Value).Contains(op)).ReturnsScalar(cmd => 1);
 
-            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task>>();
+            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task<bool>>>();
 
             await branchBarrier.Call(conn, mockBusiCall.Object);
 
@@ -47,7 +47,7 @@ namespace Dtmcli.Tests
             // mock currentAffected = 0
             conn.Mocks.When(cmd => cmd.Parameters.AsList().Select(x => x.Value).Contains(op)).ReturnsScalar(cmd => 0);
 
-            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task>>();
+            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task<bool>>>();
 
             await branchBarrier.Call(conn, mockBusiCall.Object);
 
@@ -69,7 +69,7 @@ namespace Dtmcli.Tests
             // mock currentAffected > 0
             conn.Mocks.When(cmd => cmd.Parameters.AsList().Select(x => x.Value).Contains(op)).ReturnsScalar(cmd => 1);
 
-            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task>>();
+            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task<bool>>>();
 
             await branchBarrier.Call(conn, mockBusiCall.Object);
 
@@ -77,7 +77,5 @@ namespace Dtmcli.Tests
         }
 
         private MockDbConnection GetDbConnection() => new MockDbConnection();
-
-
     }
 }

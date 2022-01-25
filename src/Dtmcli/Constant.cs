@@ -54,6 +54,10 @@
 
         internal static readonly string ErrFailure = "FAILURE";
 
+        internal static readonly string ResultFailure = "FAILURE";
+        internal static readonly string ResultSuccess = "SUCCESS";
+        internal static readonly string ResultOngoing = "ONGOING";
+
         internal static readonly int FailureStatusCode = 400;
 
         internal class Request
@@ -105,6 +109,8 @@
             internal static readonly string TYPE_TCC = "tcc";
 
             internal static readonly string TYPE_SAGA = "saga";
+
+            internal static readonly string TYPE_MSG = "msg";
         }
 
         internal class Barrier
@@ -116,6 +122,12 @@
             internal static readonly string DBTYPE_POSTGRES = "postgres";
 
             internal static readonly string PG_CONSTRAINT = "uniq_barrier";
+
+            internal static readonly string MSG_BARRIER_REASON = "rollback";
+
+            internal static readonly string MSG_BRANCHID = "00";
+
+            internal static readonly string MSG_BARRIER_ID = "01";
         }
     }
 }

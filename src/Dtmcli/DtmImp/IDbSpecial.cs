@@ -91,7 +91,7 @@ namespace Dtmcli.DtmImp
             }
             else
             {
-                throw new System.Exception($"unknown db type '{dbType}'");
+                throw new DtmcliException($"unknown db type '{dbType}'");
             }
         }
 

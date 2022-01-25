@@ -30,6 +30,7 @@ namespace Dtmcli
 
             var response = await _dtmClient.TransRequestBranch(
                 _transBase,
+                System.Net.Http.HttpMethod.Post,
                 body,
                 branchId,
                 Constant.BranchTry,
