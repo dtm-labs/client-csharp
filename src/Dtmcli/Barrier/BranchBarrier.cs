@@ -30,7 +30,7 @@ namespace Dtmcli
 
         public int BarrierID { get; set; }
 
-        public async Task<bool> Call(DbConnection db, Func<DbTransaction, Task> busiCall)
+        public async Task<string> Call(DbConnection db, Func<DbTransaction, Task<bool>> busiCall)
         {
             this.BarrierID = this.BarrierID + 1;
             var bid = this.BarrierID.ToString().PadLeft(2, '0');
@@ -45,10 +45,13 @@ namespace Dtmcli
             var tx = await db.BeginTransactionAsync();
 #endif
 
+            bool isOk = false;
+            bool execRes = true;
+
             try
             {
                 var originType = BarrierStatic.TypeDict.TryGetValue(this.Op, out var ot) ? ot : string.Empty;
-                
+
                 var originAffected = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, originType, bid, this.Op, tx);
                 var currentAffected = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, this.Op, bid, this.Op, tx);
 
@@ -60,32 +63,40 @@ namespace Dtmcli
                 if (isNullCompensation || isDuplicateOrPend)
                 {
                     Logger?.LogInformation("Will not exec busiCall, isNullCompensation={isNullCompensation}, isDuplicateOrPend={isDuplicateOrPend}", isNullCompensation, isDuplicateOrPend);
+                    return Constant.Succeess;
+                }
+
+                // tell cli if the busiCall is ok or not
+                execRes = await busiCall.Invoke(tx);
+                isOk = true;
+
+                return execRes ? Constant.Succeess : Constant.ErrFailure;
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError(ex, "Call error, gid={gid}, trans_type={trans_type}, isOk={isOk}, execRes={execRes}", this.Gid, this.TransType, isOk, execRes);
+
+                // busiCall throw ex
+                return execRes ? ex.Message : Constant.ErrFailure;
+            }
+            finally
+            {
+                if (isOk && execRes)
+                {
 #if NETSTANDARD2_0
                     tx.Commit();
 #else
                     await tx.CommitAsync();
 #endif
-                    return true;
                 }
-
-                await busiCall.Invoke(tx);
+                else
+                {
 #if NETSTANDARD2_0
-                tx.Commit();
+                    tx.Rollback();
 #else
-                await tx.CommitAsync();
+                    await tx.RollbackAsync();
 #endif
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Logger?.LogError(ex, "Call error, gid={gid}, trans_type={trans_type}", this.Gid, this.TransType);
-
-#if NETSTANDARD2_0
-                tx.Rollback();
-#else
-                await tx.RollbackAsync();
-#endif
-                return false;
+                }
             }
         }
 

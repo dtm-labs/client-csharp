@@ -54,6 +54,8 @@
 
         internal static readonly string ErrFailure = "FAILURE";
 
+        internal static readonly string Succeess = "SUCCESS";
+
         internal static readonly int FailureStatusCode = 400;
 
         internal class Request
