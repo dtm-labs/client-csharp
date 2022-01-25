@@ -47,15 +47,15 @@ namespace Dtmcli
             return await this._dtmClient.TransCallDtm(this._transBase, this._transBase, Constant.Request.OPERATION_SUBMIT, cancellationToken);
         }
 
-        public async Task<bool> DoAndSubmitDB(string queryPrepared, DbConnection db, Func<DbTransaction, Task<bool>> busiCall, CancellationToken cancellationToken = default)
+        public async Task<bool> DoAndSubmitDB(string queryPrepared, DbConnection db, Func<DbTransaction, Task> busiCall, CancellationToken cancellationToken = default)
         {
-            return await this.DoAndSubmit(queryPrepared, bb => 
+            return await this.DoAndSubmit(queryPrepared, async bb => 
             {
-                return bb.Call(db, busiCall);
+                await bb.Call(db, busiCall);
             }, cancellationToken);
         }
 
-        public async Task<bool> DoAndSubmit(string queryPrepared, Func<BranchBarrier, Task<string>> busiCall, CancellationToken cancellationToken = default)
+        public async Task<bool> DoAndSubmit(string queryPrepared, Func<BranchBarrier, Task> busiCall, CancellationToken cancellationToken = default)
         {
             var bb = new BranchBarrier(this._transBase.TransType, this._transBase.Gid, Constant.Barrier.MSG_BRANCHID, Constant.Request.TYPE_MSG);
 
@@ -65,24 +65,58 @@ namespace Dtmcli
 
             if (!flag) return false;
 
-            var res = await busiCall.Invoke(bb);
+            Exception errb = null;
 
-            if (res.Equals(Constant.Succeess))
+            try
+            {
+                await busiCall.Invoke(bb);
+            }
+            catch (Exception ex)
+            {
+                errb = ex;
+            }
+
+            Exception err = null;
+            if (errb != null && !errb.Message.Contains(Constant.ResultFailure))
+            {
+                // if busicall return an error other than failure, we will query the result
+                var resp = await _dtmClient.TransRequestBranch(this._transBase, HttpMethod.Get, null, bb.BranchID, bb.Op, queryPrepared, cancellationToken);
+                err = await RespAsErrorCompatible(resp);
+            }
+
+            if ((errb != null && errb.Message.Equals(Constant.ResultFailure)) || (err != null && err.Message.Equals(Constant.ResultFailure)))
+            {
+                await _dtmClient.TransCallDtm(_transBase, _transBase, Constant.Request.OPERATION_ABORT, default);
+            }
+            else if (err == null)
             {
                 flag = await this.Submit(cancellationToken);
             }
-            else if (res.Equals(Constant.ErrFailure))
-            {
-                await _dtmClient.TransCallDtm(_transBase, _transBase, Constant.Request.OPERATION_ABORT, default);
-                flag = false;
-            }
-            else
-            {
-                var resp = await _dtmClient.TransRequestBranch(_transBase, HttpMethod.Get, null, bb.BranchID, bb.Op, queryPrepared, cancellationToken);
-                flag = resp.IsSuccessStatusCode;
-            }
-            
+
+            if (errb != null) return false;
+
             return flag;
+        }
+
+        private async Task<Exception> RespAsErrorCompatible(HttpResponseMessage resp)
+        {
+            var str = await resp.Content?.ReadAsStringAsync() ?? string.Empty;
+
+            // System.Net.HttpStatusCode do not contain StatusTooEarly
+            if ((int)resp.StatusCode == 425 || str.Contains(Constant.ResultOngoing))
+            {
+                return new DtmcliException(Constant.ResultOngoing);
+            }
+            else if (resp.StatusCode == System.Net.HttpStatusCode.Conflict || str.Contains(Constant.ResultFailure))
+            {
+                return new DtmcliException(Constant.ResultFailure);
+            }
+            else if (resp.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                return new Exception(str);
+            }
+
+            return null;
         }
     }
 }

@@ -114,7 +114,7 @@ namespace Dtmcli.Tests
         }
 
         [Fact]
-        public async void DoAndSubmitDB_Should_Abort_When_BusiCall_Return_Failure()
+        public async void DoAndSubmitDB_Should_Abort_When_BusiCall_ThrowExeption_With_ResultFailure()
         {
             var dtmClient = new Mock<IDtmClient>();
             MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
@@ -133,8 +133,8 @@ namespace Dtmcli.Tests
             db.Mocks.When(x => x.CommandText.Contains("insert", StringComparison.OrdinalIgnoreCase)).ReturnsScalar(cmd => 1);
             db.Mocks.When(x => x.CommandText.Contains("select", StringComparison.OrdinalIgnoreCase)).ReturnsScalar(cmd => "rollback");
 
-            var mockBusiCall = new Mock<Func<DbTransaction, Task<bool>>>();
-            mockBusiCall.Setup(x => x.Invoke(It.IsAny<DbTransaction>())).Returns(Task.FromResult(false));
+            var mockBusiCall = new Mock<Func<DbTransaction, Task>>();
+            mockBusiCall.Setup(x => x.Invoke(It.IsAny<DbTransaction>())).Throws(new Exception(Constant.ResultFailure));
 
             var res = await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
 
@@ -143,11 +143,12 @@ namespace Dtmcli.Tests
         }
 
         [Fact]
-        public async void DoAndSubmitDB_Should_QueryPrepared_When_BusiCall_Return_ThrowException()
+        public async void DoAndSubmitDB_Should_QueryPrepared_When_BusiCall_ThrowExeption_Without_ResultFailure()
         {
             var dtmClient = new Mock<IDtmClient>();
             MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
             MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
+            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, true);
             MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
 
             var gid = "TestMsgNormal";
@@ -168,7 +169,7 @@ namespace Dtmcli.Tests
 
             var res = await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
 
-            Assert.True(res);
+            Assert.False(res);
             dtmClient.Verify(x => x.TransRequestBranch(It.IsAny<DtmImp.TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -182,6 +183,7 @@ namespace Dtmcli.Tests
         private void MockTransRequestBranch(Mock<IDtmClient> mock, System.Net.HttpStatusCode statusCode)
         {
             var httpRspMsg = new HttpResponseMessage(statusCode);
+            httpRspMsg.Content = new StringContent("content");
 
             mock
                 .Setup(x => x.TransRequestBranch(It.IsAny<DtmImp.TransBase>(),It.IsAny<HttpMethod>() , It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))

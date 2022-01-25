@@ -54,7 +54,9 @@
 
         internal static readonly string ErrFailure = "FAILURE";
 
-        internal static readonly string Succeess = "SUCCESS";
+        internal static readonly string ResultFailure = "FAILURE";
+        internal static readonly string ResultSuccess = "SUCCESS";
+        internal static readonly string ResultOngoing = "ONGOING";
 
         internal static readonly int FailureStatusCode = 400;
 
