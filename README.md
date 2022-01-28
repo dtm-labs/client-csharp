@@ -67,6 +67,15 @@ await globalTransaction.Excecute(async (tcc) =>
 }
 ```
 
-# 可运行的使用示例
+## 可运行的使用示例
 
 见[https://github.com/dtm-labs/dtmcli-csharp-sample](https://github.com/dtm-labs/dtmcli-csharp-sample)
+
+## 联系我们
+### 公众号
+dtm官方公众号：分布式事务，大量干货分享，以及dtm的最新消息
+### 交流群
+请加 yedf2008 好友或者扫码加好友，验证回复 csharp 按照指引进群
+
+![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
+
