@@ -6,11 +6,53 @@ using System;
 using System.Threading.Tasks;
 using Moq;
 using System.Linq;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Dtmcli.Tests
 {
     public class BranchBarrierTests
     {
+#if NET5_0_OR_GREATER
+        [Fact]
+        public void CreateBranchBarrier_FromQs_Should_Succeed()
+        {
+            var factory = new DefaultBranchBarrierFactory(NullLoggerFactory.Instance);
+
+            var dict = new System.Collections.Generic.Dictionary<string, StringValues>()
+            {
+                { "branch_id","11" },
+                { "gid","1111" },
+                { "op","try" },
+                { "trans_type","tcc" },
+            };
+
+            var qs = new Microsoft.AspNetCore.Http.QueryCollection(dict);
+
+            var bb = factory.CreateBranchBarrier(qs);
+
+            Assert.NotNull(bb);
+        }
+
+        [Fact]
+        public void CreateBranchBarrier_FromQs_Should_ThrowException()
+        {
+            var factory = new DefaultBranchBarrierFactory(NullLoggerFactory.Instance);
+
+            var dict = new System.Collections.Generic.Dictionary<string, StringValues>()
+            {
+                { "branch_id","11" },
+                { "gid","1111" },
+                { "op","" },
+                { "trans_type","" },
+            };
+
+            var qs = new Microsoft.AspNetCore.Http.QueryCollection(dict);
+
+            Assert.Throws<DtmcliException>(() => factory.CreateBranchBarrier(qs));
+        }
+#endif
+
         [Theory]
         [InlineData("cancel", "try")]
         [InlineData("compensate", "action")]
