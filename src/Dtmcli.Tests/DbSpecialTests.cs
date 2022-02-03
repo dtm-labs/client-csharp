@@ -18,6 +18,12 @@ namespace Dtmcli.Tests
             var postgres = DtmImp.DbSpecialDelegate.Instance.GetDBSpecial();
             Assert.Equal("begin", postgres.GetXaSQL("start", "xa1"));
             Assert.Equal("insert into a(f) values(@f) on conflict ON CONSTRAINT c do nothing", postgres.GetInsertIgnoreTemplate("a(f) values(@f)", "c"));
+
+            DtmImp.DbSpecialDelegate.Instance.SetCurrentDBType("sqlserver");
+
+            var sqlserver = DtmImp.DbSpecialDelegate.Instance.GetDBSpecial();
+            Assert.Equal("insert into a(f) values(@f)", sqlserver.GetInsertIgnoreTemplate("a(f) values(@f)", "c"));
+            Assert.Throws<DtmcliException>(() => sqlserver.GetXaSQL("", ""));
         }
     }
 }
