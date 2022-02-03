@@ -119,7 +119,7 @@ namespace Dtmcli
 
             var reason = string.Empty;
            
-            var sql = string.Format(BarrierStatic.QueryPreparedSqlFormat, Constant.Barrier.TABLE_NAME);
+            var sql = string.Format(BarrierStatic.QueryPreparedSqlFormat, BarrierStatic.BarrierTableName);
 
             try
             {
@@ -165,9 +165,16 @@ namespace Dtmcli
 
         public override string ToString()
             => $"transInfo: {TransType} {Gid} {BranchID} {Op}";
+
+        public static void SetBarrierTableName(string tablename)
+        {
+            BarrierStatic.BarrierTableName = tablename;
+        }
+
+        public static string GetBarrierTableName() => BarrierStatic.BarrierTableName;
     }
 
-    internal class BarrierStatic
+    internal static class BarrierStatic
     {
         internal static readonly Dictionary<string, string> TypeDict = new Dictionary<string, string>()
         {
@@ -176,5 +183,7 @@ namespace Dtmcli
         };
 
         internal static readonly string QueryPreparedSqlFormat = "select reason from {0} where gid=@gid and branch_id=@branch_id and op=@op and barrier_id=@barrier_id";
+
+        internal static string BarrierTableName = Constant.Barrier.TABLE_NAME;
     }
 }
