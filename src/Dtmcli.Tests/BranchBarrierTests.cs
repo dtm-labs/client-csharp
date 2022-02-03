@@ -119,5 +119,37 @@ namespace Dtmcli.Tests
         }
 
         private MockDbConnection GetDbConnection() => new MockDbConnection();
+
+        [Fact]
+        public void SetBarrierTableName_Should_Succeed()
+        {
+            var cusTableName1 = "aaa.bbb";
+            var cusTableName2 = "aaa.ccc";
+
+            BranchBarrier.SetBarrierTableName(cusTableName1);
+            var tb1 = BranchBarrier.GetBarrierTableName();
+            Assert.Equal(cusTableName1, tb1);
+
+            BranchBarrier.SetBarrierTableName(cusTableName2);
+            var tb2 = BranchBarrier.GetBarrierTableName();
+            Assert.Equal(cusTableName2, tb2);
+        }
+
+        [Fact]
+        public async void DbUtils_Should_Work_With_Cus_BarrierTable_Name()
+        {
+            var cusTableName = "aaa.bbb";
+
+            BranchBarrier.SetBarrierTableName(cusTableName);
+            var tb = BranchBarrier.GetBarrierTableName();
+            Assert.Equal(cusTableName, tb);
+
+            var conn = GetDbConnection();
+            conn.Mocks.When(cmd => cmd.CommandText.Contains(cusTableName)).ReturnsScalar(cmd => 1);
+            conn.Mocks.When(cmd => !cmd.CommandText.Contains(cusTableName)).ReturnsScalar(cmd => 2);
+            var row = await DbUtils.InsertBarrier(conn, "tt", "gid", "bid", "op", "bid", "reason");
+
+            Assert.Equal(1, row);
+        }
     }
 }

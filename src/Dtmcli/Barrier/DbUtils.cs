@@ -12,7 +12,7 @@ namespace Dtmcli
             if (db == null) return -1;
             if (string.IsNullOrWhiteSpace(op)) return 0;
 
-            var str = string.Concat(Constant.Barrier.TABLE_NAME, "(trans_type, gid, branch_id, op, barrier_id, reason) values(@trans_type,@gid,@branch_id,@op,@barrier_id,@reason)");
+            var str = string.Concat(BarrierStatic.BarrierTableName, "(trans_type, gid, branch_id, op, barrier_id, reason) values(@trans_type,@gid,@branch_id,@op,@barrier_id,@reason)");
             var sql = DbSpecialDelegate.Instance.GetDBSpecial().GetInsertIgnoreTemplate(str, Constant.Barrier.PG_CONSTRAINT);
 
             sql = DbSpecialDelegate.Instance.GetDBSpecial().GetPlaceHoldSQL(sql);
