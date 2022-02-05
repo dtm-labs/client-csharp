@@ -44,7 +44,7 @@ DTM是一款跨语言的开源分布式事务管理器，优雅的解决了幂�
 项目中添加Nuget 包 Dtmcli. 
 
 ```
-dotnet add package Dtmcli --version 0.3.0
+dotnet add package Dtmcli --version 0.4.0
 ```
 
 ```
