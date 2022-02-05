@@ -63,6 +63,64 @@ namespace Dtmcli.DtmImp
         }
     }
 
+    public class SqlServerDBSpecial : IDbSpecial
+    {
+        private SqlServerDBSpecial()
+        { }
+
+        private static readonly Lazy<SqlServerDBSpecial> Instancelock =
+                    new Lazy<SqlServerDBSpecial>(() => new SqlServerDBSpecial());
+
+        public static SqlServerDBSpecial Instance => Instancelock.Value;
+
+        /*
+
+IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = 'dtm_barrier')
+BEGIN
+    CREATE DATABASE dtm_barrier
+    USE dtm_barrier
+END
+
+GO
+
+IF EXISTS (SELECT * FROM sysobjects WHERE id = object_id(N’[dbo].[barrier]’) and OBJECTPROPERTY(id, N’IsUserTable’) = 1)  
+BEGIN
+  DROP TABLE [dbo].[barrier]
+END
+
+GO
+
+CREATE TABLE [dbo].[barrier]
+(
+    [id] bigint NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    [trans_type] varchar(45) NOT NULL DEFAULT(''),
+    [gid] varchar(128) NOT NULL DEFAULT(''),
+    [branch_id] varchar(128) NOT NULL DEFAULT(''),
+    [op] varchar(45) NOT NULL DEFAULT(''),
+    [barrier_id] varchar(45) NOT NULL DEFAULT(''),
+    [reason] varchar(45) NOT NULL DEFAULT(''),
+    [create_time] datetime NOT NULL DEFAULT(getdate()) ,
+    [update_time] datetime NOT NULL DEFAULT(getdate())
+)
+
+GO
+
+CREATE UNIQUE INDEX[ix_uniq_barrier] ON[dbo].[barrier]
+        ([gid] ASC, [branch_id] ASC, [op] ASC, [barrier_id] ASC)
+WITH(IGNORE_DUP_KEY = ON)
+
+GO
+         */
+        public string GetInsertIgnoreTemplate(string tableAndValues, string pgConstraint)
+            => string.Format("insert into {0}", tableAndValues);
+
+        public string GetPlaceHoldSQL(string sql)
+            => sql;
+
+        public string GetXaSQL(string command, string xid)
+            => throw new DtmcliException("not support xa now!!!");
+    }
+
     public class DbSpecialDelegate
     {
         private DbSpecialDelegate()
@@ -77,6 +135,7 @@ namespace Dtmcli.DtmImp
         {
             { Constant.Barrier.DBTYPE_MYSQL, MysqlDBSpecial.Instance },
             { Constant.Barrier.DBTYPE_POSTGRES, PostgresDBSpecial.Instance },
+            { Constant.Barrier.DBTYPE_SQLSERVER, SqlServerDBSpecial.Instance },
         };
         private string _currentDBType = Constant.Barrier.DBTYPE_MYSQL;
 

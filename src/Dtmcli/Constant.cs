@@ -121,6 +121,8 @@
 
             internal static readonly string DBTYPE_POSTGRES = "postgres";
 
+            internal static readonly string DBTYPE_SQLSERVER = "sqlserver";
+
             internal static readonly string PG_CONSTRAINT = "uniq_barrier";
 
             internal static readonly string MSG_BARRIER_REASON = "rollback";
