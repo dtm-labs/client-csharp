@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -32,7 +33,14 @@ namespace Dtmcli.Tests
                 .EnableConcurrent()
                 .AddBranchOrder(2, new System.Collections.Generic.List<int> { 0, 1 })
                 .AddBranchOrder(3, new System.Collections.Generic.List<int> { 0, 1 })
-                .EnableWaitResult();
+                .EnableWaitResult()
+                .SetRetryInterval(10)
+                .SetTimeoutToFail(100)
+                .SetBranchHeaders(new Dictionary<string, string> 
+                {
+                    { "bh1", "123" },
+                    { "bh2", "456" },
+                });
 
             await sage.Submit();
         }
@@ -85,6 +93,10 @@ namespace Dtmcli.Tests
                 Assert.Equal("saga", transBase.TransType);
                 Assert.NotEmpty(transBase.CustomData);
                 Assert.True(transBase.WaitResult);
+                Assert.Equal(10, transBase.RetryInterval);
+                Assert.Equal(100, transBase.TimeoutToFail);
+                Assert.Contains("bh1", transBase.BranchHeaders.Keys);
+                Assert.Contains("bh2", transBase.BranchHeaders.Keys);
                 Assert.Equal(4, transBase.Payloads.Count);
                 Assert.Equal(4, transBase.Steps.Count);
 

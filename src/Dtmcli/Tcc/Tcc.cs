@@ -5,11 +5,8 @@ using System.Threading.Tasks;
 
 namespace Dtmcli
 {
-    public class Tcc
+    public class Tcc : DtmImp.AbstTrans
     {
-        private readonly DtmImp.TransBase _transBase;
-        private readonly IDtmClient _dtmClient;
-
         public Tcc(IDtmClient dtmHttpClient, DtmImp.TransBase transBase)
         {
             this._dtmClient = dtmHttpClient;
@@ -51,6 +48,6 @@ namespace Dtmcli
             return content;
         }
 
-        public DtmImp.TransBase GetTransBase() => _transBase; 
+        internal DtmImp.TransBase GetTransBase() => _transBase; 
     }
 }

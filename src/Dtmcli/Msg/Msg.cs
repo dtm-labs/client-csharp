@@ -8,11 +8,8 @@ using System.Threading.Tasks;
 
 namespace Dtmcli
 {
-    public class Msg
+    public class Msg : DtmImp.AbstTrans
     {
-        private readonly DtmImp.TransBase _transBase;
-        private readonly IDtmClient _dtmClient;
-
         public Msg(IDtmClient dtmHttpClient, string gid)
         {
             this._dtmClient = dtmHttpClient;
@@ -26,12 +23,6 @@ namespace Dtmcli
 
             this._transBase.Steps.Add(new Dictionary<string, string> { { Constant.Request.BRANCH_ACTION, action } });
             this._transBase.Payloads.Add(JsonSerializer.Serialize(postData));
-            return this;
-        }
-
-        public Msg EnableWaitResult()
-        {
-            this._transBase.WaitResult = true;
             return this;
         }
 

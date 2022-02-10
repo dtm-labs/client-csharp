@@ -7,13 +7,10 @@ using System.Threading.Tasks;
 
 namespace Dtmcli
 {
-    public class Saga
+    public class Saga : DtmImp.AbstTrans
     {
         private bool _concurrent = false;
         private Dictionary<int, List<int>> _orders = new Dictionary<int, List<int>>();
-
-        private readonly DtmImp.TransBase _transBase;
-        private readonly IDtmClient _dtmClient;
 
         public Saga(IDtmClient dtmHttpClient, string gid)
         {
@@ -51,12 +48,6 @@ namespace Dtmcli
             }
 
             return await _dtmClient.TransCallDtm(this._transBase, this._transBase, Constant.Request.OPERATION_SUBMIT, cancellationToken).ConfigureAwait(false);
-        }
-
-        public Saga EnableWaitResult()
-        { 
-            this._transBase.WaitResult = true;
-            return this;
         }
 
         internal DtmImp.TransBase GetTransBase() => this._transBase;

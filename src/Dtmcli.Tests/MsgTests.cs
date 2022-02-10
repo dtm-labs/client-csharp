@@ -1,6 +1,7 @@
 ﻿using Apps72.Dev.Data.DbMocker;
 using Moq;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Net.Http;
 using System.Threading;
@@ -31,7 +32,14 @@ namespace Dtmcli.Tests
 
             msg.Add(busi + "/TransOut", req)
                .Add(busi + "/TransIn", req)
-               .EnableWaitResult();
+               .EnableWaitResult()
+               .SetRetryInterval(10)
+               .SetTimeoutToFail(100)
+               .SetBranchHeaders(new Dictionary<string, string>
+                {
+                    { "bh1", "123" },
+                    { "bh2", "456" },
+                });
 
             var prepareRes = await msg.Prepare(busi + "/query");
             Assert.True(prepareRes);
@@ -205,6 +213,10 @@ namespace Dtmcli.Tests
                 Assert.Equal("TestMsgNormal", transBase.Gid);
                 Assert.Equal("msg", transBase.TransType);
                 Assert.True(transBase.WaitResult);
+                Assert.Equal(10, transBase.RetryInterval);
+                Assert.Equal(100, transBase.TimeoutToFail);
+                Assert.Contains("bh1", transBase.BranchHeaders.Keys);
+                Assert.Contains("bh2", transBase.BranchHeaders.Keys);
                 Assert.Equal(2, transBase.Payloads.Count);
                 Assert.Equal(2, transBase.Steps.Count);
 
