@@ -71,6 +71,43 @@ namespace Dtmcli.Tests
             dtmClient.Verify(x => x.TransCallDtm(It.IsAny<DtmImp.TransBase>(), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        [Fact]
+        public async void Set_TransOptions_Should_Succeed()
+        {
+            var dtmClient = new Mock<IDtmClient>();
+            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true);
+            MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
+
+            var gid = "tcc_gid";
+            var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
+            var res = await globalTrans.Excecute(gid, tcc => 
+            {
+                tcc.EnableWaitResult();
+                tcc.SetRetryInterval(10);
+                tcc.SetTimeoutToFail(100);
+                tcc.SetBranchHeaders(new Dictionary<string, string> 
+                {
+                    { "bh1", "123" },
+                    { "bh2", "456" },
+                });
+            },  async (tcc) =>
+            {
+                var res1 = await tcc.CallBranch(new { }, "http://localhost:9999/TransOutTry", "http://localhost:9999/TransOutConfirm", "http://localhost:9999/TransOutCancel", default);
+                var res2 = await tcc.CallBranch(new { }, "http://localhost:9999/TransInTry", "http://localhost:9999/TransInConfirm", "http://localhost:9999/TransInCancel", default);
+
+                var transBase = tcc.GetTransBase();
+
+                Assert.True(transBase.WaitResult);
+                Assert.Equal(10, transBase.RetryInterval);
+                Assert.Equal(100, transBase.TimeoutToFail);
+                Assert.Contains("bh1", transBase.BranchHeaders.Keys);
+                Assert.Contains("bh2", transBase.BranchHeaders.Keys);
+            });
+
+            Assert.Equal(gid, res);
+        }
+
         private void MockTransCallDtm(Mock<IDtmClient> mock, string op, bool result)
         {
             mock
