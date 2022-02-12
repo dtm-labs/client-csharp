@@ -15,13 +15,14 @@ namespace Dtmcli.Tests
         [Fact]
         public async void Submit_Should_Succeed()
         {
-            var mockHttpMessageHandler = new MsgMockHttpMessageHandler();
+            var fakeFactory = new Mock<IHttpClientFactory>();
 
-            var httpClient = new HttpClient(mockHttpMessageHandler)
-            {
-                BaseAddress = new Uri("http://localhost:36789")
-            };
-            var dtmClient = new DtmClient(httpClient);
+            var mockHttpMessageHandler = new MsgMockHttpMessageHandler();
+            var httpClient = new HttpClient(mockHttpMessageHandler);
+            fakeFactory.Setup(x=>x.CreateClient(It.IsAny<string>())).Returns(httpClient);
+
+            var dtmOptions = new DtmOptions { DtmUrl = "http://localhost:36789" };
+            var dtmClient = new DtmClient(fakeFactory.Object, Microsoft.Extensions.Options.Options.Create(dtmOptions));
 
             var gid = "TestMsgNormal";
             var msg = new Msg(dtmClient, gid);

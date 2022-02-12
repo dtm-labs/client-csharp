@@ -2,6 +2,9 @@
 {
     internal class Constant
     {
+        internal static readonly string DtmClientHttpName = "dtmClient";
+        internal static readonly string BranchClientHttpName = "branchClient";
+
         /// <summary>
         /// status for global/branch trans status.
         /// </summary>
@@ -111,6 +114,8 @@
             internal static readonly string TYPE_SAGA = "saga";
 
             internal static readonly string TYPE_MSG = "msg";
+
+            internal static readonly string URL_NewGid = "/api/dtmsvr/newGid";
         }
 
         internal class Barrier

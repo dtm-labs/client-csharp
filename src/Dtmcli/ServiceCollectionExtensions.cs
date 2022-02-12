@@ -11,16 +11,27 @@ namespace Dtmcli
             {
                 throw new ArgumentNullException(nameof(setupAction));
             }
-            var options = new DtmOptions();
-            setupAction(options);
 
-            services.AddHttpClient("dtmClient", client =>
+            services.AddOptions();
+            services.Configure(setupAction);
+
+            //var options = new DtmOptions();
+            //setupAction(options);
+
+            //services.AddHttpClient("dtmClient", client =>
+            //{
+            //    client.BaseAddress = new Uri(options.DtmUrl);
+            //    client.DefaultRequestHeaders.Add("Accept", "application/json");
+            //})
+            //.AddTypedClient<IDtmClient, DtmClient>();
+
+            services.AddHttpClient(Constant.DtmClientHttpName, client =>
             {
-                client.BaseAddress = new Uri(options.DtmUrl);
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
-            })
-            .AddTypedClient<IDtmClient, DtmClient>();
+            });
+            services.AddHttpClient(Constant.BranchClientHttpName);
 
+            services.AddSingleton<IDtmClient, DtmClient>();
             services.AddSingleton<TccGlobalTransaction>();
 
             services.AddSingleton<IBranchBarrierFactory, DefaultBranchBarrierFactory>();

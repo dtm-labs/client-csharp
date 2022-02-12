@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dtmcli
 {
-    public interface IDtmClient : IDisposable
+    public interface IDtmClient
     {
         Task<string> GenGid(CancellationToken cancellationToken);
 
