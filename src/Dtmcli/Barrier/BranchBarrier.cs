@@ -47,12 +47,17 @@ namespace Dtmcli
 
             try
             {
-                var originType = BarrierStatic.TypeDict.TryGetValue(this.Op, out var ot) ? ot : string.Empty;
+                var originOp = BarrierStatic.TypeDict.TryGetValue(this.Op, out var ot) ? ot : string.Empty;
 
-                var originAffected = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, originType, bid, this.Op, tx);
-                var currentAffected = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, this.Op, bid, this.Op, tx);
+                var (originAffected, oErr) = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, originOp, bid, this.Op, tx);
+                var (currentAffected, rErr) = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, this.Op, bid, this.Op, tx);
 
                 Logger?.LogDebug("originAffected: {originAffected} currentAffected: {currentAffected}", originAffected, currentAffected);
+
+                if (IsMsgRejected(rErr, this.Op, currentAffected))
+                {
+                    throw new DtmcliException(Constant.ResultDuplicated);
+                }
 
                 var isNullCompensation = IsNullCompensation(this.Op, originAffected);
                 var isDuplicateOrPend = IsDuplicateOrPend(currentAffected);
@@ -154,6 +159,16 @@ namespace Dtmcli
         /// <returns></returns>
         private bool IsDuplicateOrPend(int currentAffected)
             => currentAffected == 0;
+
+        /// <summary>
+        /// for msg's DoAndSubmit, repeated insert should be rejected.
+        /// </summary>
+        /// <param name="err">Barrier insert error</param>
+        /// <param name="op">op</param>
+        /// <param name="currentAffected">currentAffected</param>
+        /// <returns></returns>
+        private bool IsMsgRejected(string err, string op, int currentAffected)
+            => string.IsNullOrWhiteSpace(err) && op.Equals(Constant.Request.TYPE_MSG) && currentAffected == 0;
 
         public bool IsInValid()
         {

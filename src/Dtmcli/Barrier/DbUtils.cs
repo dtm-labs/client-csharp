@@ -7,22 +7,32 @@ namespace Dtmcli
 {
     public static class DbUtils
     {
-        public static async Task<int> InsertBarrier(DbConnection db, string transType, string gid, string branchID, string op, string barrierID, string reason, DbTransaction tx = null)
+        public static async Task<(int, string)> InsertBarrier(DbConnection db, string transType, string gid, string branchID, string op, string barrierID, string reason, DbTransaction tx = null)
         {
-            if (db == null) return -1;
-            if (string.IsNullOrWhiteSpace(op)) return 0;
+            if (db == null) return (-1, string.Empty);
+            if (string.IsNullOrWhiteSpace(op)) return (0, string.Empty);
 
-            var str = string.Concat(BarrierStatic.BarrierTableName, "(trans_type, gid, branch_id, op, barrier_id, reason) values(@trans_type,@gid,@branch_id,@op,@barrier_id,@reason)");
-            var sql = DbSpecialDelegate.Instance.GetDBSpecial().GetInsertIgnoreTemplate(str, Constant.Barrier.PG_CONSTRAINT);
+            int result = 0;
+            string err = string.Empty;
 
-            sql = DbSpecialDelegate.Instance.GetDBSpecial().GetPlaceHoldSQL(sql);
+            try
+            {
+                var str = string.Concat(BarrierStatic.BarrierTableName, "(trans_type, gid, branch_id, op, barrier_id, reason) values(@trans_type,@gid,@branch_id,@op,@barrier_id,@reason)");
+                var sql = DbSpecialDelegate.Instance.GetDBSpecial().GetInsertIgnoreTemplate(str, Constant.Barrier.PG_CONSTRAINT);
 
-            var result = await db.ExecuteAsync(
-                sql, 
-                new { trans_type = transType, gid = gid, branch_id = branchID, op = op, barrier_id = barrierID, reason = reason },
-                transaction: tx);
+                sql = DbSpecialDelegate.Instance.GetDBSpecial().GetPlaceHoldSQL(sql);
 
-            return result;
+                result = await db.ExecuteAsync(
+                    sql,
+                    new { trans_type = transType, gid = gid, branch_id = branchID, op = op, barrier_id = barrierID, reason = reason },
+                    transaction: tx);
+            }
+            catch (System.Exception ex)
+            {
+                err = ex.Message;
+            }
+
+            return (result, err);
         }
     }
 }
