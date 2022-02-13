@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Moq;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,13 +12,14 @@ namespace Dtmcli.Tests
         [Fact]
         public async void Submit_Should_Succeed()
         {
-            var mockHttpMessageHandler = new SageMockHttpMessageHandler();
+            var fakeFactory = new Mock<IHttpClientFactory>();
 
-            var httpClient = new HttpClient(mockHttpMessageHandler)
-            {
-                BaseAddress = new System.Uri("http://localhost:36789")
-            };
-            var dtmClient = new DtmClient(httpClient);
+            var mockHttpMessageHandler = new SageMockHttpMessageHandler();
+            var httpClient = new HttpClient(mockHttpMessageHandler);
+            fakeFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
+
+            var dtmOptions = new DtmOptions { DtmUrl = "http://localhost:36789" };
+            var dtmClient = new DtmClient(fakeFactory.Object, Microsoft.Extensions.Options.Options.Create(dtmOptions));
 
             var gid = "TestSagaNormal";
             var sage = new Saga(dtmClient, gid);
