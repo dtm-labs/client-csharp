@@ -23,14 +23,14 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
@@ -38,7 +38,7 @@
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
 	</ItemGroup>
 
 </Project>
