@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 
 namespace Dtmcli
 {
-    public class Saga : DtmImp.AbstTrans
+    public class Saga
     {
         private bool _concurrent = false;
         private Dictionary<int, List<int>> _orders = new Dictionary<int, List<int>>();
+
+        private readonly DtmImp.TransBase _transBase;
+        private readonly IDtmClient _dtmClient;
 
         public Saga(IDtmClient dtmHttpClient, string gid)
         {
@@ -51,5 +54,48 @@ namespace Dtmcli
         }
 
         internal DtmImp.TransBase GetTransBase() => this._transBase;
+
+        /// <summary>
+        /// Enable wait result for trans
+        /// </summary>
+        /// <returns></returns>
+        public Saga EnableWaitResult()
+        {
+            this._transBase.WaitResult = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Set timeout to fail for trans, unit is second
+        /// </summary>
+        /// <param name="timeoutToFail">timeout to fail</param>
+        /// <returns></returns>
+        public Saga SetTimeoutToFail(long timeoutToFail)
+        {
+            this._transBase.TimeoutToFail = timeoutToFail;
+            return this;
+        }
+
+        /// <summary>
+        /// Set retry interval for trans, unit is second
+        /// </summary>
+        /// <param name="retryInterval"></param>
+        /// <returns></returns>
+        public Saga SetRetryInterval(long retryInterval)
+        {
+            this._transBase.RetryInterval = retryInterval;
+            return this;
+        }
+
+        /// <summary>
+        /// Set branch headers for trans
+        /// </summary>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        public Saga SetBranchHeaders(Dictionary<string, string> headers)
+        {
+            this._transBase.BranchHeaders = headers;
+            return this;
+        }
     }
 }
