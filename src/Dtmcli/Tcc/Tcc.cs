@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 
 namespace Dtmcli
 {
-    public class Tcc : DtmImp.AbstTrans
+    public class Tcc
     {
+        private readonly DtmImp.TransBase _transBase;
+        private readonly IDtmClient _dtmClient;
+
         public Tcc(IDtmClient dtmHttpClient, DtmImp.TransBase transBase)
         {
             this._dtmClient = dtmHttpClient;
@@ -48,6 +51,49 @@ namespace Dtmcli
             return content;
         }
 
-        internal DtmImp.TransBase GetTransBase() => _transBase; 
+        internal DtmImp.TransBase GetTransBase() => _transBase;
+
+        /// <summary>
+        /// Enable wait result for trans
+        /// </summary>
+        /// <returns></returns>
+        public Tcc EnableWaitResult()
+        {
+            this._transBase.WaitResult = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Set timeout to fail for trans, unit is second
+        /// </summary>
+        /// <param name="timeoutToFail">timeout to fail</param>
+        /// <returns></returns>
+        public Tcc SetTimeoutToFail(long timeoutToFail)
+        {
+            this._transBase.TimeoutToFail = timeoutToFail;
+            return this;
+        }
+
+        /// <summary>
+        /// Set retry interval for trans, unit is second
+        /// </summary>
+        /// <param name="retryInterval"></param>
+        /// <returns></returns>
+        public Tcc SetRetryInterval(long retryInterval)
+        {
+            this._transBase.RetryInterval = retryInterval;
+            return this;
+        }
+
+        /// <summary>
+        /// Set branch headers for trans
+        /// </summary>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        public Tcc SetBranchHeaders(Dictionary<string, string> headers)
+        {
+            this._transBase.BranchHeaders = headers;
+            return this;
+        }
     }
 }

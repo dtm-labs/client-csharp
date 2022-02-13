@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 
 namespace Dtmcli
 {
-    public class Msg : DtmImp.AbstTrans
+    public class Msg
     {
+        private readonly DtmImp.TransBase _transBase;
+        private readonly IDtmClient _dtmClient;
+
         public Msg(IDtmClient dtmHttpClient, string gid)
         {
             this._dtmClient = dtmHttpClient;
@@ -108,6 +111,49 @@ namespace Dtmcli
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Enable wait result for trans
+        /// </summary>
+        /// <returns></returns>
+        public Msg EnableWaitResult()
+        {
+            this._transBase.WaitResult = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Set timeout to fail for trans, unit is second
+        /// </summary>
+        /// <param name="timeoutToFail">timeout to fail</param>
+        /// <returns></returns>
+        public Msg SetTimeoutToFail(long timeoutToFail)
+        {
+            this._transBase.TimeoutToFail = timeoutToFail;
+            return this;
+        }
+
+        /// <summary>
+        /// Set retry interval for trans, unit is second
+        /// </summary>
+        /// <param name="retryInterval"></param>
+        /// <returns></returns>
+        public Msg SetRetryInterval(long retryInterval)
+        {
+            this._transBase.RetryInterval = retryInterval;
+            return this;
+        }
+
+        /// <summary>
+        /// Set branch headers for trans
+        /// </summary>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        public Msg SetBranchHeaders(Dictionary<string, string> headers)
+        {
+            this._transBase.BranchHeaders = headers;
+            return this;
         }
     }
 }

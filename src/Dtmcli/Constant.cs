@@ -61,6 +61,12 @@
         internal static readonly string ResultSuccess = "SUCCESS";
         internal static readonly string ResultOngoing = "ONGOING";
 
+        /// <summary>
+        /// error of DUPLICATED for only msg
+        /// if QueryPrepared executed before call. then DoAndSubmit return this error
+        /// </summary>
+        internal static readonly string ResultDuplicated = "DUPLICATED";
+
         internal static readonly int FailureStatusCode = 400;
 
         internal class Request

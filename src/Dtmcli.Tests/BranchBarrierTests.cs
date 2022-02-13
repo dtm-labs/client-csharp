@@ -147,9 +147,33 @@ namespace Dtmcli.Tests
             var conn = GetDbConnection();
             conn.Mocks.When(cmd => cmd.CommandText.Contains(cusTableName)).ReturnsScalar(cmd => 1);
             conn.Mocks.When(cmd => !cmd.CommandText.Contains(cusTableName)).ReturnsScalar(cmd => 2);
-            var row = await DbUtils.InsertBarrier(conn, "tt", "gid", "bid", "op", "bid", "reason");
+            var (row, err) = await DbUtils.InsertBarrier(conn, "tt", "gid", "bid", "op", "bid", "reason");
 
             Assert.Equal(1, row);
+        }
+
+        [Fact]
+        public async void Call_Should_Throw_Duplicated_Exception_When_QueryPrepared_At_First()
+        {
+            var branchBarrier = new BranchBarrier("msg", "gid", "bid", "msg");
+
+            var connQ = GetDbConnection();
+            connQ.Mocks.When(cmd => cmd.CommandText.Contains("insert", StringComparison.Ordinal)).ReturnsScalar(cmd => 1);
+            connQ.Mocks.When(cmd => cmd.CommandText.Contains("select", StringComparison.OrdinalIgnoreCase)).ReturnsScalar(cmd => Constant.Barrier.MSG_BARRIER_REASON);
+
+            // QueryPrepared at first
+            var qRes = await branchBarrier.QueryPrepared(connQ);
+            Assert.Equal(Constant.ErrFailure, qRes);
+
+            var connC = GetDbConnection();
+            connC.Mocks.When(cmd => cmd.Parameters.AsList().Select(x => x.Value).Contains("msg")).ReturnsScalar(cmd => 0);
+
+            var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task<bool>>>();
+
+            // Call later
+            var ex = await Assert.ThrowsAsync<DtmcliException>(async () => await branchBarrier.Call(connC, mockBusiCall.Object));
+            Assert.Equal(Constant.ResultDuplicated, ex.Message);
+            mockBusiCall.Verify(x => x.Invoke(It.IsAny<System.Data.Common.DbTransaction>()), Times.Never);
         }
     }
 }
