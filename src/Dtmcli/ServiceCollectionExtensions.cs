@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Dtmcli
@@ -7,7 +8,7 @@ namespace Dtmcli
     {
         public static IServiceCollection AddDtmcli(this IServiceCollection services, Action<DtmOptions> setupAction)
         {
-            if(setupAction == null)
+            if (setupAction == null)
             {
                 throw new ArgumentNullException(nameof(setupAction));
             }
@@ -15,27 +16,39 @@ namespace Dtmcli
             services.AddOptions();
             services.Configure(setupAction);
 
-            //var options = new DtmOptions();
-            //setupAction(options);
+            return AddDtmcliCore(services);
+        }
 
-            //services.AddHttpClient("dtmClient", client =>
-            //{
-            //    client.BaseAddress = new Uri(options.DtmUrl);
-            //    client.DefaultRequestHeaders.Add("Accept", "application/json");
-            //})
-            //.AddTypedClient<IDtmClient, DtmClient>();
+        public static IServiceCollection AddDtmcli(this IServiceCollection services, IConfiguration configuration, string sectionName = "dtm")
+        {
+            services.Configure<DtmOptions>(configuration.GetSection(sectionName));
 
+            return AddDtmcliCore(services);
+        }
+
+        private static IServiceCollection AddDtmcliCore(IServiceCollection services)
+        {
+            AddHttpClient(services);
+            AddDtmCore(services);
+
+            return services;
+        }
+
+        private static void AddHttpClient(IServiceCollection services)
+        {
             services.AddHttpClient(Constant.DtmClientHttpName, client =>
             {
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
             });
             services.AddHttpClient(Constant.BranchClientHttpName);
+        }
 
+        private static void AddDtmCore(IServiceCollection services)
+        {
             services.AddSingleton<IDtmClient, DtmClient>();
             services.AddSingleton<TccGlobalTransaction>();
 
             services.AddSingleton<IBranchBarrierFactory, DefaultBranchBarrierFactory>();
-            return services;
         }
     }
 }
