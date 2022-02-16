@@ -19,15 +19,7 @@ namespace Dtmcli.Tests
 
         public BranchBarrierTests()
         {
-            var dtm = "http://localhost:36789";
-            var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddDtmcli(x =>
-            {
-                x.DtmUrl = dtm;
-            });
-
-            var provider = services.BuildServiceProvider();
+            var provider = TestHelper.AddDtmCli();
 
             var factory = provider.GetRequiredService<IBranchBarrierFactory>();
             _factory = factory;
@@ -139,16 +131,7 @@ namespace Dtmcli.Tests
         [Fact]
         public void SetBarrierTableName_Should_Succeed()
         {
-            var dtm = "http://localhost:36790";
-            var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddDtmcli(x =>
-            {
-                x.DtmUrl = dtm;
-                x.BarrierTableName = "aaa.bbb";
-            });
-
-            var provider = services.BuildServiceProvider();
+            var provider = TestHelper.AddDtmCli(tbName: "aaa.bbb");
 
             var factory = provider.GetRequiredService<IBranchBarrierFactory>();
 
@@ -160,16 +143,8 @@ namespace Dtmcli.Tests
         [Fact]
         public async void DbUtils_Should_Work_With_Cus_BarrierTable_Name()
         {
-            var dtm = "http://localhost:36790";
-            var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddDtmcli(x =>
-            {
-                x.DtmUrl = dtm;
-                x.BarrierTableName = "aaa.bbb";
-            });
+            var provider = TestHelper.AddDtmCli(tbName: "aaa.bbb");
 
-            var provider = services.BuildServiceProvider();
             var dbUtils = provider.GetRequiredService<DbUtils>();
 
             var conn = GetDbConnection();

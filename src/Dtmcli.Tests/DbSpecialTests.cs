@@ -9,15 +9,7 @@ namespace Dtmcli.Tests
         [Fact]
         public void Test_Default_DbSpecial()
         {
-            var dtm = "http://localhost:36790";
-            var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddDtmcli(x =>
-            {
-                x.DtmUrl = dtm;
-            });
-
-            var provider = services.BuildServiceProvider();
+            var provider = TestHelper.AddDtmCli();
             var dbSpecialDelegate = provider.GetRequiredService<DbSpecialDelegate>();
 
             var special = dbSpecialDelegate.GetDbSpecial();
@@ -30,16 +22,7 @@ namespace Dtmcli.Tests
         [Fact]
         public void Test_PgSQL_DbSpecial()
         {
-            var dtm = "http://localhost:36790";
-            var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddDtmcli(x =>
-            {
-                x.DtmUrl = dtm;
-                x.DBType = "postgres";
-            });
-
-            var provider = services.BuildServiceProvider();
+            var provider = TestHelper.AddDtmCli(db: "postgres");
             var dbSpecialDelegate = provider.GetRequiredService<DbSpecialDelegate>();
 
             var special = dbSpecialDelegate.GetDbSpecial();
@@ -52,16 +35,7 @@ namespace Dtmcli.Tests
         [Fact]
         public void Test_MsSQL_DbSpecial()
         {
-            var dtm = "http://localhost:36790";
-            var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddDtmcli(x =>
-            {
-                x.DtmUrl = dtm;
-                x.DBType = "sqlserver";
-            });
-
-            var provider = services.BuildServiceProvider();
+            var provider = TestHelper.AddDtmCli(db: "sqlserver");
             var dbSpecialDelegate = provider.GetRequiredService<DbSpecialDelegate>();
 
             var special = dbSpecialDelegate.GetDbSpecial();
@@ -74,16 +48,7 @@ namespace Dtmcli.Tests
         [Fact]
         public void Test_Other_DbSpecial()
         {
-            var dtm = "http://localhost:36790";
-            var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddDtmcli(x =>
-            {
-                x.DtmUrl = dtm;
-                x.DBType = "other";
-            });
-
-            var provider = services.BuildServiceProvider();
+            var provider = TestHelper.AddDtmCli(db: "other");
 
             var ex = Assert.Throws<DtmcliException>(() => provider.GetRequiredService<DbSpecialDelegate>());
             Assert.Equal("unknown db type 'other'", ex.Message);
