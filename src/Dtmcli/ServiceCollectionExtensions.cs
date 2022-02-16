@@ -45,9 +45,19 @@ namespace Dtmcli
 
         private static void AddDtmCore(IServiceCollection services)
         {
+            // trans releate
+            services.AddSingleton<IDtmTransFactory, DtmTransFactory>();
             services.AddSingleton<IDtmClient, DtmClient>();
             services.AddSingleton<TccGlobalTransaction>();
 
+            // barrier database relate
+            services.AddSingleton<DtmImp.IDbSpecial, DtmImp.MysqlDBSpecial>();
+            services.AddSingleton<DtmImp.IDbSpecial, DtmImp.PostgresDBSpecial>();
+            services.AddSingleton<DtmImp.IDbSpecial, DtmImp.SqlServerDBSpecial>();
+            services.AddSingleton<DtmImp.DbSpecialDelegate>();
+            services.AddSingleton<DtmImp.DbUtils>();
+
+            // barrier factory
             services.AddSingleton<IBranchBarrierFactory, DefaultBranchBarrierFactory>();
         }
     }

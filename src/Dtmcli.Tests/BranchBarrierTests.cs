@@ -8,17 +8,35 @@ using Moq;
 using System.Linq;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Dtmcli.DtmImp;
 
 namespace Dtmcli.Tests
 {
     public class BranchBarrierTests
     {
+        private readonly IBranchBarrierFactory _factory;
+
+        public BranchBarrierTests()
+        {
+            var dtm = "http://localhost:36789";
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddDtmcli(x =>
+            {
+                x.DtmUrl = dtm;
+            });
+
+            var provider = services.BuildServiceProvider();
+
+            var factory = provider.GetRequiredService<IBranchBarrierFactory>();
+            _factory = factory;
+        }
+
 #if NET5_0_OR_GREATER
         [Fact]
         public void CreateBranchBarrier_FromQs_Should_Succeed()
         {
-            var factory = new DefaultBranchBarrierFactory(NullLoggerFactory.Instance);
-
             var dict = new System.Collections.Generic.Dictionary<string, StringValues>()
             {
                 { "branch_id","11" },
@@ -29,7 +47,7 @@ namespace Dtmcli.Tests
 
             var qs = new Microsoft.AspNetCore.Http.QueryCollection(dict);
 
-            var bb = factory.CreateBranchBarrier(qs);
+            var bb = _factory.CreateBranchBarrier(qs);
 
             Assert.NotNull(bb);
         }
@@ -37,8 +55,6 @@ namespace Dtmcli.Tests
         [Fact]
         public void CreateBranchBarrier_FromQs_Should_ThrowException()
         {
-            var factory = new DefaultBranchBarrierFactory(NullLoggerFactory.Instance);
-
             var dict = new System.Collections.Generic.Dictionary<string, StringValues>()
             {
                 { "branch_id","11" },
@@ -49,7 +65,7 @@ namespace Dtmcli.Tests
 
             var qs = new Microsoft.AspNetCore.Http.QueryCollection(dict);
 
-            Assert.Throws<DtmcliException>(() => factory.CreateBranchBarrier(qs));
+            Assert.Throws<DtmcliException>(() => _factory.CreateBranchBarrier(qs));
         }
 #endif
 
@@ -58,7 +74,7 @@ namespace Dtmcli.Tests
         [InlineData("compensate", "action")]
         public async void Call_Should_Not_Trigger_When_IsNullCompensation(string op, string origin)
         {
-            var branchBarrier = new BranchBarrier("tcc", "gid", "bid", op);
+            var branchBarrier = _factory.CreateBranchBarrier("tcc", "gid", "bid", op);
 
             var conn = GetDbConnection();
 
@@ -79,7 +95,7 @@ namespace Dtmcli.Tests
         [InlineData("other1", "other2")]
         public async void Call_Should_Not_Trigger_When_IsDuplicateOrPend(string op, string origin)
         {
-            var branchBarrier = new BranchBarrier("tcc", "gid", "bid", op);
+            var branchBarrier = _factory.CreateBranchBarrier("tcc", "gid", "bid", op);
 
             var conn = GetDbConnection();
 
@@ -101,7 +117,7 @@ namespace Dtmcli.Tests
         [InlineData("compensate", "action")]
         public async void Call_Should_Trigger_When_IsNotNullCompensation_And_DuplicateOrPend(string op, string origin)
         {
-            var branchBarrier = new BranchBarrier("tcc", "gid", "bid", op);
+            var branchBarrier = _factory.CreateBranchBarrier("tcc", "gid", "bid", op);
 
             var conn = GetDbConnection();
 
@@ -123,31 +139,43 @@ namespace Dtmcli.Tests
         [Fact]
         public void SetBarrierTableName_Should_Succeed()
         {
-            var cusTableName1 = "aaa.bbb";
-            var cusTableName2 = "aaa.ccc";
+            var dtm = "http://localhost:36790";
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddDtmcli(x =>
+            {
+                x.DtmUrl = dtm;
+                x.BarrierTableName = "aaa.bbb";
+            });
 
-            BranchBarrier.SetBarrierTableName(cusTableName1);
-            var tb1 = BranchBarrier.GetBarrierTableName();
-            Assert.Equal(cusTableName1, tb1);
+            var provider = services.BuildServiceProvider();
 
-            BranchBarrier.SetBarrierTableName(cusTableName2);
-            var tb2 = BranchBarrier.GetBarrierTableName();
-            Assert.Equal(cusTableName2, tb2);
+            var factory = provider.GetRequiredService<IBranchBarrierFactory>();
+
+            var branchBarrier = factory.CreateBranchBarrier("msg", "gid", "bid", "msg");
+
+            Assert.Equal("aaa.bbb", branchBarrier.DtmOptions.BarrierTableName);
         }
 
         [Fact]
         public async void DbUtils_Should_Work_With_Cus_BarrierTable_Name()
         {
-            var cusTableName = "aaa.bbb";
+            var dtm = "http://localhost:36790";
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddDtmcli(x =>
+            {
+                x.DtmUrl = dtm;
+                x.BarrierTableName = "aaa.bbb";
+            });
 
-            BranchBarrier.SetBarrierTableName(cusTableName);
-            var tb = BranchBarrier.GetBarrierTableName();
-            Assert.Equal(cusTableName, tb);
+            var provider = services.BuildServiceProvider();
+            var dbUtils = provider.GetRequiredService<DbUtils>();
 
             var conn = GetDbConnection();
-            conn.Mocks.When(cmd => cmd.CommandText.Contains(cusTableName)).ReturnsScalar(cmd => 1);
-            conn.Mocks.When(cmd => !cmd.CommandText.Contains(cusTableName)).ReturnsScalar(cmd => 2);
-            var (row, err) = await DbUtils.InsertBarrier(conn, "tt", "gid", "bid", "op", "bid", "reason");
+            conn.Mocks.When(cmd => cmd.CommandText.Contains("aaa.bbb")).ReturnsScalar(cmd => 1);
+            conn.Mocks.When(cmd => !cmd.CommandText.Contains("aaa.bbb")).ReturnsScalar(cmd => 2);
+            var (row, err) = await dbUtils.InsertBarrier(conn, "tt", "gid", "bid", "op", "bid", "reason");
 
             Assert.Equal(1, row);
         }
@@ -155,7 +183,7 @@ namespace Dtmcli.Tests
         [Fact]
         public async void Call_Should_Throw_Duplicated_Exception_When_QueryPrepared_At_First()
         {
-            var branchBarrier = new BranchBarrier("msg", "gid", "bid", "msg");
+            var branchBarrier = _factory.CreateBranchBarrier("msg", "gid", "bid", "msg");
 
             var connQ = GetDbConnection();
             connQ.Mocks.When(cmd => cmd.CommandText.Contains("insert", StringComparison.Ordinal)).ReturnsScalar(cmd => 1);

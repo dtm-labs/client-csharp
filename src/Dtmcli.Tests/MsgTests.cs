@@ -1,4 +1,5 @@
 ﻿using Apps72.Dev.Data.DbMocker;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,26 @@ namespace Dtmcli.Tests
 {
     public class MsgTests
     {
+        private readonly IBranchBarrierFactory _branchBarrierFactory;
+
+        private static readonly string busi = "http://localhost:8081/busisvc";
+
+        public MsgTests()
+        {
+            var dtm = "http://localhost:36790";
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddDtmcli(x =>
+            {
+                x.DtmUrl = dtm;
+            });
+
+            var provider = services.BuildServiceProvider();
+
+            var factory = provider.GetRequiredService<IBranchBarrierFactory>();
+            _branchBarrierFactory = factory;
+        }
+
         [Fact]
         public async void Submit_Should_Succeed()
         {
@@ -25,9 +46,7 @@ namespace Dtmcli.Tests
             var dtmClient = new DtmClient(fakeFactory.Object, Microsoft.Extensions.Options.Options.Create(dtmOptions));
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -56,9 +75,7 @@ namespace Dtmcli.Tests
             MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
 
             var gid = string.Empty;
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -76,9 +93,7 @@ namespace Dtmcli.Tests
             MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -101,9 +116,7 @@ namespace Dtmcli.Tests
             MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, true);
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -130,9 +143,7 @@ namespace Dtmcli.Tests
             MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -161,9 +172,7 @@ namespace Dtmcli.Tests
             MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
