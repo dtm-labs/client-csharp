@@ -14,9 +14,9 @@ namespace Dtmcli.Tests
         public async void Execute_Should_Submit()
         {
             var dtmClient = new Mock<IDtmClient>();
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true);
-            MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            TestHelper.MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true);
+            TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
 
             var gid = "tcc_gid";
             var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
@@ -33,10 +33,10 @@ namespace Dtmcli.Tests
         public async void Execute_Should_Abort_When_CallBranch_With_Old_Ver_Exception()
         {
             var dtmClient = new Mock<IDtmClient>();
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
-            MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true);
-            MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK, "FAILURE");
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
+            TestHelper.MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true);
+            TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK, "FAILURE");
 
             var gid = "tcc_gid";
             var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
@@ -54,10 +54,10 @@ namespace Dtmcli.Tests
         public async void Execute_Should_Abort_When_CallBranch_With_New_Ver_Exception()
         {
             var dtmClient = new Mock<IDtmClient>();
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
-            MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true);
-            MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.BadRequest);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
+            TestHelper.MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true);
+            TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.BadRequest);
 
             var gid = "tcc_gid";
             var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
@@ -75,9 +75,9 @@ namespace Dtmcli.Tests
         public async void Set_TransOptions_Should_Succeed()
         {
             var dtmClient = new Mock<IDtmClient>();
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true);
-            MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            TestHelper.MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true);
+            TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
 
             var gid = "tcc_gid";
             var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
@@ -106,30 +106,6 @@ namespace Dtmcli.Tests
             });
 
             Assert.Equal(gid, res);
-        }
-
-        private void MockTransCallDtm(Mock<IDtmClient> mock, string op, bool result)
-        {
-            mock
-                .Setup(x => x.TransCallDtm(It.IsAny<DtmImp.TransBase>(), It.IsAny<object>(), op, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(result));
-        }
-
-        private void MockTransRegisterBranch(Mock<IDtmClient> mock, string op, bool result)
-        {
-            mock
-                .Setup(x => x.TransRegisterBranch(It.IsAny<DtmImp.TransBase>(), It.IsAny<Dictionary<string, string>>(), op, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(result));
-        }
-
-        private void MockTransRequestBranch(Mock<IDtmClient> mock, System.Net.HttpStatusCode statusCode, string content = "content")
-        {
-            var httpRspMsg = new HttpResponseMessage(statusCode);
-            httpRspMsg.Content = new StringContent(content);
-
-            mock
-                .Setup(x => x.TransRequestBranch(It.IsAny<DtmImp.TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(httpRspMsg));
         }
     }
 }

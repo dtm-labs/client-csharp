@@ -1,4 +1,5 @@
 ﻿using Apps72.Dev.Data.DbMocker;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,18 @@ namespace Dtmcli.Tests
 {
     public class MsgTests
     {
+        private readonly IBranchBarrierFactory _branchBarrierFactory;
+
+        private static readonly string busi = "http://localhost:8081/busisvc";
+
+        public MsgTests()
+        {
+            var provider = TestHelper.AddDtmCli();
+
+            var factory = provider.GetRequiredService<IBranchBarrierFactory>();
+            _branchBarrierFactory = factory;
+        }
+
         [Fact]
         public async void Submit_Should_Succeed()
         {
@@ -25,9 +38,7 @@ namespace Dtmcli.Tests
             var dtmClient = new DtmClient(fakeFactory.Object, Microsoft.Extensions.Options.Options.Create(dtmOptions));
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -53,12 +64,10 @@ namespace Dtmcli.Tests
         public async void DoAndSubmitDB_Should_Throw_Exception_When_Transbase_InValid()
         {
             var dtmClient = new Mock<IDtmClient>();
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
 
             var gid = string.Empty;
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -73,12 +82,10 @@ namespace Dtmcli.Tests
         public async void DoAndSubmitDB_Should_Not_Call_Barrier_When_Prepare_Fail()
         {
             var dtmClient = new Mock<IDtmClient>();
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -97,13 +104,11 @@ namespace Dtmcli.Tests
         public async void DoAndSubmitDB_Should_Succeed()
         {
             var dtmClient = new Mock<IDtmClient>();
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, true);
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -126,13 +131,11 @@ namespace Dtmcli.Tests
         public async void DoAndSubmitDB_Should_Abort_When_BusiCall_ThrowExeption_With_ResultFailure()
         {
             var dtmClient = new Mock<IDtmClient>();
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -155,15 +158,13 @@ namespace Dtmcli.Tests
         public async void DoAndSubmitDB_Should_QueryPrepared_When_BusiCall_ThrowExeption_Without_ResultFailure()
         {
             var dtmClient = new Mock<IDtmClient>();
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
-            MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, true);
-            MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, true);
+            TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
 
             var gid = "TestMsgNormal";
-            var msg = new Msg(dtmClient.Object, gid);
-
-            var busi = "http://localhost:8081/api/busi";
+            var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
 
             var req = new { Amount = 30 };
 
@@ -181,24 +182,7 @@ namespace Dtmcli.Tests
             Assert.False(res);
             dtmClient.Verify(x => x.TransRequestBranch(It.IsAny<DtmImp.TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
-
-        private void MockTransCallDtm(Mock<IDtmClient> mock, string op, bool result)
-        {
-            mock
-                .Setup(x => x.TransCallDtm(It.IsAny<DtmImp.TransBase>(), It.IsAny<object>(), op, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(result));
-        }
-
-        private void MockTransRequestBranch(Mock<IDtmClient> mock, System.Net.HttpStatusCode statusCode)
-        {
-            var httpRspMsg = new HttpResponseMessage(statusCode);
-            httpRspMsg.Content = new StringContent("content");
-
-            mock
-                .Setup(x => x.TransRequestBranch(It.IsAny<DtmImp.TransBase>(),It.IsAny<HttpMethod>() , It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(httpRspMsg));
-        }
-
+        
         public class MsgMockHttpMessageHandler : DelegatingHandler
         {
             public MsgMockHttpMessageHandler()

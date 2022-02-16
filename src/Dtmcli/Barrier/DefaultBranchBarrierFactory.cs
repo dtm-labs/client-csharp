@@ -1,22 +1,27 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using Dtmcli.DtmImp;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Dtmcli
 {
     public class DefaultBranchBarrierFactory : IBranchBarrierFactory
     {
         private readonly ILogger _logger;
+        private readonly DtmOptions _options;
+        private readonly DbUtils _dbUtils;
 
-        public DefaultBranchBarrierFactory(ILoggerFactory loggerFactory)
+        public DefaultBranchBarrierFactory(ILoggerFactory loggerFactory, IOptions<DtmOptions> optionsAccs, DbUtils dbUtils)
         { 
             this._logger = loggerFactory.CreateLogger<DefaultBranchBarrierFactory>();
+            this._dbUtils = dbUtils;
+            this._options = optionsAccs.Value;
         }
 
         public BranchBarrier CreateBranchBarrier(string transType, string gid, string branchID, string op, ILogger logger = null)
         {
             if(logger == null) logger = _logger;
 
-            var ti = new BranchBarrier(transType, gid, branchID, op, logger);
+            var ti = new BranchBarrier(transType, gid, branchID, op, _options, _dbUtils, logger);
 
             if (ti.IsInValid()) throw new DtmcliException($"invalid trans info: {ti.ToString()}");
 
@@ -33,7 +38,7 @@ namespace Dtmcli
             _ = query.TryGetValue(Constant.Request.OP, out var op);
             _ = query.TryGetValue(Constant.Request.TRANS_TYPE, out var transType);
 
-            var ti = new BranchBarrier(transType, gid, branchID, op, logger);
+            var ti = new BranchBarrier(transType, gid, branchID, op, _options, _dbUtils, logger);
 
             if (ti.IsInValid()) throw new DtmcliException($"invalid trans info: {ti.ToString()}");
 

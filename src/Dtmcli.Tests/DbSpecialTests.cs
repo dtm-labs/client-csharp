@@ -1,29 +1,57 @@
-﻿using Xunit;
+﻿using Dtmcli.DtmImp;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace Dtmcli.Tests
 {
     public class DbSpecialTests
     {
         [Fact]
-        public void TestDbSpecial()
+        public void Test_Default_DbSpecial()
         {
-            DtmImp.DbSpecialDelegate.Instance.SetCurrentDBType("mysql");
+            var provider = TestHelper.AddDtmCli();
+            var dbSpecialDelegate = provider.GetRequiredService<DbSpecialDelegate>();
 
-            var mysql = DtmImp.DbSpecialDelegate.Instance.GetDBSpecial();
-            Assert.Equal("xa start 'xa1'", mysql.GetXaSQL("start", "xa1"));
-            Assert.Equal("insert ignore into a(f) values(@f)", mysql.GetInsertIgnoreTemplate("a(f) values(@f)", "c"));
+            var special = dbSpecialDelegate.GetDbSpecial();
 
-            DtmImp.DbSpecialDelegate.Instance.SetCurrentDBType("postgres");
+            Assert.IsType<MysqlDBSpecial>(special);
+            Assert.Equal("xa start 'xa1'", special.GetXaSQL("start", "xa1"));
+            Assert.Equal("insert ignore into a(f) values(@f)", special.GetInsertIgnoreTemplate("a(f) values(@f)", "c"));
+        }
 
-            var postgres = DtmImp.DbSpecialDelegate.Instance.GetDBSpecial();
-            Assert.Equal("begin", postgres.GetXaSQL("start", "xa1"));
-            Assert.Equal("insert into a(f) values(@f) on conflict ON CONSTRAINT c do nothing", postgres.GetInsertIgnoreTemplate("a(f) values(@f)", "c"));
+        [Fact]
+        public void Test_PgSQL_DbSpecial()
+        {
+            var provider = TestHelper.AddDtmCli(db: "postgres");
+            var dbSpecialDelegate = provider.GetRequiredService<DbSpecialDelegate>();
 
-            DtmImp.DbSpecialDelegate.Instance.SetCurrentDBType("sqlserver");
+            var special = dbSpecialDelegate.GetDbSpecial();
 
-            var sqlserver = DtmImp.DbSpecialDelegate.Instance.GetDBSpecial();
-            Assert.Equal("insert into a(f) values(@f)", sqlserver.GetInsertIgnoreTemplate("a(f) values(@f)", "c"));
-            Assert.Throws<DtmcliException>(() => sqlserver.GetXaSQL("", ""));
+            Assert.IsType<PostgresDBSpecial>(special);
+            Assert.Equal("begin", special.GetXaSQL("start", "xa1"));
+            Assert.Equal("insert into a(f) values(@f) on conflict ON CONSTRAINT c do nothing", special.GetInsertIgnoreTemplate("a(f) values(@f)", "c"));
+        }
+
+        [Fact]
+        public void Test_MsSQL_DbSpecial()
+        {
+            var provider = TestHelper.AddDtmCli(db: "sqlserver");
+            var dbSpecialDelegate = provider.GetRequiredService<DbSpecialDelegate>();
+
+            var special = dbSpecialDelegate.GetDbSpecial();
+
+            Assert.IsType<SqlServerDBSpecial>(special);
+            Assert.Equal("insert into a(f) values(@f)", special.GetInsertIgnoreTemplate("a(f) values(@f)", "c"));
+            Assert.Throws<DtmcliException>(() => special.GetXaSQL("", ""));
+        }
+
+        [Fact]
+        public void Test_Other_DbSpecial()
+        {
+            var provider = TestHelper.AddDtmCli(db: "other");
+
+            var ex = Assert.Throws<DtmcliException>(() => provider.GetRequiredService<DbSpecialDelegate>());
+            Assert.Equal("unknown db type 'other'", ex.Message);
         }
     }
 }

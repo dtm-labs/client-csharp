@@ -12,10 +12,12 @@ namespace Dtmcli
     {
         private readonly DtmImp.TransBase _transBase;
         private readonly IDtmClient _dtmClient;
+        private readonly IBranchBarrierFactory _branchBarrierFactory;
 
-        public Msg(IDtmClient dtmHttpClient, string gid)
+        public Msg(IDtmClient dtmHttpClient, IBranchBarrierFactory branchBarrierFactory, string gid)
         {
             this._dtmClient = dtmHttpClient;
+            this._branchBarrierFactory = branchBarrierFactory;
             this._transBase = DtmImp.TransBase.NewTransBase(gid, Constant.Request.TYPE_MSG, string.Empty);
         }
 
@@ -51,7 +53,7 @@ namespace Dtmcli
 
         public async Task<bool> DoAndSubmit(string queryPrepared, Func<BranchBarrier, Task> busiCall, CancellationToken cancellationToken = default)
         {
-            var bb = new BranchBarrier(this._transBase.TransType, this._transBase.Gid, Constant.Barrier.MSG_BRANCHID, Constant.Request.TYPE_MSG);
+            var bb = _branchBarrierFactory.CreateBranchBarrier(this._transBase.TransType, this._transBase.Gid, Constant.Barrier.MSG_BRANCHID, Constant.Request.TYPE_MSG);            
 
             if (bb.IsInValid()) throw new DtmcliException($"invalid trans info: {bb.ToString()}");
 

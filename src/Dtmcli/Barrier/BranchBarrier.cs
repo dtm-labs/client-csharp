@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Dtmcli.DtmImp;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -9,14 +10,27 @@ namespace Dtmcli
 {
     public class BranchBarrier
     {
-        public BranchBarrier(string transType, string gid, string branchID, string op, ILogger logger = null)
+        private static readonly string QueryPreparedSqlFormat = "select reason from {0} where gid=@gid and branch_id=@branch_id and op=@op and barrier_id=@barrier_id";
+        private static readonly Dictionary<string, string> TypeDict = new Dictionary<string, string>()
+        {
+            { "cancel", "try" },
+            { "compensate", "action" },
+        };
+
+        public BranchBarrier(string transType, string gid, string branchID, string op, DtmOptions options, DbUtils utils, ILogger logger = null)
         {
             this.TransType = transType;
             this.Gid = gid;
             this.BranchID = branchID;
             this.Op = op;
             this.Logger = logger;
+            this.DtmOptions = options;
+            this.DbUtils = utils;
         }
+
+        internal DbUtils DbUtils { get; private set; }
+
+        internal DtmOptions DtmOptions { get; private set; }
 
         internal ILogger Logger { get; private set; }
 
@@ -47,7 +61,7 @@ namespace Dtmcli
 
             try
             {
-                var originOp = BarrierStatic.TypeDict.TryGetValue(this.Op, out var ot) ? ot : string.Empty;
+                var originOp = TypeDict.TryGetValue(this.Op, out var ot) ? ot : string.Empty;
 
                 var (originAffected, oErr) = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, originOp, bid, this.Op, tx);
                 var (currentAffected, rErr) = await DbUtils.InsertBarrier(db, this.TransType, this.Gid, this.BranchID, this.Op, bid, this.Op, tx);
@@ -123,8 +137,8 @@ namespace Dtmcli
             }
 
             var reason = string.Empty;
-           
-            var sql = string.Format(BarrierStatic.QueryPreparedSqlFormat, BarrierStatic.BarrierTableName);
+
+            var sql = string.Format(QueryPreparedSqlFormat, DtmOptions.BarrierTableName);
 
             try
             {
@@ -180,25 +194,5 @@ namespace Dtmcli
 
         public override string ToString()
             => $"transInfo: {TransType} {Gid} {BranchID} {Op}";
-
-        public static void SetBarrierTableName(string tablename)
-        {
-            BarrierStatic.BarrierTableName = tablename;
-        }
-
-        public static string GetBarrierTableName() => BarrierStatic.BarrierTableName;
-    }
-
-    internal static class BarrierStatic
-    {
-        internal static readonly Dictionary<string, string> TypeDict = new Dictionary<string, string>()
-        {
-            { Constant.BranchCancel, Constant.BranchTry },
-            { Constant.Request.BRANCH_COMPENSATE, Constant.Request.BRANCH_ACTION },
-        };
-
-        internal static readonly string QueryPreparedSqlFormat = "select reason from {0} where gid=@gid and branch_id=@branch_id and op=@op and barrier_id=@barrier_id";
-
-        internal static string BarrierTableName = Constant.Barrier.TABLE_NAME;
     }
 }

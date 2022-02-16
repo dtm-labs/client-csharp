@@ -1,10 +1,14 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Dtmcli.DtmImp
 {
     public interface IDbSpecial
     {
+        string Name { get; }
+
         string GetPlaceHoldSQL(string sql);
 
         string GetInsertIgnoreTemplate(string tableAndValues, string pgConstraint);
@@ -14,14 +18,8 @@ namespace Dtmcli.DtmImp
 
     public class MysqlDBSpecial : IDbSpecial
     {
-        private MysqlDBSpecial()
-        { }
-
-        private static readonly Lazy<MysqlDBSpecial> Instancelock =
-                    new Lazy<MysqlDBSpecial>(() => new MysqlDBSpecial());
-
-        public static MysqlDBSpecial Instance => Instancelock.Value;
-
+        public string Name => "mysql";
+       
         public string GetInsertIgnoreTemplate(string tableAndValues, string pgConstraint)
             => string.Format("insert ignore into {0}", tableAndValues);
 
@@ -34,13 +32,7 @@ namespace Dtmcli.DtmImp
 
     public class PostgresDBSpecial : IDbSpecial
     {
-        private PostgresDBSpecial()
-        { }
-
-        private static readonly Lazy<PostgresDBSpecial> Instancelock =
-                    new Lazy<PostgresDBSpecial>(() => new PostgresDBSpecial());
-
-        public static PostgresDBSpecial Instance => Instancelock.Value;
+        public string Name => "postgres";
 
         public string GetInsertIgnoreTemplate(string tableAndValues, string pgConstraint)
             => string.Format("insert into {0} on conflict ON CONSTRAINT {1} do nothing", tableAndValues, pgConstraint);
@@ -65,13 +57,7 @@ namespace Dtmcli.DtmImp
 
     public class SqlServerDBSpecial : IDbSpecial
     {
-        private SqlServerDBSpecial()
-        { }
-
-        private static readonly Lazy<SqlServerDBSpecial> Instancelock =
-                    new Lazy<SqlServerDBSpecial>(() => new SqlServerDBSpecial());
-
-        public static SqlServerDBSpecial Instance => Instancelock.Value;
+        public string Name => "sqlserver";
 
         /*
 
@@ -123,38 +109,17 @@ GO
 
     public class DbSpecialDelegate
     {
-        private DbSpecialDelegate()
-        { }
+        private readonly IDbSpecial _special;
 
-        private static readonly Lazy<DbSpecialDelegate> Instancelock =
-                    new Lazy<DbSpecialDelegate>(() => new DbSpecialDelegate());
-
-        public static DbSpecialDelegate Instance => Instancelock.Value;
-
-        private readonly Dictionary<string, IDbSpecial> _dbSpecials = new Dictionary<string, IDbSpecial>() 
+        public DbSpecialDelegate(IEnumerable<IDbSpecial> specials, IOptions<DtmOptions> optionsAccs)
         {
-            { Constant.Barrier.DBTYPE_MYSQL, MysqlDBSpecial.Instance },
-            { Constant.Barrier.DBTYPE_POSTGRES, PostgresDBSpecial.Instance },
-            { Constant.Barrier.DBTYPE_SQLSERVER, SqlServerDBSpecial.Instance },
-        };
-        private string _currentDBType = Constant.Barrier.DBTYPE_MYSQL;
+            var dbSpecial = specials.FirstOrDefault(x => x.Name.Equals(optionsAccs.Value.DBType));
 
-        public IDbSpecial GetDBSpecial()
-            => _dbSpecials[_currentDBType];
+            if (dbSpecial == null) throw new DtmcliException($"unknown db type '{optionsAccs.Value.DBType}'");
 
-        public void SetCurrentDBType(string dbType)
-        {
-            if (_dbSpecials.TryGetValue(dbType, out _))
-            {
-                _currentDBType = dbType;
-            }
-            else
-            {
-                throw new DtmcliException($"unknown db type '{dbType}'");
-            }
+            _special = dbSpecial;
         }
 
-        public string GetCurrentDBType()
-            => _currentDBType;
+        public IDbSpecial GetDbSpecial() => _special;
     }
 }
