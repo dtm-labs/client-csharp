@@ -7,14 +7,14 @@ namespace Dtmcli
         public string DtmUrl { get; set; }
 
         /// <summary>
-        /// dtm server http request timeout in seconds, default 100
+        /// dtm server http request timeout in milliseconds, default 100,000 milliseconds(100s)
         /// </summary>
-        public int DtmHttpTimeout { get; set; } = 100;
+        public int DtmHttpTimeout { get; set; } = 100 * 1000;
 
         /// <summary>
-        /// branch http request timeout in seconds, default 100
+        /// branch http request timeout in milliseconds, default 100,000 milliseconds(100s)
         /// </summary>
-        public int BranchHttpTimeout { get; set; } = 100;
+        public int BranchHttpTimeout { get; set; } = 100 * 1000;
 
         public string DBType { get; set; } = "mysql";
 

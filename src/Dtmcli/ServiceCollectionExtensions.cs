@@ -44,11 +44,11 @@ namespace Dtmcli
             services.AddHttpClient(Constant.DtmClientHttpName, client =>
             {
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
-                client.Timeout = TimeSpan.FromSeconds(options.DtmHttpTimeout);
+                client.Timeout = TimeSpan.FromMilliseconds(options.DtmHttpTimeout);
             });
             services.AddHttpClient(Constant.BranchClientHttpName, client =>
             {
-                client.Timeout = TimeSpan.FromSeconds(options.BranchHttpTimeout);
+                client.Timeout = TimeSpan.FromMilliseconds(options.BranchHttpTimeout);
             });
         }
 
