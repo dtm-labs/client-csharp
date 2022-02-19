@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using DtmCommon;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,10 +8,12 @@ namespace Dtmcli
 {
     public class Tcc
     {
-        private readonly DtmImp.TransBase _transBase;
+        private static readonly int FailureStatusCode = 400;
+
+        private readonly TransBase _transBase;
         private readonly IDtmClient _dtmClient;
 
-        public Tcc(IDtmClient dtmHttpClient, DtmImp.TransBase transBase)
+        public Tcc(IDtmClient dtmHttpClient, TransBase transBase)
         {
             this._dtmClient = dtmHttpClient;
             this._transBase = transBase;
@@ -33,25 +36,25 @@ namespace Dtmcli
                 System.Net.Http.HttpMethod.Post,
                 body,
                 branchId,
-                Constant.BranchTry,
+                Constant.Request.TRY,
                 tryUrl,
                 cancellationToken).ConfigureAwait(false);
 
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             // call branch error should throw exception
-            var isOldVerException = response.StatusCode == System.Net.HttpStatusCode.OK && content.Contains(Constant.ErrFailure);
-            var isNewVerException = (int)response.StatusCode >= Constant.FailureStatusCode;
+            var isOldVerException = response.StatusCode == System.Net.HttpStatusCode.OK && content.Contains(DtmCommon.Constant.ResultFailure);
+            var isNewVerException = (int)response.StatusCode >= FailureStatusCode;
 
             if (isOldVerException || isNewVerException)
             {
-                throw new DtmcliException("An exception occurred when CallBranch");
+                throw new DtmException("An exception occurred when CallBranch");
             }
 
             return content;
         }
 
-        internal DtmImp.TransBase GetTransBase() => _transBase;
+        internal TransBase GetTransBase() => _transBase;
 
         /// <summary>
         /// Enable wait result for trans

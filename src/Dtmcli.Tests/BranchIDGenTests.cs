@@ -1,4 +1,4 @@
-﻿using Dtmcli.DtmImp;
+﻿using DtmCommon;
 using System;
 using Xunit;
 

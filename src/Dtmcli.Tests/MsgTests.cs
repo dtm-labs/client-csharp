@@ -1,4 +1,5 @@
 ﻿using Apps72.Dev.Data.DbMocker;
+using DtmCommon;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
@@ -53,18 +54,17 @@ namespace Dtmcli.Tests
                     { "bh2", "456" },
                 });
 
-            var prepareRes = await msg.Prepare(busi + "/query");
-            Assert.True(prepareRes);
+            await msg.Prepare(busi + "/query");
+            await msg.Submit();
 
-            var submitRes = await msg.Submit();
-            Assert.True(submitRes);
+            Assert.True(true);
         }
 
         [Fact]
         public async void DoAndSubmitDB_Should_Throw_Exception_When_Transbase_InValid()
         {
             var dtmClient = new Mock<IDtmClient>();
-            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
 
             var gid = string.Empty;
             var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
@@ -75,14 +75,14 @@ namespace Dtmcli.Tests
 
             var db = new MockDbConnection();
 
-            await Assert.ThrowsAsync<DtmcliException>(async () => await msg.DoAndSubmitDB(busi + "/query", db, x => Task.FromResult<bool>(true)));
+            await Assert.ThrowsAsync<DtmException>(async () => await msg.DoAndSubmitDB(busi + "/query", db, x => Task.FromResult<bool>(true)));
         }
 
         [Fact]
         public async void DoAndSubmitDB_Should_Not_Call_Barrier_When_Prepare_Fail()
         {
             var dtmClient = new Mock<IDtmClient>();
-            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
 
             var gid = "TestMsgNormal";
             var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
@@ -94,9 +94,7 @@ namespace Dtmcli.Tests
             var db = new MockDbConnection();
             var mockBusiCall = new Mock<Func<DbTransaction, Task<bool>>>();
 
-            var res = await msg.DoAndSubmitDB(busi + "/query", db, x => Task.FromResult(true));
-
-            Assert.False(res);
+            await Assert.ThrowsAnyAsync<Exception>(async () => await msg.DoAndSubmitDB(busi + "/query", db, x => Task.FromResult(true)));            
             mockBusiCall.Verify(x => x.Invoke(It.IsAny<DbTransaction>()), Times.Never);
         }
 
@@ -104,8 +102,8 @@ namespace Dtmcli.Tests
         public async void DoAndSubmitDB_Should_Succeed()
         {
             var dtmClient = new Mock<IDtmClient>();
-            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, false);
 
             var gid = "TestMsgNormal";
             var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
@@ -121,9 +119,8 @@ namespace Dtmcli.Tests
             var mockBusiCall = new Mock<Func<DbTransaction, Task<bool>>>();
             mockBusiCall.Setup(x => x.Invoke(It.IsAny<DbTransaction>())).Returns(Task.FromResult(true));
 
-            var res = await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
+            await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
 
-            Assert.True(res);
             mockBusiCall.Verify(x => x.Invoke(It.IsAny<DbTransaction>()), Times.Once);
         }
 
@@ -131,8 +128,8 @@ namespace Dtmcli.Tests
         public async void DoAndSubmitDB_Should_Abort_When_BusiCall_ThrowExeption_With_ResultFailure()
         {
             var dtmClient = new Mock<IDtmClient>();
-            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, false);
 
             var gid = "TestMsgNormal";
             var msg = new Msg(dtmClient.Object, _branchBarrierFactory, gid);
@@ -146,21 +143,19 @@ namespace Dtmcli.Tests
             db.Mocks.When(x => x.CommandText.Contains("select", StringComparison.OrdinalIgnoreCase)).ReturnsScalar(cmd => "rollback");
 
             var mockBusiCall = new Mock<Func<DbTransaction, Task>>();
-            mockBusiCall.Setup(x => x.Invoke(It.IsAny<DbTransaction>())).Throws(new Exception(Constant.ResultFailure));
+            mockBusiCall.Setup(x => x.Invoke(It.IsAny<DbTransaction>())).Throws(new DtmFailureException());
 
-            var res = await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
-
-            Assert.False(res);
-            dtmClient.Verify(x => x.TransCallDtm(It.IsAny<DtmImp.TransBase>(), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
+            await Assert.ThrowsAsync<DtmFailureException>(async () => await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object));
+            dtmClient.Verify(x => x.TransCallDtm(It.IsAny<TransBase>(), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async void DoAndSubmitDB_Should_QueryPrepared_When_BusiCall_ThrowExeption_Without_ResultFailure()
         {
             var dtmClient = new Mock<IDtmClient>();
-            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, true);
-            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, true);
-            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, true);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, false);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, false);
             TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
 
             var gid = "TestMsgNormal";
@@ -177,10 +172,8 @@ namespace Dtmcli.Tests
             var mockBusiCall = new Mock<Func<DbTransaction, Task<bool>>>();
             mockBusiCall.Setup(x => x.Invoke(It.IsAny<DbTransaction>())).Throws(new Exception("ex"));
 
-            var res = await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
-
-            Assert.False(res);
-            dtmClient.Verify(x => x.TransRequestBranch(It.IsAny<DtmImp.TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            await Assert.ThrowsAsync<Exception>(async () => await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object));
+            dtmClient.Verify(x => x.TransRequestBranch(It.IsAny<TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
         
         public class MsgMockHttpMessageHandler : DelegatingHandler
@@ -193,7 +186,7 @@ namespace Dtmcli.Tests
             {
                 var str = await request.Content?.ReadAsStringAsync() ?? "";
 
-                var transBase = System.Text.Json.JsonSerializer.Deserialize<DtmImp.TransBase>(str);
+                var transBase = System.Text.Json.JsonSerializer.Deserialize<TransBase>(str);
 
                 Assert.Equal("TestMsgNormal", transBase.Gid);
                 Assert.Equal("msg", transBase.TransType);

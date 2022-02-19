@@ -4,71 +4,7 @@
     {
         internal static readonly string DtmClientHttpName = "dtmClient";
         internal static readonly string BranchClientHttpName = "branchClient";
-
-        /// <summary>
-        /// status for global/branch trans status.
-        /// </summary>
-        internal static readonly string StatusPrepared = "prepared";
-
-        /// <summary>
-        /// status for global trans status.
-        /// </summary>
-        internal static readonly string StatusSubmitted = "submitted";
-
-        /// <summary>
-        /// status for global/branch trans status.
-        /// </summary>
-        internal static readonly string StatusSucceed = "succeed";
-
-        /// <summary>
-        /// status for global/branch trans status.
-        /// </summary>
-        internal static readonly string StatusFailed = "failed";
-
-        /// <summary>
-        /// status for global trans status.
-        /// </summary>
-        internal static readonly string StatusAborting = "aborting";
-
-        /// <summary>
-        ///  branch type for TCC
-        /// </summary>
-        internal static readonly string BranchTry = "try";
-
-        /// <summary>
-        /// branch type for TCC
-        /// </summary>
-        internal static readonly string BranchConfirm = "confirm";
-
-        /// <summary>
-        /// branch type for TCC
-        /// </summary>
-        internal static readonly string BranchCancel = "cancel";
-
-        /// <summary>
-        /// branch type for XA
-        /// </summary>
-        internal static readonly string BranchCommit = "commit";
-
-        /// <summary>
-        /// branch type for XA
-        /// </summary>
-        internal static readonly string BranchRollback = "rollback";
-
-        internal static readonly string ErrFailure = "FAILURE";
-
-        internal static readonly string ResultFailure = "FAILURE";
-        internal static readonly string ResultSuccess = "SUCCESS";
-        internal static readonly string ResultOngoing = "ONGOING";
-
-        /// <summary>
-        /// error of DUPLICATED for only msg
-        /// if QueryPrepared executed before call. then DoAndSubmit return this error
-        /// </summary>
-        internal static readonly string ResultDuplicated = "DUPLICATED";
-
-        internal static readonly int FailureStatusCode = 400;
-
+       
         internal class Request
         {
             internal static readonly string CONTENT_TYPE = "application/json";
@@ -90,6 +26,8 @@
             internal static readonly string CANCEL = "cancel";
 
             internal static readonly string OP = "op";
+
+            internal static readonly string DTM = "dtm";
 
             internal static readonly string CODE = "code";
 
@@ -115,32 +53,7 @@
             /// </summary>
             internal static readonly string BRANCH_COMPENSATE = "compensate";
 
-            internal static readonly string TYPE_TCC = "tcc";
-
-            internal static readonly string TYPE_SAGA = "saga";
-
-            internal static readonly string TYPE_MSG = "msg";
-
             internal static readonly string URL_NewGid = "/api/dtmsvr/newGid";
-        }
-
-        internal class Barrier
-        {
-            internal static readonly string TABLE_NAME = "dtm_barrier.barrier";
-
-            internal static readonly string DBTYPE_MYSQL = "mysql";
-
-            internal static readonly string DBTYPE_POSTGRES = "postgres";
-
-            internal static readonly string DBTYPE_SQLSERVER = "sqlserver";
-
-            internal static readonly string PG_CONSTRAINT = "uniq_barrier";
-
-            internal static readonly string MSG_BARRIER_REASON = "rollback";
-
-            internal static readonly string MSG_BRANCHID = "00";
-
-            internal static readonly string MSG_BARRIER_ID = "01";
-        }
+        }       
     }
 }

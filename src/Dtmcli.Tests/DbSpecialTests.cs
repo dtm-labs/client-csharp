@@ -1,4 +1,4 @@
-﻿using Dtmcli.DtmImp;
+﻿using DtmCommon;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -42,7 +42,7 @@ namespace Dtmcli.Tests
 
             Assert.IsType<SqlServerDBSpecial>(special);
             Assert.Equal("insert into a(f) values(@f)", special.GetInsertIgnoreTemplate("a(f) values(@f)", "c"));
-            Assert.Throws<DtmcliException>(() => special.GetXaSQL("", ""));
+            Assert.Throws<DtmException>(() => special.GetXaSQL("", ""));
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace Dtmcli.Tests
         {
             var provider = TestHelper.AddDtmCli(db: "other");
 
-            var ex = Assert.Throws<DtmcliException>(() => provider.GetRequiredService<DbSpecialDelegate>());
+            var ex = Assert.Throws<DtmException>(() => provider.GetRequiredService<DbSpecialDelegate>());
             Assert.Equal("unknown db type 'other'", ex.Message);
         }
     }

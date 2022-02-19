@@ -1,10 +1,10 @@
-﻿using Dtmcli.DtmImp;
+﻿using DtmCommon;
 using Microsoft.Extensions.Options;
-using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,43 +33,28 @@ namespace Dtmcli
         public async Task<string> GenGid(CancellationToken cancellationToken)
         {
             var client = _httpClientFactory.CreateClient(Constant.DtmClientHttpName);
-
             var response = await client.GetAsync($"{_dtmOptions.DtmUrl.TrimEnd(Slash)}{Constant.Request.URL_NewGid}", cancellationToken).ConfigureAwait(false);
-
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new Exception($"bad http response status: {response.StatusCode}");
-            }
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            DtmImp.Utils.CheckStatus(response.StatusCode, content);
 
             var dtmgid = JsonSerializer.Deserialize<DtmGid>(content, _jsonOptions);
             return dtmgid.Gid;
         }
 
-        private void CheckStatus(HttpStatusCode status, DtmResult dtmResult)
-        {
-            if (status != HttpStatusCode.OK || dtmResult.Success != true)
-            {
-                throw new Exception($"http response status: {status}, Message :{ dtmResult.Message }");
-            }
-        }
-
-        public async Task<bool> TransCallDtm(TransBase tb, object body, string operation, CancellationToken cancellationToken)
+        public async Task TransCallDtm(TransBase tb, object body, string operation, CancellationToken cancellationToken)
         {
             var url = string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URLBASE_PREFIX, operation);
 
             var content = new StringContent(JsonSerializer.Serialize(body, _jsonOptions));
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(Constant.Request.CONTENT_TYPE);
+            content.Headers.ContentType = new MediaTypeHeaderValue(Constant.Request.CONTENT_TYPE);
 
             var client = _httpClientFactory.CreateClient(Constant.DtmClientHttpName);
             var response = await client.PostAsync(url, content, cancellationToken).ConfigureAwait(false);
             var dtmcontent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var dtmResult = JsonSerializer.Deserialize<DtmResult>(dtmcontent, _jsonOptions);
-            CheckStatus(response.StatusCode, dtmResult);
-            return dtmResult.Success;
+            DtmImp.Utils.CheckStatus(response.StatusCode, dtmcontent);
         }
 
-        public async Task<bool> TransRegisterBranch(TransBase tb, Dictionary<string, string> added, string operation, CancellationToken cancellationToken)
+        public async Task TransRegisterBranch(TransBase tb, Dictionary<string, string> added, string operation, CancellationToken cancellationToken)
         {
             var dict = new Dictionary<string, string>
             {
@@ -82,7 +67,7 @@ namespace Dtmcli
                 dict[item.Key] = item.Value;
             }
 
-            return await TransCallDtm(tb, dict, operation, cancellationToken);
+            await TransCallDtm(tb, dict, operation, cancellationToken);
         }
 
         public async Task<HttpResponseMessage> TransRequestBranch(TransBase tb, HttpMethod method, object body, string branchID, string op, string url, CancellationToken cancellationToken)
@@ -109,12 +94,37 @@ namespace Dtmcli
             if (body != null)
             {
                 var content = new StringContent(JsonSerializer.Serialize(body, _jsonOptions));
-                content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(Constant.Request.CONTENT_TYPE);
+                content.Headers.ContentType = new MediaTypeHeaderValue(Constant.Request.CONTENT_TYPE);
                 httpRequestMsg.Content = content;
             }
 
             var response = await client.SendAsync(httpRequestMsg, cancellationToken).ConfigureAwait(false);
             return response;
+        }
+
+#if NET5_0_OR_GREATER
+        public TransBase TransBaseFromQuery(Microsoft.AspNetCore.Http.IQueryCollection query)
+        {
+            _ = query.TryGetValue(Constant.Request.BRANCH_ID, out var branchId);
+            _ = query.TryGetValue(Constant.Request.GID, out var gid);
+            _ = query.TryGetValue(Constant.Request.OP, out var op);
+            _ = query.TryGetValue(Constant.Request.TRANS_TYPE, out var transType);
+            _ = query.TryGetValue(Constant.Request.DTM, out var dtm);
+
+            var tb = TransBase.NewTransBase(gid, transType, dtm, branchId);
+            tb.Op = op;
+
+            return tb;
+        }
+#endif
+
+        public class DtmGid
+        {
+            [JsonPropertyName("gid")]
+            public string Gid { get; set; }
+
+            [JsonPropertyName("dtm_result")]
+            public string Dtm_Result { get; set; }
         }
     }
 }

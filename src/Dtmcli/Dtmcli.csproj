@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net5.0;net6.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.1;net5.0;net6.0</TargetFrameworks>
 		<PackageProjectUrl>https://github.com/dtm-labs/dtmcli-csharp</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/dtm-labs/dtmcli-csharp</RepositoryUrl>
 		<AssemblyName>Dtmcli</AssemblyName>
@@ -16,29 +16,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Dapper" Version="2.0.123" />
-		<PackageReference Include="System.Text.Json" Version="6.0.1" />
+		<InternalsVisibleTo Include="Dtmcli.Tests" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net5.0'">
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1'">
-		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
+	<ItemGroup>
+	  <PackageReference Include="DtmCommon" Version="0.5.0" />
 	</ItemGroup>
 
 </Project>

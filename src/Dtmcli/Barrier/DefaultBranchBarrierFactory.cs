@@ -1,4 +1,4 @@
-﻿using Dtmcli.DtmImp;
+﻿using DtmCommon;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -23,7 +23,7 @@ namespace Dtmcli
 
             var ti = new BranchBarrier(transType, gid, branchID, op, _options, _dbUtils, logger);
 
-            if (ti.IsInValid()) throw new DtmcliException($"invalid trans info: {ti.ToString()}");
+            if (ti.IsInValid()) throw new DtmException($"invalid trans info: {ti.ToString()}");
 
             return ti;
         }
@@ -40,7 +40,7 @@ namespace Dtmcli
 
             var ti = new BranchBarrier(transType, gid, branchID, op, _options, _dbUtils, logger);
 
-            if (ti.IsInValid()) throw new DtmcliException($"invalid trans info: {ti.ToString()}");
+            if (ti.IsInValid()) throw new DtmException($"invalid trans info: {ti.ToString()}");
 
             return ti;
         }

@@ -1,4 +1,6 @@
-﻿using Moq;
+﻿using DtmCommon;
+using Moq;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -47,6 +49,24 @@ namespace Dtmcli.Tests
             await sage.Submit();
         }
 
+        [Fact]
+        public async void Submit_Should_ThrowException()
+        {
+            var dtmClient = new Mock<IDtmClient>();
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_SUBMIT, true);
+
+            var gid = "TestSagaNormal";
+            var saga = new Saga(dtmClient.Object, gid);
+
+            var busi = "http://localhost:8081/api/busi";
+            var req = new { Amount = 30 };
+
+            saga.Add(string.Concat(busi, "/TransOut"), string.Concat(busi, "/TransOutRevert"), req)
+                .Add(string.Concat(busi, "/TransIn"), string.Concat(busi, "/TransInRevert"), req);
+
+            await Assert.ThrowsAnyAsync<Exception>(async () => await saga.Submit());
+        }
+
         public class SageMockHttpMessageHandler : DelegatingHandler
         {
             public SageMockHttpMessageHandler()
@@ -57,7 +77,7 @@ namespace Dtmcli.Tests
             {
                 var str = await request.Content?.ReadAsStringAsync() ?? "";
 
-                var transBase = System.Text.Json.JsonSerializer.Deserialize<DtmImp.TransBase>(str);
+                var transBase = System.Text.Json.JsonSerializer.Deserialize<TransBase>(str);
 
                 /*
 {

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DtmCommon;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,24 +31,21 @@ namespace Dtmcli
 
         public async Task<string> Excecute(string gid, Action<Tcc> custom, Func<Tcc, Task> tcc_cb, CancellationToken cancellationToken = default)
         {
-            var tcc = new Tcc(this.dtmClient, DtmImp.TransBase.NewTransBase(gid, Constant.Request.TYPE_TCC, ""));
+            var tcc = new Tcc(this.dtmClient, TransBase.NewTransBase(gid, DtmCommon.Constant.TYPE_TCC, "", ""));
             custom(tcc);
 
             try
             {
-                var prepare = await dtmClient.TransCallDtm(tcc.GetTransBase(), tcc.GetTransBase(), Constant.Request.OPERATION_PREPARE, cancellationToken);
-                logger.LogDebug("prepare result gid={gid}, res={res}", gid, prepare);
+                await dtmClient.TransCallDtm(tcc.GetTransBase(), tcc.GetTransBase(), Constant.Request.OPERATION_PREPARE, cancellationToken);
 
                 await tcc_cb(tcc);
 
-                var submit = await dtmClient.TransCallDtm(tcc.GetTransBase(), tcc.GetTransBase(), Constant.Request.OPERATION_SUBMIT, cancellationToken);
-                logger.LogDebug("submit result gid={gid}, res={res}", gid, submit);
+                await dtmClient.TransCallDtm(tcc.GetTransBase(), tcc.GetTransBase(), Constant.Request.OPERATION_SUBMIT, cancellationToken);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "submitting or abort global transaction error");
-                var abort = await dtmClient.TransCallDtm(tcc.GetTransBase(), tcc.GetTransBase(), Constant.Request.OPERATION_ABORT, cancellationToken);
-                logger.LogDebug("abort result gid={gid}, res={res}", gid, abort);
+                await dtmClient.TransCallDtm(tcc.GetTransBase(), tcc.GetTransBase(), Constant.Request.OPERATION_ABORT, cancellationToken);
                 return string.Empty;
             }
             return gid;

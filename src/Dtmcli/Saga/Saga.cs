@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using DtmCommon;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Dtmcli.Tests")]
 
 namespace Dtmcli
 {
@@ -12,13 +11,13 @@ namespace Dtmcli
         private bool _concurrent = false;
         private Dictionary<int, List<int>> _orders = new Dictionary<int, List<int>>();
 
-        private readonly DtmImp.TransBase _transBase;
+        private readonly TransBase _transBase;
         private readonly IDtmClient _dtmClient;
 
         public Saga(IDtmClient dtmHttpClient, string gid)
         {
             this._dtmClient = dtmHttpClient;
-            this._transBase = DtmImp.TransBase.NewTransBase(gid, Constant.Request.TYPE_SAGA, string.Empty);
+            this._transBase = TransBase.NewTransBase(gid, DtmCommon.Constant.TYPE_SAGA, string.Empty, string.Empty);
         }
 
         public Saga Add(string action, string compensate, object postData)
@@ -43,17 +42,17 @@ namespace Dtmcli
             return this;
         }
 
-        public async Task<bool> Submit(CancellationToken cancellationToken = default)
+        public async Task Submit(CancellationToken cancellationToken = default)
         {
             if (this._concurrent)
             {
                 this._transBase.CustomData = JsonSerializer.Serialize(new { orders = this._orders, concurrent = this._concurrent });
             }
 
-            return await _dtmClient.TransCallDtm(this._transBase, this._transBase, Constant.Request.OPERATION_SUBMIT, cancellationToken).ConfigureAwait(false);
+            await _dtmClient.TransCallDtm(this._transBase, this._transBase, Constant.Request.OPERATION_SUBMIT, cancellationToken).ConfigureAwait(false);
         }
 
-        internal DtmImp.TransBase GetTransBase() => this._transBase;
+        internal TransBase GetTransBase() => this._transBase;
 
         /// <summary>
         /// Enable wait result for trans
