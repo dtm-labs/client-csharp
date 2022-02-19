@@ -4,8 +4,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Dtmcli.Tests")]
-
 namespace Dtmcli
 {
     public class Saga
@@ -19,7 +17,7 @@ namespace Dtmcli
         public Saga(IDtmClient dtmHttpClient, string gid)
         {
             this._dtmClient = dtmHttpClient;
-            this._transBase = TransBase.NewTransBase(gid, Constant.Request.TYPE_SAGA, string.Empty, string.Empty);
+            this._transBase = TransBase.NewTransBase(gid, DtmCommon.Constant.TYPE_SAGA, string.Empty, string.Empty);
         }
 
         public Saga Add(string action, string compensate, object postData)
@@ -44,14 +42,14 @@ namespace Dtmcli
             return this;
         }
 
-        public async Task<bool> Submit(CancellationToken cancellationToken = default)
+        public async Task Submit(CancellationToken cancellationToken = default)
         {
             if (this._concurrent)
             {
                 this._transBase.CustomData = JsonSerializer.Serialize(new { orders = this._orders, concurrent = this._concurrent });
             }
 
-            return await _dtmClient.TransCallDtm(this._transBase, this._transBase, Constant.Request.OPERATION_SUBMIT, cancellationToken).ConfigureAwait(false);
+            await _dtmClient.TransCallDtm(this._transBase, this._transBase, Constant.Request.OPERATION_SUBMIT, cancellationToken).ConfigureAwait(false);
         }
 
         internal TransBase GetTransBase() => this._transBase;

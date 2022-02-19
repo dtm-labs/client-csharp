@@ -8,6 +8,8 @@ namespace Dtmcli
 {
     public class Tcc
     {
+        private static readonly int FailureStatusCode = 400;
+
         private readonly TransBase _transBase;
         private readonly IDtmClient _dtmClient;
 
@@ -34,15 +36,15 @@ namespace Dtmcli
                 System.Net.Http.HttpMethod.Post,
                 body,
                 branchId,
-                Constant.BranchTry,
+                Constant.Request.TRY,
                 tryUrl,
                 cancellationToken).ConfigureAwait(false);
 
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             // call branch error should throw exception
-            var isOldVerException = response.StatusCode == System.Net.HttpStatusCode.OK && content.Contains(Constant.ErrFailure);
-            var isNewVerException = (int)response.StatusCode >= Constant.FailureStatusCode;
+            var isOldVerException = response.StatusCode == System.Net.HttpStatusCode.OK && content.Contains(DtmCommon.Constant.ResultFailure);
+            var isNewVerException = (int)response.StatusCode >= FailureStatusCode;
 
             if (isOldVerException || isNewVerException)
             {

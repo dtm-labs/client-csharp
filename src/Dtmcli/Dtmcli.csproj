@@ -16,7 +16,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DtmCommon" Version="0.5.0-alpha20220219035708" />
+		<InternalsVisibleTo Include="Dtmcli.Tests" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net5.0'">
@@ -24,7 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="DtmImp\" />
+	  <PackageReference Include="DtmCommon" Version="0.5.0" />
 	</ItemGroup>
 
 </Project>
