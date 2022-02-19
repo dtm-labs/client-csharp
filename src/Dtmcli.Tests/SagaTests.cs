@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using DtmCommon;
+using Moq;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -57,7 +58,7 @@ namespace Dtmcli.Tests
             {
                 var str = await request.Content?.ReadAsStringAsync() ?? "";
 
-                var transBase = System.Text.Json.JsonSerializer.Deserialize<DtmImp.TransBase>(str);
+                var transBase = System.Text.Json.JsonSerializer.Deserialize<TransBase>(str);
 
                 /*
 {

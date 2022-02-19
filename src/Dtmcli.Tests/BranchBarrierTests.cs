@@ -9,7 +9,7 @@ using System.Linq;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
-using Dtmcli.DtmImp;
+using DtmCommon;
 
 namespace Dtmcli.Tests
 {
@@ -57,7 +57,7 @@ namespace Dtmcli.Tests
 
             var qs = new Microsoft.AspNetCore.Http.QueryCollection(dict);
 
-            Assert.Throws<DtmcliException>(() => _factory.CreateBranchBarrier(qs));
+            Assert.Throws<DtmException>(() => _factory.CreateBranchBarrier(qs));
         }
 #endif
 
@@ -174,7 +174,7 @@ namespace Dtmcli.Tests
             var mockBusiCall = new Mock<Func<System.Data.Common.DbTransaction, Task<bool>>>();
 
             // Call later
-            var ex = await Assert.ThrowsAsync<DtmcliException>(async () => await branchBarrier.Call(connC, mockBusiCall.Object));
+            var ex = await Assert.ThrowsAsync<DtmDuplicatedException>(async () => await branchBarrier.Call(connC, mockBusiCall.Object));
             Assert.Equal(Constant.ResultDuplicated, ex.Message);
             mockBusiCall.Verify(x => x.Invoke(It.IsAny<System.Data.Common.DbTransaction>()), Times.Never);
         }

@@ -1,4 +1,5 @@
 ﻿using Apps72.Dev.Data.DbMocker;
+using DtmCommon;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
@@ -75,7 +76,7 @@ namespace Dtmcli.Tests
 
             var db = new MockDbConnection();
 
-            await Assert.ThrowsAsync<DtmcliException>(async () => await msg.DoAndSubmitDB(busi + "/query", db, x => Task.FromResult<bool>(true)));
+            await Assert.ThrowsAsync<DtmException>(async () => await msg.DoAndSubmitDB(busi + "/query", db, x => Task.FromResult<bool>(true)));
         }
 
         [Fact]
@@ -94,9 +95,8 @@ namespace Dtmcli.Tests
             var db = new MockDbConnection();
             var mockBusiCall = new Mock<Func<DbTransaction, Task<bool>>>();
 
-            var res = await msg.DoAndSubmitDB(busi + "/query", db, x => Task.FromResult(true));
+            await msg.DoAndSubmitDB(busi + "/query", db, x => Task.FromResult(true));
 
-            Assert.False(res);
             mockBusiCall.Verify(x => x.Invoke(It.IsAny<DbTransaction>()), Times.Never);
         }
 
@@ -121,9 +121,8 @@ namespace Dtmcli.Tests
             var mockBusiCall = new Mock<Func<DbTransaction, Task<bool>>>();
             mockBusiCall.Setup(x => x.Invoke(It.IsAny<DbTransaction>())).Returns(Task.FromResult(true));
 
-            var res = await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
+            await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
 
-            Assert.True(res);
             mockBusiCall.Verify(x => x.Invoke(It.IsAny<DbTransaction>()), Times.Once);
         }
 
@@ -148,10 +147,9 @@ namespace Dtmcli.Tests
             var mockBusiCall = new Mock<Func<DbTransaction, Task>>();
             mockBusiCall.Setup(x => x.Invoke(It.IsAny<DbTransaction>())).Throws(new Exception(Constant.ResultFailure));
 
-            var res = await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
+            await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
 
-            Assert.False(res);
-            dtmClient.Verify(x => x.TransCallDtm(It.IsAny<DtmImp.TransBase>(), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
+            dtmClient.Verify(x => x.TransCallDtm(It.IsAny<TransBase>(), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -177,10 +175,9 @@ namespace Dtmcli.Tests
             var mockBusiCall = new Mock<Func<DbTransaction, Task<bool>>>();
             mockBusiCall.Setup(x => x.Invoke(It.IsAny<DbTransaction>())).Throws(new Exception("ex"));
 
-            var res = await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
+            await msg.DoAndSubmitDB(busi + "/query", db, mockBusiCall.Object);
 
-            Assert.False(res);
-            dtmClient.Verify(x => x.TransRequestBranch(It.IsAny<DtmImp.TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            dtmClient.Verify(x => x.TransRequestBranch(It.IsAny<TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
         
         public class MsgMockHttpMessageHandler : DelegatingHandler
@@ -193,7 +190,7 @@ namespace Dtmcli.Tests
             {
                 var str = await request.Content?.ReadAsStringAsync() ?? "";
 
-                var transBase = System.Text.Json.JsonSerializer.Deserialize<DtmImp.TransBase>(str);
+                var transBase = System.Text.Json.JsonSerializer.Deserialize<TransBase>(str);
 
                 Assert.Equal("TestMsgNormal", transBase.Gid);
                 Assert.Equal("msg", transBase.TransType);

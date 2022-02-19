@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using DtmCommon;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,10 +8,10 @@ namespace Dtmcli
 {
     public class Tcc
     {
-        private readonly DtmImp.TransBase _transBase;
+        private readonly TransBase _transBase;
         private readonly IDtmClient _dtmClient;
 
-        public Tcc(IDtmClient dtmHttpClient, DtmImp.TransBase transBase)
+        public Tcc(IDtmClient dtmHttpClient, TransBase transBase)
         {
             this._dtmClient = dtmHttpClient;
             this._transBase = transBase;
@@ -45,13 +46,13 @@ namespace Dtmcli
 
             if (isOldVerException || isNewVerException)
             {
-                throw new DtmcliException("An exception occurred when CallBranch");
+                throw new DtmException("An exception occurred when CallBranch");
             }
 
             return content;
         }
 
-        internal DtmImp.TransBase GetTransBase() => _transBase;
+        internal TransBase GetTransBase() => _transBase;
 
         /// <summary>
         /// Enable wait result for trans

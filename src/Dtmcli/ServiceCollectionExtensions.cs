@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DtmCommon;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
@@ -25,13 +26,13 @@ namespace Dtmcli
         public static IServiceCollection AddDtmcli(this IServiceCollection services, IConfiguration configuration, string sectionName = "dtm")
         {
             services.Configure<DtmOptions>(configuration.GetSection(sectionName));
-            
-            var op=configuration.GetSection(sectionName).Get<DtmOptions>() ?? new DtmOptions();
+
+            var op = configuration.GetSection(sectionName).Get<DtmOptions>() ?? new DtmOptions();
 
             return AddDtmcliCore(services, op);
         }
 
-        private static IServiceCollection AddDtmcliCore(IServiceCollection services,DtmOptions options)
+        private static IServiceCollection AddDtmcliCore(IServiceCollection services, DtmOptions options)
         {
             AddHttpClient(services, options);
             AddDtmCore(services);
@@ -39,16 +40,16 @@ namespace Dtmcli
             return services;
         }
 
-        private static void AddHttpClient(IServiceCollection services,DtmOptions options)
+        private static void AddHttpClient(IServiceCollection services, DtmOptions options)
         {
             services.AddHttpClient(Constant.DtmClientHttpName, client =>
             {
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
-                client.Timeout = TimeSpan.FromMilliseconds(options.DtmHttpTimeout);
+                client.Timeout = TimeSpan.FromMilliseconds(options.DtmTimeout);
             });
             services.AddHttpClient(Constant.BranchClientHttpName, client =>
             {
-                client.Timeout = TimeSpan.FromMilliseconds(options.BranchHttpTimeout);
+                client.Timeout = TimeSpan.FromMilliseconds(options.BranchTimeout);
             });
         }
 
@@ -59,12 +60,7 @@ namespace Dtmcli
             services.AddSingleton<IDtmClient, DtmClient>();
             services.AddSingleton<TccGlobalTransaction>();
 
-            // barrier database relate
-            services.AddSingleton<DtmImp.IDbSpecial, DtmImp.MysqlDBSpecial>();
-            services.AddSingleton<DtmImp.IDbSpecial, DtmImp.PostgresDBSpecial>();
-            services.AddSingleton<DtmImp.IDbSpecial, DtmImp.SqlServerDBSpecial>();
-            services.AddSingleton<DtmImp.DbSpecialDelegate>();
-            services.AddSingleton<DtmImp.DbUtils>();
+            DtmCommon.ServiceCollectionExtensions.AddDtmCommon(services);
 
             // barrier factory
             services.AddSingleton<IBranchBarrierFactory, DefaultBranchBarrierFactory>();

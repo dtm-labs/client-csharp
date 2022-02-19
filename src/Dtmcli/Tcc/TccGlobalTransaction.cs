@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DtmCommon;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Dtmcli
 
         public async Task<string> Excecute(string gid, Action<Tcc> custom, Func<Tcc, Task> tcc_cb, CancellationToken cancellationToken = default)
         {
-            var tcc = new Tcc(this.dtmClient, DtmImp.TransBase.NewTransBase(gid, Constant.Request.TYPE_TCC, ""));
+            var tcc = new Tcc(this.dtmClient, TransBase.NewTransBase(gid, Constant.Request.TYPE_TCC, "", ""));
             custom(tcc);
 
             try

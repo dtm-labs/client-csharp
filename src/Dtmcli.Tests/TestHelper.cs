@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using DtmCommon;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -12,14 +13,14 @@ namespace Dtmcli.Tests
         public static void MockTransCallDtm(Mock<IDtmClient> mock, string op, bool result)
         {
             mock
-                .Setup(x => x.TransCallDtm(It.IsAny<DtmImp.TransBase>(), It.IsAny<object>(), op, It.IsAny<CancellationToken>()))
+                .Setup(x => x.TransCallDtm(It.IsAny<TransBase>(), It.IsAny<object>(), op, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(result));
         }
 
         public static void MockTransRegisterBranch(Mock<IDtmClient> mock, string op, bool result)
         {
             mock
-                .Setup(x => x.TransRegisterBranch(It.IsAny<DtmImp.TransBase>(), It.IsAny<Dictionary<string, string>>(), op, It.IsAny<CancellationToken>()))
+                .Setup(x => x.TransRegisterBranch(It.IsAny<TransBase>(), It.IsAny<Dictionary<string, string>>(), op, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(result));
         }
 
@@ -29,7 +30,7 @@ namespace Dtmcli.Tests
             httpRspMsg.Content = new StringContent(content);
 
             mock
-                .Setup(x => x.TransRequestBranch(It.IsAny<DtmImp.TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.TransRequestBranch(It.IsAny<TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(httpRspMsg));
         }
 

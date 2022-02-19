@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using DtmCommon;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
@@ -47,7 +48,7 @@ namespace Dtmcli.Tests
             });
 
             Assert.Empty(res);
-            dtmClient.Verify(x => x.TransCallDtm(It.IsAny<DtmImp.TransBase>(), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
+            dtmClient.Verify(x => x.TransCallDtm(It.IsAny<TransBase>(), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -68,7 +69,7 @@ namespace Dtmcli.Tests
             });
 
             Assert.Empty(res);
-            dtmClient.Verify(x => x.TransCallDtm(It.IsAny<DtmImp.TransBase>(), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
+            dtmClient.Verify(x => x.TransCallDtm(It.IsAny<TransBase>(), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
