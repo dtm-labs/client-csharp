@@ -48,7 +48,7 @@ namespace Dtmcli
 
             if (isOldVerException || isNewVerException)
             {
-                throw new DtmException("An exception occurred when CallBranch");
+                throw new DtmException($"An exception occurred when CallBranch, status={response.StatusCode}, content={content}, ");
             }
 
             return content;
