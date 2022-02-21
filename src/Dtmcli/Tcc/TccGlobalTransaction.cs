@@ -44,7 +44,7 @@ namespace Dtmcli
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "submitting or abort global transaction error");
+                logger.LogError(ex, "prepare or submitting global transaction error");
                 await dtmClient.TransCallDtm(tcc.GetTransBase(), tcc.GetTransBase(), Constant.Request.OPERATION_ABORT, cancellationToken);
                 return string.Empty;
             }
