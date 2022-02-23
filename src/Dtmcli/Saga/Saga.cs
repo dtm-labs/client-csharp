@@ -96,5 +96,11 @@ namespace Dtmcli
             this._transBase.BranchHeaders = headers;
             return this;
         }
+
+        public Saga SetPassthroughHeaders(List<string> headers)
+        {
+            this._transBase.PassthroughHeaders = headers;
+            return this;
+        }
     }
 }
