@@ -133,5 +133,11 @@ namespace Dtmcli
             this._transBase.BranchHeaders = headers;
             return this;
         }
+
+        public Msg SetPassthroughHeaders(List<string> headers)
+        {
+            this._transBase.PassthroughHeaders = headers;
+            return this;
+        }
     }
 }
