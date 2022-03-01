@@ -14,6 +14,8 @@ namespace Dtmcli
     {
         private static readonly char Slash = '/';
         private static readonly string QueryStringFormat = "dtm={0}&gid={1}&trans_type={2}&branch_id={3}&op={4}";
+        private static readonly string QuestionMark = "?";
+        private static readonly string And = "&";
 
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly DtmOptions _dtmOptions;
@@ -82,8 +84,8 @@ namespace Dtmcli
 
             var client = _httpClientFactory.CreateClient(Constant.BranchClientHttpName);
           
-            if (url.Contains("?")) url = string.Concat(url, "&" ,queryParams);
-            else url = string.Concat(url, "?", queryParams);
+            if (url.Contains(QuestionMark)) url = string.Concat(url, And, queryParams);
+            else url = string.Concat(url, QuestionMark, queryParams);
 
             var httpRequestMsg = new HttpRequestMessage(method, url);
             foreach (var item in tb.BranchHeaders ?? new Dictionary<string, string>())
