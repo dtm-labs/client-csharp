@@ -8,8 +8,8 @@ namespace Dtmcli.DtmImp
 {
     public static class Utils
     {
-        private static readonly int StatusTooEarly = 425;
-        private static readonly string CheckStatusMsgFormat = "http response status: {status}, Message :{dtmResult}";
+        private const int StatusTooEarly = 425;
+        private const string CheckStatusMsgFormat = "http response status: {status}, Message :{dtmResult}";
 
         public static async Task<Exception> RespAsErrorCompatible(HttpResponseMessage resp)
         {
@@ -36,7 +36,7 @@ namespace Dtmcli.DtmImp
         {
             if (status != HttpStatusCode.OK || dtmResult.Contains(DtmCommon.Constant.ResultFailure))
             {
-                throw new DtmException(string.Format(CheckStatusMsgFormat, status, dtmResult));
+                throw new DtmException(string.Format(CheckStatusMsgFormat, status.ToString(), dtmResult));
             }
         }
     }
