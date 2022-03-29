@@ -1,6 +1,7 @@
 ﻿using DtmCommon;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
 namespace Dtmcli
@@ -56,14 +57,14 @@ namespace Dtmcli
         private static void AddDtmCore(IServiceCollection services)
         {
             // trans releate
-            services.AddSingleton<IDtmTransFactory, DtmTransFactory>();
-            services.AddSingleton<IDtmClient, DtmClient>();
-            services.AddSingleton<TccGlobalTransaction>();
+            services.TryAddSingleton<IDtmTransFactory, DtmTransFactory>();
+            services.TryAddSingleton<IDtmClient, DtmClient>();
+            services.TryAddSingleton<TccGlobalTransaction>();
 
             DtmCommon.ServiceCollectionExtensions.AddDtmCommon(services);
 
             // barrier factory
-            services.AddSingleton<IBranchBarrierFactory, DefaultBranchBarrierFactory>();
+            services.TryAddSingleton<IBranchBarrierFactory, DefaultBranchBarrierFactory>();
         }
     }
 }
