@@ -8,15 +8,17 @@
 		<RootNamespace>Dtmcli</RootNamespace>
 		<Description>a c# client for distributed transaction framework dtm. 分布式事务管理器dtm的c#客户端</Description>
 		<PackageTags>dtm,csharp,distributed transaction,tcc,saga,msg</PackageTags>
-		<VersionPrefix>1.1.0</VersionPrefix>
+		<VersionPrefix>1.1.1</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
 		<Authors>geffzhang</Authors>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="Dtmcli.Tests" />
+		<None Include="$(MSBuildThisFileDirectory)../../README.md" Pack="true" PackagePath="/" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net5.0'">
@@ -24,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DtmCommon" Version="1.1.0" />
+	  <PackageReference Include="DtmCommon" Version="1.1.1" />
 	</ItemGroup>
 
 </Project>
