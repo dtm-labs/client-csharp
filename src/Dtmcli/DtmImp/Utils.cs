@@ -9,11 +9,11 @@ namespace Dtmcli.DtmImp
     public static class Utils
     {
         private const int StatusTooEarly = 425;
-        private const string CheckStatusMsgFormat = "http response status: {status}, Message :{dtmResult}";
+        private const string CheckStatusMsgFormat = "http response status: {0}, Message :{1}";
 
         public static async Task<Exception> RespAsErrorCompatible(HttpResponseMessage resp)
         {
-            var str = await resp.Content?.ReadAsStringAsync() ?? string.Empty;
+            var str = resp.Content != null ? await resp.Content.ReadAsStringAsync() : string.Empty;
 
             // System.Net.HttpStatusCode do not contain StatusTooEarly
             if ((int)resp.StatusCode == StatusTooEarly || str.Contains(DtmCommon.Constant.ResultOngoing))
