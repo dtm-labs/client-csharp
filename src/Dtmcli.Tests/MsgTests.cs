@@ -52,12 +52,26 @@ namespace Dtmcli.Tests
                 {
                     { "bh1", "123" },
                     { "bh2", "456" },
-                });
+                })
+               .SetPassthroughHeaders(new List<string> { "bh1" });
 
             await msg.Prepare(busi + "/query");
             await msg.Submit();
 
             Assert.True(true);
+        }
+
+        [Fact]
+        public async void DoAndSubmit_Should_Throw_Exception_When_BB_InValid()
+        {
+            var dtmClient = new Mock<IDtmClient>();
+            var bbFactory = new Mock<IBranchBarrierFactory>();
+
+            bbFactory.Setup(x => x.CreateBranchBarrier(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null))
+                .Returns(new BranchBarrier("", "", "", "", null, null));
+
+            var msg = new Msg(dtmClient.Object, bbFactory.Object, "123");
+            await Assert.ThrowsAnyAsync<DtmException>(async () => await msg.DoAndSubmit("", x => Task.CompletedTask));
         }
 
         [Fact]
@@ -197,6 +211,7 @@ namespace Dtmcli.Tests
                 Assert.Contains("bh2", transBase.BranchHeaders.Keys);
                 Assert.Equal(2, transBase.Payloads.Count);
                 Assert.Equal(2, transBase.Steps.Count);
+                Assert.Contains("bh1", transBase.PassthroughHeaders);
 
                 var content = new StringContent("{\"dtm_result\":\"SUCCESS\"}");
 

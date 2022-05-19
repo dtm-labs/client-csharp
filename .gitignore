@@ -6,6 +6,7 @@
 *.xap
 *.user
 /TestResults
+TestResults/
 *.suo
 *.cache
 *.docstates

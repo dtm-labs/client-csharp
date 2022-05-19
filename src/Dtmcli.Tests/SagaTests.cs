@@ -44,9 +44,12 @@ namespace Dtmcli.Tests
                 {
                     { "bh1", "123" },
                     { "bh2", "456" },
-                });
+                })
+                .SetPassthroughHeaders(new List<string> { "bh1" });
 
             await sage.Submit();
+
+            Assert.NotNull(sage.GetTransBase());
         }
 
         [Fact]
@@ -121,6 +124,7 @@ namespace Dtmcli.Tests
                 Assert.Contains("bh2", transBase.BranchHeaders.Keys);
                 Assert.Equal(4, transBase.Payloads.Count);
                 Assert.Equal(4, transBase.Steps.Count);
+                Assert.Contains("bh1", transBase.PassthroughHeaders);
 
                 var content = new StringContent("{\"dtm_result\":\"SUCCESS\"}");
 

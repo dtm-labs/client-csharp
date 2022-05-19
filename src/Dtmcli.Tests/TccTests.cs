@@ -15,6 +15,25 @@ namespace Dtmcli.Tests
         public async void Execute_Should_Submit()
         {
             var dtmClient = new Mock<IDtmClient>();
+            dtmClient.Setup(x => x.GenGid(It.IsAny<CancellationToken>())).Returns(Task.FromResult("tcc_gid_gid"));
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
+            TestHelper.MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, false);
+            TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
+            
+            var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
+            var res = await globalTrans.Excecute(async (tcc) =>
+            {
+                var res1 = await tcc.CallBranch(new { }, "http://localhost:9999/TransOutTry", "http://localhost:9999/TransOutConfirm", "http://localhost:9999/TransOutCancel", default);
+                var res2 = await tcc.CallBranch(new { }, "http://localhost:9999/TransInTry", "http://localhost:9999/TransInConfirm", "http://localhost:9999/TransInCancel", default);
+            });
+
+            Assert.Equal("tcc_gid_gid", res);
+        }
+
+        [Fact]
+        public async void Execute_With_GId_Should_Submit()
+        {
+            var dtmClient = new Mock<IDtmClient>();
             TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
             TestHelper.MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, false);
             TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
@@ -92,6 +111,7 @@ namespace Dtmcli.Tests
                     { "bh1", "123" },
                     { "bh2", "456" },
                 });
+                tcc.SetPassthroughHeaders(new List<string> { "bh1" });
             },  async (tcc) =>
             {
                 var res1 = await tcc.CallBranch(new { }, "http://localhost:9999/TransOutTry", "http://localhost:9999/TransOutConfirm", "http://localhost:9999/TransOutCancel", default);
@@ -104,6 +124,7 @@ namespace Dtmcli.Tests
                 Assert.Equal(100, transBase.TimeoutToFail);
                 Assert.Contains("bh1", transBase.BranchHeaders.Keys);
                 Assert.Contains("bh2", transBase.BranchHeaders.Keys);
+                Assert.Contains("bh1", transBase.PassthroughHeaders);
             });
 
             Assert.Equal(gid, res);
