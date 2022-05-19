@@ -6,7 +6,7 @@ English | [简体中文](./README-cn.md)
 
 It has supported distributed transaction patterns of Saga pattern, TCC pattern and 2-phase message pattern.
 
-![Build_And_Test](https://github.com/dtm-labs/dtmcli-csharp/actions/workflows/build.yml/badge.svg)
+![Build_And_Test](https://github.com/dtm-labs/dtmcli-csharp/actions/workflows/build.yml/badge.svg) [![codecov](https://codecov.io/gh/dtm-labs/dtmcli-csharp/branch/main/graph/badge.svg?token=Y2BOSQ5QKO)](https://codecov.io/gh/dtm-labs/dtmcli-csharp)
 
 ![](https://img.shields.io/nuget/v/Dtmcli.svg)  ![](https://img.shields.io/nuget/vpre/Dtmcli.svg) ![](https://img.shields.io/nuget/dt/Dtmcli) ![](https://img.shields.io/github/license/dtm-labs/dtmcli-csharp)
 
