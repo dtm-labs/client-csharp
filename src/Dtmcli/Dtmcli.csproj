@@ -26,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DtmCommon" Version="1.1.1" />
+	  <PackageReference Include="DtmCommon" Version="1.1.2" />
 	</ItemGroup>
 
 </Project>
