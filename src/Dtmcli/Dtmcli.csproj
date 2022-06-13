@@ -8,7 +8,7 @@
 		<RootNamespace>Dtmcli</RootNamespace>
 		<Description>a c# client for distributed transaction framework dtm. 分布式事务管理器dtm的c#客户端</Description>
 		<PackageTags>dtm,csharp,distributed transaction,tcc,saga,msg</PackageTags>
-		<VersionPrefix>1.1.2</VersionPrefix>
+		<VersionPrefix>1.2.0</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
 		<Authors>geffzhang</Authors>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -26,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DtmCommon" Version="1.1.2" />
+	  <PackageReference Include="DtmCommon" Version="1.2.0" />
 	</ItemGroup>
 
 </Project>
