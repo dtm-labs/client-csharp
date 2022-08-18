@@ -1,0 +1,16 @@
+<Project>
+  <Import Project="build\dependencies.props" />
+  <Import Project="build\version.props" />
+
+  <PropertyGroup>    
+    <VersionPrefix>$(DtmCSharpVersion)</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
+    <Authors>catcherwong</Authors>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <LangVersion>latest</LangVersion>
+    <PackageProjectUrl>https://github.com/dtm-labs/client-csharp</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/dtm-labs/client-csharp</RepositoryUrl>
+  </PropertyGroup>
+
+</Project>

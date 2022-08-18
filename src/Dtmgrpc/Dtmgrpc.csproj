@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net5.0;net6.0</TargetFrameworks>
+		<Description>a c# client for distributed transaction framework dtm. 分布式事务管理器dtm的c#客户端</Description>
+		<PackageTags>dtm,csharp,distributed transaction,tcc,saga,msg</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Protobuf Include=".\dtmgpb\dtmgimp.proto" GrpcServices="Client" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Dtmgrpc.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
+		<PackageReference Include="Grpc.Net.ClientFactory" Version="$(GrpcNetClientFactoryPackageVersion)" />
+		<PackageReference Include="Grpc.Tools" Version="$(GrpcToolsPackageVersion)">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\DtmCommon\DtmCommon.csproj" />
+	</ItemGroup>
+
+
+	
+</Project>
