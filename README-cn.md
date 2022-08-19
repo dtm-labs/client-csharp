@@ -1,10 +1,17 @@
 [English](./README.md) | 简体中文
 
-# dtmcli-csharp
+# DTM 的 C#客户端
 
-`dtmcli-csharp` 是分布式事务管理器 DTM 的 C# 客户端，使用 HTTP 协议和 DTM 服务端进行交互。
+`client-csharp` 是分布式事务管理器 DTM 的 C# 客户端。
 
-目前已经支持 SAGA 、 TCC 和二阶段消息三种事务模式。
+| 客户端      |  特性 | nuget |
+| :-----:     | :----:    | :----: |
+| dtmcli      | saga/tcc/2-phase message  | ![](https://img.shields.io/nuget/v/Dtmcli.svg)  ![](https://img.shields.io/nuget/vpre/Dtmcli.svg) ![](https://img.shields.io/nuget/dt/Dtmcli)   |
+| dtmgrpc     | saga/tcc/2-phase message  | ![](https://img.shields.io/nuget/v/Dtmgrpc.svg)  ![](https://img.shields.io/nuget/vpre/Dtmgrpc.svg) ![](https://img.shields.io/nuget/dt/Dtmgrpc)  |
+| workflow    | - | -  |
+
+
+![Build_And_UnitTest](https://github.com/dtm-labs/client-csharp/actions/workflows/build.yml/badge.svg) [![codecov](https://codecov.io/gh/dtm-labs/client-csharp/branch/main/graph/badge.svg?token=Y2BOSQ5QKO)](https://codecov.io/gh/dtm-labs/client-csharp) ![](https://img.shields.io/github/license/dtm-labs/dtmcli-csharp)
 
 
 ## dtm分布式事务管理服务
