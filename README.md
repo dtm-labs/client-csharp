@@ -1,15 +1,17 @@
 English | [简体中文](./README-cn.md)
 
-# dtmcli-csharp
+# csharp client for DTM
 
-`dtmcli-csharp` is the C# client of Distributed Transaction Manager [DTM](https://github.com/dtm-labs/dtm) that communicates with DTM Server through HTTP protocol. 
+`client-csharp` is the C# client of Distributed Transaction Manager [DTM](https://github.com/dtm-labs/dtm). 
 
-It has supported distributed transaction patterns of Saga pattern, TCC pattern and 2-phase message pattern.
+| client      |  features | nuget |
+| :-----:     | :----:    | :----: |
+| dtmcli      | saga/tcc/2-phase message  | ![](https://img.shields.io/nuget/v/Dtmcli.svg)  ![](https://img.shields.io/nuget/vpre/Dtmcli.svg) ![](https://img.shields.io/nuget/dt/Dtmcli)   |
+| dtmgrpc     | saga/tcc/2-phase message  | ![](https://img.shields.io/nuget/v/Dtmgrpc.svg)  ![](https://img.shields.io/nuget/vpre/Dtmgrpc.svg) ![](https://img.shields.io/nuget/dt/Dtmgrpc)  |
+| workflow    | - | -  |
 
-![Build_And_Test](https://github.com/dtm-labs/dtmcli-csharp/actions/workflows/build.yml/badge.svg) [![codecov](https://codecov.io/gh/dtm-labs/dtmcli-csharp/branch/main/graph/badge.svg?token=Y2BOSQ5QKO)](https://codecov.io/gh/dtm-labs/dtmcli-csharp)
 
-![](https://img.shields.io/nuget/v/Dtmcli.svg)  ![](https://img.shields.io/nuget/vpre/Dtmcli.svg) ![](https://img.shields.io/nuget/dt/Dtmcli) ![](https://img.shields.io/github/license/dtm-labs/dtmcli-csharp)
-
+![Build_And_UnitTest](https://github.com/dtm-labs/client-csharp/actions/workflows/build.yml/badge.svg) [![codecov](https://codecov.io/gh/dtm-labs/client-csharp/branch/main/graph/badge.svg?token=Y2BOSQ5QKO)](https://codecov.io/gh/dtm-labs/client-csharp) ![](https://img.shields.io/github/license/dtm-labs/dtmcli-csharp)
 
 ## What is DTM
 

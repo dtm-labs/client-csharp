@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Dtmcli\Dtmcli.csproj" />
+    <ProjectReference Include="..\..\src\Dtmcli\Dtmcli.csproj" />
   </ItemGroup>
 
 </Project>

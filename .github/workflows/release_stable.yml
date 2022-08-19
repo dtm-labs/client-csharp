@@ -18,10 +18,18 @@ jobs:
         dotnet-version: 6.0.x
     - name: Build with dotnet
       run: |
-        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmcli/Dtmcli.csproj                
+        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmcli/Dtmcli.csproj         
+        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmgrpc/Dtmgrpc.csproj                
+        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmCommon/DtmCommon.csproj
+        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmSERedisBarrier/DtmSERedisBarrier.csproj
+        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmMongoBarrier/DtmMongoBarrier.csproj       
     - name: Pack with dotnet
       run: |
         dotnet pack src/Dtmcli/Dtmcli.csproj -o /home/runner/work/nugetpkgs -c Release --no-build
+        dotnet pack src/Dtmgrpc/Dtmgrpc.csproj -o /home/runner/work/nugetpkgs -c Release --no-build
+        dotnet pack src/DtmCommon/DtmCommon.csproj -o /home/runner/work/nugetpkgs -c Release --no-build
+        dotnet pack src/DtmSERedisBarrier/DtmSERedisBarrier.csproj -o /home/runner/work/nugetpkgs -c Release --no-build
+        dotnet pack src/DtmMongoBarrier/DtmMongoBarrier.csproj -o /home/runner/work/nugetpkgs -c Release --no-build
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:

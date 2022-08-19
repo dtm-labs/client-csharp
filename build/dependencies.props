@@ -1,0 +1,39 @@
+<Project>
+  <PropertyGroup>
+    <!-- DtmCommon -->
+    <DapperPackageVersion>2.0.123</DapperPackageVersion>
+    <SystemTextJsonPackageVersion>6.0.2</SystemTextJsonPackageVersion>
+    <MicrosoftExtensionsConfigurationNET6>6.0.0</MicrosoftExtensionsConfigurationNET6>
+    <MicrosoftExtensionsHttpNET6>6.0.0</MicrosoftExtensionsHttpNET6>
+    <MicrosoftExtensionsOptionsConfigurationExtensionsNET6>6.0.0</MicrosoftExtensionsOptionsConfigurationExtensionsNET6>
+    <MicrosoftExtensionsConfigurationNET5>5.0.0</MicrosoftExtensionsConfigurationNET5>
+    <MicrosoftExtensionsHttpNET5>5.0.0</MicrosoftExtensionsHttpNET5>
+    <MicrosoftExtensionsOptionsConfigurationExtensionsNET5>5.0.0</MicrosoftExtensionsOptionsConfigurationExtensionsNET5>
+    <MicrosoftCSharpNSD21>4.7.0</MicrosoftCSharpNSD21>
+    <MicrosoftExtensionsConfigurationNSD21>6.0.0</MicrosoftExtensionsConfigurationNSD21>
+    <MicrosoftExtensionsHttpNSD21>6.0.0</MicrosoftExtensionsHttpNSD21>
+    <MicrosoftExtensionsOptionsConfigurationExtensionsNSD21>6.0.0</MicrosoftExtensionsOptionsConfigurationExtensionsNSD21>
+
+    <!-- Dtmgrpc -->
+    <GoogleProtobufPackageVersion>3.20.0</GoogleProtobufPackageVersion>
+    <GrpcNetClientFactoryPackageVersion>2.44.0</GrpcNetClientFactoryPackageVersion>
+    <GrpcToolsPackageVersion>2.45.0</GrpcToolsPackageVersion>
+
+    <!-- Barrier Extension -->
+    <MongoDBDriverPackageVersion>2.15.1</MongoDBDriverPackageVersion>
+    <StackExchangeRedisPackageVersion>2.5.61</StackExchangeRedisPackageVersion>
+
+
+    <!-- TEST -->
+    <GrpcAspNetCorePackageVersion>2.40.0</GrpcAspNetCorePackageVersion>
+    <MySqlConnectorPackageVersion>2.1.2</MySqlConnectorPackageVersion>
+    <MicrosoftNETTestSdkPackageVersion>17.1.0</MicrosoftNETTestSdkPackageVersion>
+    <MoqPackageVersion>4.16.1</MoqPackageVersion>
+    <XunitPackageVersion>2.4.1</XunitPackageVersion>
+    <XunitRunnerVisualstudioPackageVersion>2.4.3</XunitRunnerVisualstudioPackageVersion>
+    <CoverletCollectorPackageVersion>3.1.2</CoverletCollectorPackageVersion>
+    <MicrosoftExtensionsDependencyInjectionPackageVersion>6.0.0</MicrosoftExtensionsDependencyInjectionPackageVersion>
+    <DbMockerPackageVersion>1.21.0</DbMockerPackageVersion>
+
+  </PropertyGroup>
+</Project>
