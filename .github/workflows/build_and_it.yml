@@ -1,0 +1,70 @@
+name: Build_And_IntegrationTests
+
+on:
+  push:
+    branches: [ dev, main, 'feat/**' ]
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+
+  linux:    
+    name: build on ${{ matrix.os }} 
+    runs-on: ${{ matrix.os }}
+    services:
+      redis6379:
+        image: redis
+        ports:
+          - 6379:6379
+      mysql:
+        image: 'mysql:8.0'
+        ports:
+          - 3306:3306  
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3 
+          -e MYSQL_ROOT_PASSWORD=123456
+          --entrypoint sh mysql:8.0 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"    
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET SDK 6.0.x
+      uses: actions/setup-dotnet@v1.7.2
+      with:
+        dotnet-version: 6.0.x 
+    
+    - name: Show dotnet Version
+      run: |
+        dotnet --list-sdks
+        dotnet --list-runtimes
+    - name: Create database
+      run: |
+        mysql -h127.0.0.1 -uroot -p123456 < /home/runner/work/client-csharp/client-csharp/sqls/barrier.mysql.sql
+        mysql -h127.0.0.1 -uroot -p123456 < /home/runner/work/client-csharp/client-csharp/sqls/busi.mysql.sql
+    - name: Setup DTM server
+      run: |
+        wget https://github.com/dtm-labs/dtm/releases/download/v1.12.1/dtm_1.12.1_linux_amd64.tar.gz
+        tar -xvf dtm_1.12.1_linux_amd64.tar.gz
+        pwd
+        mkdir /home/runner/work/client-csharp/client-csharp/logs
+        nohup ./dtm > /home/runner/work/client-csharp/client-csharp/logs/dtm.log 2>&1 &
+        sleep 5
+        curl "127.0.0.1:36789/api/dtmsvr/newGid"   
+    - name: Setup Busi Service
+      run: |
+        cd tests/BusiGrpcService
+        nohup dotnet run > /home/runner/work/client-csharp/client-csharp/logs/app.log 2>&1 &
+    - name: Run Integration Tests
+      run: |
+        dotnet test tests/Dtmgrpc.IntegrationTests/Dtmgrpc.IntegrationTests.csproj
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: dtm-logs
+        path: /home/runner/work/client-csharp/client-csharp/logs
