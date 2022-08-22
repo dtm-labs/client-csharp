@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <!--<Nullable>enable</Nullable>-->
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="$(GrpcAspNetCorePackageVersion)" />
+    <PackageReference Include="MySqlConnector" Version="$(MySqlConnectorPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Dtmgrpc\Dtmgrpc.csproj" />
+    <ProjectReference Include="..\..\src\DtmSERedisBarrier\DtmSERedisBarrier.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="..\protos\busi.proto" GrpcServices="Server" Link="Protos\busi.proto" />
+	</ItemGroup>
+
+</Project>
