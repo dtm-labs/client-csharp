@@ -111,7 +111,6 @@ namespace Dtmcli.Tests
                     { "bh1", "123" },
                     { "bh2", "456" },
                 });
-                tcc.SetPassthroughHeaders(new List<string> { "bh1" });
             },  async (tcc) =>
             {
                 var res1 = await tcc.CallBranch(new { }, "http://localhost:9999/TransOutTry", "http://localhost:9999/TransOutConfirm", "http://localhost:9999/TransOutCancel", default);
@@ -124,7 +123,6 @@ namespace Dtmcli.Tests
                 Assert.Equal(100, transBase.TimeoutToFail);
                 Assert.Contains("bh1", transBase.BranchHeaders.Keys);
                 Assert.Contains("bh2", transBase.BranchHeaders.Keys);
-                Assert.Contains("bh1", transBase.PassthroughHeaders);
             });
 
             Assert.Equal(gid, res);

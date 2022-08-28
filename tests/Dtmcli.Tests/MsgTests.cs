@@ -52,8 +52,7 @@ namespace Dtmcli.Tests
                 {
                     { "bh1", "123" },
                     { "bh2", "456" },
-                })
-               .SetPassthroughHeaders(new List<string> { "bh1" });
+                });
 
             await msg.Prepare(busi + "/query");
             await msg.Submit();
@@ -211,7 +210,6 @@ namespace Dtmcli.Tests
                 Assert.Contains("bh2", transBase.BranchHeaders.Keys);
                 Assert.Equal(2, transBase.Payloads.Count);
                 Assert.Equal(2, transBase.Steps.Count);
-                Assert.Contains("bh1", transBase.PassthroughHeaders);
 
                 var content = new StringContent("{\"dtm_result\":\"SUCCESS\"}");
 
