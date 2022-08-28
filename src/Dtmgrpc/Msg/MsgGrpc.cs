@@ -143,11 +143,5 @@ namespace Dtmgrpc
             this._transBase.BranchHeaders = headers;
             return this;
         }
-
-        public MsgGrpc SetPassthroughHeaders(List<string> headers)
-        {
-            this._transBase.PassthroughHeaders = headers;
-            return this;
-        }
     }
 }

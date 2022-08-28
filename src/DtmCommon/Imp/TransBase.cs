@@ -23,9 +23,6 @@ namespace DtmCommon
         [JsonPropertyName("retry_interval")]
         public long RetryInterval { get; set; }
 
-        [JsonPropertyName("passthrough_headers")]
-        public List<string> PassthroughHeaders { get; set; }
-
         [JsonPropertyName("branch_headers")]
         public Dictionary<string, string> BranchHeaders { get; set; }
 

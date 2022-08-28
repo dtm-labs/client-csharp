@@ -35,8 +35,7 @@ namespace Dtmgrpc.Tests
                  {
                      { "bh1", "123" },
                      { "bh2", "456" },
-                 })
-                .SetPassthroughHeaders(new List<string> { "bh1" });
+                 });
 
             await saga.Submit();
 

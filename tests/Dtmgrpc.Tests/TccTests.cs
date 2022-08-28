@@ -81,7 +81,6 @@ namespace Dtmgrpc.Tests
                     { "bh1", "123" },
                     { "bh2", "456" },
                 });
-                tcc.SetPassthroughHeaders(new List<string> { "bh1" });
             }, async (tcc) =>
             {
                 await tcc.CallBranch<Empty, Empty>(new Empty(), "localhost:9999/svc/TransOutTry", "localhost:9999/svc/TransOutConfirm", "localhost:9999/svc/TransOutCancel");

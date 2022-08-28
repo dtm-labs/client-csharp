@@ -55,8 +55,7 @@ namespace Dtmgrpc.Tests
                 {
                     { "bh1", "123" },
                     { "bh2", "456" },
-                })
-               .SetPassthroughHeaders(new List<string> { "bh1" });
+                });
 
             await msg.Prepare(busi + "/query");
             await msg.Submit();
