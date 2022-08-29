@@ -11,14 +11,14 @@ namespace Dtmgrpc.Tests
 {
     public class TransMockHelper
     {
-        public static void MockTransCallDtm(Mock<IDtmgRPCClient> mock, string op, bool isEx)
+        public static void MockTransCallDtm(Mock<IDtmgRPCClient> mock, string op, bool isEx, string ex = "")
         {
             var setup = mock
                 .Setup(x => x.DtmGrpcCall(It.IsAny<TransBase>(), op));
 
             if (isEx)
             {
-                setup.Throws(new Exception(""));
+                setup.Throws(new Exception(ex));
             }
             else
             {
@@ -26,7 +26,7 @@ namespace Dtmgrpc.Tests
             }
         }
 
-        public static void MockRegisterBranch(Mock<IDtmgRPCClient> mock, bool isEx)
+        public static void MockRegisterBranch(Mock<IDtmgRPCClient> mock, bool isEx, string ex = "")
         {
             var setup = mock
                 .Setup(x => x.RegisterBranch(
@@ -38,7 +38,7 @@ namespace Dtmgrpc.Tests
 
             if (isEx)
             {
-                setup.Throws(new Exception(""));
+                setup.Throws(new Exception(ex));
             }
             else
             {

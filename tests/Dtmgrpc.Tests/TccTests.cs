@@ -97,5 +97,60 @@ namespace Dtmgrpc.Tests
 
             Assert.Equal(gid, res);
         }
+
+        [Fact]
+        public async void Execute_Should_Abort_With_RollbackReason_When_Occure_Exception()
+        {
+            var dtmClient = new Mock<IDtmgRPCClient>();
+            TransMockHelper.MockTransCallDtm(dtmClient, Constant.Op.Prepare, false);
+            TransMockHelper.MockRegisterBranch(dtmClient, true, "123123123");
+            TransMockHelper.MockTransRequestBranch(dtmClient, false);
+
+            var gid = "tcc_gid";
+
+            var transFactory = new Mock<IDtmTransFactory>();
+            transFactory.Setup(x => x.NewTccGrpc(It.IsAny<string>())).Returns(new TccGrpc(dtmClient.Object, TransBase.NewTransBase(gid, "tcc", "", "")));
+
+            var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance, transFactory.Object);
+            var res = await globalTrans.Excecute(gid, async (tcc) =>
+            {
+                await tcc.CallBranch<Empty, Empty>(new Empty(), "localhost:9999/svc/TransOutTry", "localhost:9999/svc/TransOutConfirm", "localhost:9999/svc/TransOutCancel");
+                await tcc.CallBranch<Empty, Empty>(new Empty(), "localhost:9999/svc/TransInTry", "localhost:9999/svc/TransInConfirm", "localhost:9999/svc/TransInCancel");
+            });
+
+            Assert.Empty(res);
+            dtmClient.Verify(x => x.DtmGrpcCall(It.Is<TransBase>(x => x.RollbackReason.Equals("123123123")), Constant.Op.Abort), Times.Once);
+        }
+
+        [Fact]
+        public async void Execute_Should_Abort_With_Big_RollbackReason_When_Occure_Exception()
+        {
+            var builder = new System.Text.StringBuilder(2048);
+            for (int i = 0; i < 1100; i++)
+            {
+                builder.Append("r");
+            }
+            var ex = builder.ToString();
+
+            var dtmClient = new Mock<IDtmgRPCClient>();
+            TransMockHelper.MockTransCallDtm(dtmClient, Constant.Op.Prepare, false);
+            TransMockHelper.MockRegisterBranch(dtmClient, true, ex);
+            TransMockHelper.MockTransRequestBranch(dtmClient, false);
+
+            var gid = "tcc_gid";
+
+            var transFactory = new Mock<IDtmTransFactory>();
+            transFactory.Setup(x => x.NewTccGrpc(It.IsAny<string>())).Returns(new TccGrpc(dtmClient.Object, TransBase.NewTransBase(gid, "tcc", "", "")));
+
+            var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance, transFactory.Object);
+            var res = await globalTrans.Excecute(gid, async (tcc) =>
+            {
+                await tcc.CallBranch<Empty, Empty>(new Empty(), "localhost:9999/svc/TransOutTry", "localhost:9999/svc/TransOutConfirm", "localhost:9999/svc/TransOutCancel");
+                await tcc.CallBranch<Empty, Empty>(new Empty(), "localhost:9999/svc/TransInTry", "localhost:9999/svc/TransInConfirm", "localhost:9999/svc/TransInCancel");
+            });
+
+            Assert.Empty(res);
+            dtmClient.Verify(x => x.DtmGrpcCall(It.Is<TransBase>(x => x.RollbackReason.Equals(ex.Substring(0, 1023))), Constant.Op.Abort), Times.Once);
+        }
     }
 }

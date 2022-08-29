@@ -12,14 +12,14 @@ namespace Dtmcli.Tests
 {
     public class TestHelper
     {
-        public static void MockTransCallDtm(Mock<IDtmClient> mock, string op, bool isEx)
+        public static void MockTransCallDtm(Mock<IDtmClient> mock, string op, bool isEx, string ex = "")
         {
             var setup = mock
                 .Setup(x => x.TransCallDtm(It.IsAny<TransBase>(), It.IsAny<object>(), op, It.IsAny<CancellationToken>()));
 
             if (isEx)
             {
-                setup.Throws(new Exception(""));
+                setup.Throws(new Exception(ex));
             }
             else
             {
@@ -27,14 +27,14 @@ namespace Dtmcli.Tests
             }
         }
 
-        public static void MockTransRegisterBranch(Mock<IDtmClient> mock, string op, bool isEx)
+        public static void MockTransRegisterBranch(Mock<IDtmClient> mock, string op, bool isEx, string ex = "")
         {
             var setup = mock
                 .Setup(x => x.TransRegisterBranch(It.IsAny<TransBase>(), It.IsAny<Dictionary<string, string>>(), op, It.IsAny<CancellationToken>()));
 
             if (isEx)
             {
-                setup.Throws(new Exception(""));
+                setup.Throws(new Exception(ex));
             }
             else
             {

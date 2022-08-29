@@ -39,6 +39,7 @@ namespace Dtmgrpc
             }
             catch (Exception ex)
             {
+                tcc.GetTransBase().RollbackReason = ex.Message.Substring(0, ex.Message.Length > 1023 ? 1023 : ex.Message.Length);
                 _logger.LogError(ex, "submitting or abort global transaction error");
                 await _dtmClient.DtmGrpcCall(tcc.GetTransBase(), Constant.Op.Abort);
                 return string.Empty;

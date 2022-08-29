@@ -119,6 +119,7 @@ namespace Dtmgrpc
                 QueryPrepared = transBase.QueryPrepared ?? string.Empty,
                 CustomedData = transBase.CustomData ?? string.Empty,
                 Steps = transBase.Steps == null ? string.Empty : Utils.ToJsonString(transBase.Steps),
+                RollbackReason = transBase.RollbackReason ?? string.Empty,
             };
 
             foreach (var item in transBase.BinPayloads ?? new List<byte[]>())

@@ -44,6 +44,7 @@ namespace Dtmcli
             }
             catch (Exception ex)
             {
+                tcc.GetTransBase().RollbackReason = ex.Message.Substring(0, ex.Message.Length > 1023 ? 1023 : ex.Message.Length);
                 logger.LogError(ex, "prepare or submitting global transaction error");
                 await dtmClient.TransCallDtm(tcc.GetTransBase(), tcc.GetTransBase(), Constant.Request.OPERATION_ABORT, cancellationToken);
                 return string.Empty;
