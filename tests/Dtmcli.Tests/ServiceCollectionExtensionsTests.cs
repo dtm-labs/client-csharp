@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Dtmcli.Tests
@@ -91,6 +92,74 @@ namespace Dtmcli.Tests
             var dtmOptionsAccs = provider.GetService<IOptions<DtmOptions>>();
             var dtmOptions = dtmOptionsAccs.Value;
             Assert.NotEqual(dtmUrl, dtmOptions.DtmUrl);
+        }
+
+
+        [Fact]
+        public void AddDtmBarrier_Without_Action_Should_Throw_Exception()
+        {
+            var services = new ServiceCollection();
+
+            Assert.Throws<System.ArgumentNullException>(() => services.AddDtmBarrier(null));
+        }
+
+
+        [Fact]
+        public void AddDtmBarrier_With_Action_Should_Succeed()
+        {
+            var services = new ServiceCollection();
+            services.AddDtmBarrier(x =>
+            {
+                x.DBType = "mysql";
+                x.BarrierTableName = "dtm_barrier.barrier2";
+            });
+
+            var provider = services.BuildServiceProvider();
+
+            var dtmOptionsAccs = provider.GetService<IOptions<DtmOptions>>();
+            var dtmOptions = dtmOptionsAccs.Value;
+            Assert.Equal("mysql", dtmOptions.DBType);
+            Assert.Equal("dtm_barrier.barrier2", dtmOptions.BarrierTableName);
+
+            var dtmClient = provider.GetService<IDtmClient>();
+            Assert.Null(dtmClient);
+
+            var barrierFactory = provider.GetRequiredService<IBranchBarrierFactory>();
+            Assert.NotNull(barrierFactory);
+
+            var specials = provider.GetServices<IDbSpecial>();
+            Assert.Equal(3, specials.ToList().Count);
+        }
+
+        [Fact]
+        public void AddDtmBarrier_With_IConfiguration_Should_Succeed()
+        {
+            var dict = new Dictionary<string, string>
+            {
+               { "dtm:DBType", "mysql" },
+               { "dtm:BarrierTableName", "dtm_barrier.barrier2" },
+            };
+
+            var config = new ConfigurationBuilder().AddInMemoryCollection(dict).Build();
+
+            var services = new ServiceCollection();
+            services.AddDtmBarrier(config, "dtm");
+
+            var provider = services.BuildServiceProvider();
+
+            var dtmOptionsAccs = provider.GetService<IOptions<DtmOptions>>();
+            var dtmOptions = dtmOptionsAccs.Value;
+            Assert.Equal("mysql", dtmOptions.DBType);
+            Assert.Equal("dtm_barrier.barrier2", dtmOptions.BarrierTableName);
+
+            var dtmClient = provider.GetService<IDtmClient>();
+            Assert.Null(dtmClient);
+
+            var barrierFactory = provider.GetRequiredService<IBranchBarrierFactory>();
+            Assert.NotNull(barrierFactory);
+
+            var specials = provider.GetServices<IDbSpecial>();
+            Assert.Equal(3, specials.ToList().Count);
         }
     }
 }
