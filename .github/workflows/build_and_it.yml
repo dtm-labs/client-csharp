@@ -1,4 +1,4 @@
-name: Build_And_IntegrationTests
+name: Build_And_GRPC_IntegrationTests
 
 on:
   push:
@@ -48,8 +48,8 @@ jobs:
         mysql -h127.0.0.1 -uroot -p123456 < /home/runner/work/client-csharp/client-csharp/sqls/busi.mysql.sql
     - name: Setup DTM server
       run: |
-        wget https://github.com/dtm-labs/dtm/releases/download/v1.12.1/dtm_1.12.1_linux_amd64.tar.gz
-        tar -xvf dtm_1.12.1_linux_amd64.tar.gz
+        wget https://github.com/dtm-labs/dtm/releases/download/v1.16.1/dtm_1.16.1_linux_amd64.tar.gz
+        tar -xvf dtm_1.16.1_linux_amd64.tar.gz
         pwd
         mkdir /home/runner/work/client-csharp/client-csharp/logs
         nohup ./dtm > /home/runner/work/client-csharp/client-csharp/logs/dtm.log 2>&1 &
