@@ -33,6 +33,38 @@ namespace Dtmcli
             return AddDtmcliCore(services, op);
         }
 
+        public static IServiceCollection AddDtmBarrier(this IServiceCollection services, Action<DtmOptions> setupAction)
+        {
+            if (setupAction == null)
+            {
+                throw new ArgumentNullException(nameof(setupAction));
+            }
+
+            services.AddLogging();
+            services.AddOptions();
+            services.Configure(setupAction);
+
+            DtmCommon.ServiceCollectionExtensions.AddDtmCommon(services);
+
+            // barrier factory
+            services.TryAddSingleton<IBranchBarrierFactory, DefaultBranchBarrierFactory>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddDtmBarrier(this IServiceCollection services, IConfiguration configuration, string sectionName = "dtm")
+        {
+            services.AddLogging();
+            services.Configure<DtmOptions>(configuration.GetSection(sectionName));
+
+            DtmCommon.ServiceCollectionExtensions.AddDtmCommon(services);
+
+            // barrier factory
+            services.TryAddSingleton<IBranchBarrierFactory, DefaultBranchBarrierFactory>();
+
+            return services;
+        }
+
         private static IServiceCollection AddDtmcliCore(IServiceCollection services, DtmOptions options)
         {
             AddHttpClient(services, options);
