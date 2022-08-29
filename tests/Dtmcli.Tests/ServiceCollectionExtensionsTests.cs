@@ -96,6 +96,15 @@ namespace Dtmcli.Tests
 
 
         [Fact]
+        public void AddDtmBarrier_Without_Action_Should_Throw_Exception()
+        {
+            var services = new ServiceCollection();
+
+            Assert.Throws<System.ArgumentNullException>(() => services.AddDtmBarrier(null));
+        }
+
+
+        [Fact]
         public void AddDtmBarrier_With_Action_Should_Succeed()
         {
             var services = new ServiceCollection();
