@@ -19,7 +19,7 @@ namespace Dtmcli.Tests
             TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
             TestHelper.MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, false);
             TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.OK);
-            
+
             var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
             var res = await globalTrans.Excecute(async (tcc) =>
             {
@@ -101,31 +101,80 @@ namespace Dtmcli.Tests
 
             var gid = "tcc_gid";
             var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
-            var res = await globalTrans.Excecute(gid, tcc => 
+            var res = await globalTrans.Excecute(gid, tcc =>
             {
                 tcc.EnableWaitResult();
                 tcc.SetRetryInterval(10);
                 tcc.SetTimeoutToFail(100);
-                tcc.SetBranchHeaders(new Dictionary<string, string> 
+                tcc.SetBranchHeaders(new Dictionary<string, string>
                 {
                     { "bh1", "123" },
                     { "bh2", "456" },
                 });
-            },  async (tcc) =>
+            }, async (tcc) =>
+           {
+               var res1 = await tcc.CallBranch(new { }, "http://localhost:9999/TransOutTry", "http://localhost:9999/TransOutConfirm", "http://localhost:9999/TransOutCancel", default);
+               var res2 = await tcc.CallBranch(new { }, "http://localhost:9999/TransInTry", "http://localhost:9999/TransInConfirm", "http://localhost:9999/TransInCancel", default);
+
+               var transBase = tcc.GetTransBase();
+
+               Assert.True(transBase.WaitResult);
+               Assert.Equal(10, transBase.RetryInterval);
+               Assert.Equal(100, transBase.TimeoutToFail);
+               Assert.Contains("bh1", transBase.BranchHeaders.Keys);
+               Assert.Contains("bh2", transBase.BranchHeaders.Keys);
+           });
+
+            Assert.Equal(gid, res);
+        }
+
+        [Fact]
+        public async void Execute_Should_Abort_With_RollbackReason_When_Occure_Exception()
+        {
+            var dtmClient = new Mock<IDtmClient>();
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, false);
+            TestHelper.MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true, "123123123");
+            TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.BadRequest);
+
+            var gid = "tcc_gid";
+            var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
+            var res = await globalTrans.Excecute(gid, async (tcc) =>
             {
                 var res1 = await tcc.CallBranch(new { }, "http://localhost:9999/TransOutTry", "http://localhost:9999/TransOutConfirm", "http://localhost:9999/TransOutCancel", default);
                 var res2 = await tcc.CallBranch(new { }, "http://localhost:9999/TransInTry", "http://localhost:9999/TransInConfirm", "http://localhost:9999/TransInCancel", default);
-
-                var transBase = tcc.GetTransBase();
-
-                Assert.True(transBase.WaitResult);
-                Assert.Equal(10, transBase.RetryInterval);
-                Assert.Equal(100, transBase.TimeoutToFail);
-                Assert.Contains("bh1", transBase.BranchHeaders.Keys);
-                Assert.Contains("bh2", transBase.BranchHeaders.Keys);
             });
 
-            Assert.Equal(gid, res);
+            Assert.Empty(res);
+            dtmClient.Verify(x => x.TransCallDtm(It.Is<TransBase>(x => x.RollbackReason.Equals("123123123")), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async void Execute_Should_Abort_With_Big_RollbackReason_When_Occure_Exception()
+        {
+            var builder = new System.Text.StringBuilder(2048);
+            for (int i = 0; i < 1100; i++)
+            {
+                builder.Append("r");
+            }
+            var ex = builder.ToString();
+
+            var dtmClient = new Mock<IDtmClient>();
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_PREPARE, false);
+            TestHelper.MockTransCallDtm(dtmClient, Constant.Request.OPERATION_ABORT, false);
+            TestHelper.MockTransRegisterBranch(dtmClient, Constant.Request.OPERATION_REGISTERBRANCH, true, ex);
+            TestHelper.MockTransRequestBranch(dtmClient, System.Net.HttpStatusCode.BadRequest);
+
+            var gid = "tcc_gid";
+            var globalTrans = new TccGlobalTransaction(dtmClient.Object, NullLoggerFactory.Instance);
+            var res = await globalTrans.Excecute(gid, async (tcc) =>
+            {
+                var res1 = await tcc.CallBranch(new { }, "http://localhost:9999/TransOutTry", "http://localhost:9999/TransOutConfirm", "http://localhost:9999/TransOutCancel", default);
+                var res2 = await tcc.CallBranch(new { }, "http://localhost:9999/TransInTry", "http://localhost:9999/TransInConfirm", "http://localhost:9999/TransInCancel", default);
+            });
+
+            Assert.Empty(res);
+            dtmClient.Verify(x => x.TransCallDtm(It.Is<TransBase>(x => x.RollbackReason.Equals(ex.Substring(0, 1023))), It.IsAny<object>(), Constant.Request.OPERATION_ABORT, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

@@ -59,6 +59,12 @@ namespace DtmCommon
         [JsonPropertyName("query_prepared")]
         public string QueryPrepared { get; set; }
 
+        [JsonPropertyName("protocol")]
+        public string Protocol { get; set; }
+
+        [JsonPropertyName("rollback_reason")]
+        public string RollbackReason { get; set; }
+
         [JsonIgnore]
         public string Dtm { get; set; }
 

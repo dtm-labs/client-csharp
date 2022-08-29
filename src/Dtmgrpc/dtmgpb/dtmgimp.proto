@@ -32,6 +32,8 @@ message DtmRequest {
   repeated bytes BinPayloads = 5; // for MSG/SAGA branch payloads
   string QueryPrepared = 6; // for MSG
   string Steps = 7;
+  map<string, string> ReqExtra = 8;
+  string RollbackReason = 9;
 }
 
 message DtmGidReply {
