@@ -96,5 +96,16 @@ namespace Dtmcli
             this._transBase.BranchHeaders = headers;
             return this;
         }
+
+        /// <summary>
+        /// Set global trans retry limit
+        /// </summary>
+        /// <param name="limit"></param>
+        /// <returns></returns>
+        public Saga SetRetryLimit(long limit)
+        {
+            this._transBase.RetryLimit = limit;
+            return this;
+        }
     }
 }

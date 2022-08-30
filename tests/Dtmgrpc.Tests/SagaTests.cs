@@ -31,6 +31,7 @@ namespace Dtmgrpc.Tests
                 .EnableConcurrent()
                 .SetRetryInterval(10)
                 .SetTimeoutToFail(100)
+                .SetRetryLimit(2)
                 .SetBranchHeaders(new Dictionary<string, string>
                  {
                      { "bh1", "123" },
@@ -43,6 +44,7 @@ namespace Dtmgrpc.Tests
             Assert.NotNull(tb.CustomData);
             Assert.Equal(10, tb.RetryInterval);
             Assert.Equal(100, tb.TimeoutToFail);
+            Assert.Equal(2, tb.RetryLimit);
 
             Assert.True(true);
         }

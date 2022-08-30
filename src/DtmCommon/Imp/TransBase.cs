@@ -26,6 +26,12 @@ namespace DtmCommon
         [JsonPropertyName("branch_headers")]
         public Dictionary<string, string> BranchHeaders { get; set; }
 
+        [JsonPropertyName("retry_limit")]
+        public long RetryLimit { get; set; }
+
+        [JsonPropertyName("retry_count")]
+        public long RetryCount { get; set; }
+
         /// <summary>
         /// use in MSG/SAGA
         /// </summary>
