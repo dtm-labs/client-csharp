@@ -104,6 +104,7 @@ namespace Dtmgrpc
                 WaitResult = transBase.WaitResult,
                 TimeoutToFail = transBase.TimeoutToFail,
                 RetryInterval = transBase.RetryInterval,
+                RetryLimit = transBase.RetryLimit,
             };
 
             if (transBase.BranchHeaders != null)

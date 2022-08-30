@@ -40,6 +40,7 @@ namespace Dtmcli.Tests
                 .EnableWaitResult()
                 .SetRetryInterval(10)
                 .SetTimeoutToFail(100)
+                .SetRetryLimit(2)
                 .SetBranchHeaders(new Dictionary<string, string> 
                 {
                     { "bh1", "123" },
@@ -123,6 +124,7 @@ namespace Dtmcli.Tests
                 Assert.Contains("bh2", transBase.BranchHeaders.Keys);
                 Assert.Equal(4, transBase.Payloads.Count);
                 Assert.Equal(4, transBase.Steps.Count);
+                Assert.Equal(2, transBase.RetryLimit);
 
                 var content = new StringContent("{\"dtm_result\":\"SUCCESS\"}");
 
