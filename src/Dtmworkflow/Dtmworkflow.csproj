@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Dtmcli\Dtmcli.csproj" />
+    <ProjectReference Include="..\Dtmgrpc\Dtmgrpc.csproj" />
+  </ItemGroup>
+
 </Project>
