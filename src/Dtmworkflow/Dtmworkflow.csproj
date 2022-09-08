@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Description>a c# client for distributed transaction framework dtm. 分布式事务管理器dtm的c#客户端</Description>
+		<PackageTags>dtm,csharp,distributed transaction,tcc,saga,msg</PackageTags>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Dtmcli\Dtmcli.csproj" />
-    <ProjectReference Include="..\Dtmgrpc\Dtmgrpc.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Dtmcli\Dtmcli.csproj" />
+		<ProjectReference Include="..\Dtmgrpc\Dtmgrpc.csproj" />
+	</ItemGroup>
 
 </Project>

@@ -12,6 +12,12 @@ namespace DtmCommon
         public static readonly string ResultSuccess = "SUCCESS";
         public static readonly string ResultOngoing = "ONGOING";
 
+        public static readonly string StatusPrepared = "prepared";
+        public static readonly string StatusSubmitted = "submitted";
+        public static readonly string StatusSucceed = "succeed";
+        public static readonly string StatusFailed = "failed";
+        public static readonly string StatusAborting = "aborting";
+
         /// <summary>
         /// error of DUPLICATED for only msg
         /// if QueryPrepared executed before call. then DoAndSubmit return this error
