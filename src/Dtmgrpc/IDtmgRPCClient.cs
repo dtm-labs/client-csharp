@@ -30,5 +30,9 @@ namespace Dtmgrpc
         Task<TResponse> InvokeBranch<TRequest, TResponse>(TransBase tb, TRequest msg, string url, string branchId, string op)
             where TRequest : class, IMessage, new()
             where TResponse : class, IMessage, new();
+
+        Task<Google.Protobuf.WellKnownTypes.Empty> Submit(dtmgpb.DtmRequest request);
+
+        Task<dtmgpb.DtmProgressesReply> PrepareWorkflow(dtmgpb.DtmRequest request);
     }
 }

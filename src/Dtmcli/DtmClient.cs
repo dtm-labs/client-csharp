@@ -43,6 +43,18 @@ namespace Dtmcli
             return dtmgid.Gid;
         }
 
+        public async Task<HttpResponseMessage> PrepareWorkflow(TransBase tb, CancellationToken cancellationToken)
+        {
+            var url = string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URLBASE_PREFIX, "prepareWorkflow");
+
+            var content = new StringContent(JsonSerializer.Serialize(tb, _jsonOptions));
+            content.Headers.ContentType = new MediaTypeHeaderValue(Constant.Request.CONTENT_TYPE);
+
+            var client = _httpClientFactory.CreateClient(Constant.DtmClientHttpName);
+            var response = await client.PostAsync(url, content, cancellationToken).ConfigureAwait(false);
+            return response;
+        }
+
         public async Task TransCallDtm(TransBase tb, object body, string operation, CancellationToken cancellationToken)
         {
             var url = string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URLBASE_PREFIX, operation);

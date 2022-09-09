@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Google.Protobuf;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,52 +11,90 @@ namespace Dtmworkflow
 {
     internal partial class Workflow
     {
-
-        private (byte[] Res, Exception Err) Process(WfFunc2 handler, byte[] data)
+        private void InitProgress(dtmgpb.DtmProgress[] progresses)
         {
-            var (reply, err2) = this.GetProgress();
-            if (err2 != null)
-            { 
-                return (null, err2);
+            this.WorkflowImp.Progresses = new Dictionary<string, StepResult>();
+
+            foreach (dtmgpb.DtmProgress p in progresses)
+            {
+                byte[] data = new byte[p.BinData.Length];
+                p.BinData.CopyTo(data, 0);
+                var sr = new StepResult
+                {
+                    Status = p.Status,
+                    Data = data,
+                };
+
+                if (sr.Status == DtmCommon.Constant.StatusFailed)
+                {
+                    sr.Error = new DtmCommon.DtmException(Encoding.UTF8.GetString(data));
+                }
+
+                this.WorkflowImp.Progresses[$"{p.BranchID}-{p.Op}"] = sr;
             }
+        }
+
+        private async Task<byte[]> Process(WfFunc2 handler, byte[] data)
+        {
+            var reply = await this.GetProgress();
 
             var status = reply.Transaction.Status;
             if (status == DtmCommon.Constant.StatusSucceed)
             {
-
+                var sRes = Convert.FromBase64String(reply.Transaction.Result);
+                return sRes;
             }
             else if (status == DtmCommon.Constant.StatusFailed) 
             {
-            
+                throw new DtmCommon.DtmException(reply.Transaction.RollbackReason);
             }
 
-            return (null, null);
+            this.InitProgress(reply.Progresses.ToArray());
+
+            var (res, err) = handler(this,data);
+
+            // TODO: grpc error to dtm error
+
+            if (err != null && err is not DtmCommon.DtmFailureException) throw err;
+
+            try
+            {
+                await this.ProcessPhase2(err);
+            }
+            catch (Exception ex)
+            {
+                err = ex;
+            }
+             
+            if (err == null || err is DtmCommon.DtmFailureException)
+            {
+                await this.Submit(res, err, default);
+            }
+
+            return null;
         }
 
-        private Exception SaveResult(string branchId, string op, StepResult sr)
+        private async Task SaveResult(string branchId, string op, StepResult sr)
         {
             if (!string.IsNullOrWhiteSpace(sr.Status))
             {
-                var err = this.RegisterBranch(sr.Data, branchId, op, sr.Status);
-                if (err != null)
-                {
-                    return err;
-                }
+                await this.RegisterBranch(sr.Data, branchId, op, sr.Status, default);
+                return;
             }
 
-            return sr.Error;
+            if(sr.Error != null) throw sr.Error;
         }
 
-        private Exception ProcessPhase2(Exception err)
+        private async Task ProcessPhase2(Exception err)
         {
             var ops = this.WorkflowImp.SucceededOps;
             if (err == null)
             {
-                this.WorkflowImp.CurrentOp = "";
+                this.WorkflowImp.CurrentOp = DtmCommon.Constant.OpCommit;
             }
             else
             {
-                this.WorkflowImp.CurrentOp = "";
+                this.WorkflowImp.CurrentOp = DtmCommon.Constant.OpRollback;
                 ops = this.WorkflowImp.FailedOps;
             }
 
@@ -61,27 +102,29 @@ namespace Dtmworkflow
             {
                 var op = ops[i];
 
-                var err1 = this.CallPhase2(op.BranchID, op.Fn);
-                if (err1 != null) return err1;
+                await this.CallPhase2(op.BranchID, op.Fn);
             }
 
-            return err;
+            if (err != null) throw err;
         }
 
-        private Exception CallPhase2(string branchId, WfPhase2Func fn)
+        private async Task CallPhase2(string branchId, WfPhase2Func fn)
         {
             this.WorkflowImp.CurrentBranch = branchId;
 
-            var r = this.RecordedDo(bb => 
+            var r = await this.RecordedDo(bb => 
             {
                 var err = fn.Invoke(bb);
+
+                if (err is DtmCommon.DtmFailureException)
+                {
+                    throw new DtmCommon.DtmException("should not return ErrFail in phase2");
+                }
 
                 return this.StepResultFromLocal(null, err);
             });
 
-            var item = this.StepResultToLocal(r);
-
-            return null;
+            this.StepResultToLocal(r);
         }
 
         private (byte[], Exception) StepResultToLocal(StepResult r)
@@ -99,31 +142,103 @@ namespace Dtmworkflow
             };
         }
 
+        private Exception StepResultToGrpc(StepResult r, IMessage reply)
+        {
+            if (r.Error == null && r.Status == DtmCommon.Constant.StatusSucceed)
+            { 
+                // Check 
+            }
+
+            return r.Error;
+        }
+
+        private StepResult StepResultFromGrpc(IMessage reply, Exception err)
+        {
+            var sr = new StepResult
+            {
+                // GRPCError2DtmError
+                Error = null,
+            };
+
+            sr.Status = WfErrorToStatus(sr.Error);
+            if (sr.Error == null)
+            {
+                sr.Data = reply.ToByteArray();
+            }
+            else if (sr.Status == DtmCommon.Constant.StatusFailed)
+            {
+                sr.Data = Encoding.UTF8.GetBytes(err.Message);
+            }
+
+            return sr;
+        }
+
+        private HttpResponseMessage StepResultToHttp(StepResult r)
+        {
+            if (r.Error != null)
+            {
+               throw r.Error;
+            }
+
+            return Utils.NewJSONResponse(HttpStatusCode.OK, r.Data);
+        }
+
+        private StepResult StepResultFromHTTP(HttpResponseMessage resp, Exception err)
+        {
+            var sr = new StepResult
+            {
+                Error = err,
+            };
+
+            if (err == null)
+            {
+                // HTTPResp2DtmError
+                sr.Status = WfErrorToStatus(sr.Error);
+            }
+
+            return sr;
+        }
+
         private string WfErrorToStatus(Exception err)
         {
             if (err == null)
             {
-                return "";
+                return DtmCommon.Constant.StatusSucceed;
             }
             else if (err is DtmCommon.DtmFailureException)
             {
-                return "";
+                return DtmCommon.Constant.StatusFailed;
             }
 
-            return "";
+            return string.Empty;
         }
 
 
-        private StepResult RecordedDo(Func<DtmCommon.BranchBarrier, StepResult> fn)
+        private async Task<StepResult> RecordedDo(Func<DtmCommon.BranchBarrier, StepResult> fn)
         {
-            return null;
+            var sr = await this.RecordedDoInner(fn);
+
+            if (this.Options.CompensateErrorBranch && sr.Status == DtmCommon.Constant.StatusFailed)
+            {
+                var lastFailed = this.WorkflowImp.FailedOps.Count - 1;
+                if (lastFailed >= 0 && this.WorkflowImp.FailedOps[lastFailed].BranchID == this.WorkflowImp.CurrentBranch)
+                {
+                    this.WorkflowImp.FailedOps = this.WorkflowImp.FailedOps.GetRange(0, lastFailed);
+                }
+            }
+
+            return sr;
         }
 
-        private StepResult RecordedDoInner(Func<DtmCommon.BranchBarrier, StepResult> fn)
+        private async Task<StepResult> RecordedDoInner(Func<DtmCommon.BranchBarrier, StepResult> fn)
         {
             var branchId = this.WorkflowImp.CurrentBranch;
-            if (this.WorkflowImp.CurrentOp == "")
+            if (this.WorkflowImp.CurrentOp == DtmCommon.Constant.OpAction)
             {
+                if (this.WorkflowImp.CurrentActionAdded)
+                {
+                    throw new DtmCommon.DtmException("one branch can have only on action");
+                }
 
                 this.WorkflowImp.CurrentActionAdded = true;
             }
@@ -135,12 +250,21 @@ namespace Dtmworkflow
                 return r;
             }
 
-            // TODO
+            // TODO: Create BranchBarrier
             DtmCommon.BranchBarrier bb = null;
 
             r = fn(bb);
 
-            return null;
+            try
+            {
+                await this.SaveResult(branchId, this.WorkflowImp.CurrentOp, r);
+            }
+            catch (Exception ex)
+            {
+                r = this.StepResultFromLocal(null, ex);
+            }
+
+            return r;
         }
 
         private StepResult GetStepResult()

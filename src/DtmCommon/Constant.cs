@@ -18,6 +18,17 @@ namespace DtmCommon
         public static readonly string StatusFailed = "failed";
         public static readonly string StatusAborting = "aborting";
 
+        public static readonly string OpTry = "try";
+        public static readonly string OpConfirm = "confirm";
+        public static readonly string OpCancel = "cancel";
+        public static readonly string OpAction = "action";
+        public static readonly string OpCompensate = "compensate";
+        public static readonly string OpCommit = "commit";
+        public static readonly string OpRollback = "rollback";
+
+        public static readonly string ProtocolGRPC = "grpc";
+        public static readonly string ProtocolHTTP = "http";
+
         /// <summary>
         /// error of DUPLICATED for only msg
         /// if QueryPrepared executed before call. then DoAndSubmit return this error

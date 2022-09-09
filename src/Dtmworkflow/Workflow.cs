@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Dtmcli;
+using Dtmgrpc;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Dtmworkflow
@@ -16,8 +16,20 @@ namespace Dtmworkflow
 
         public WorkflowImp WorkflowImp { get; set; }
 
+        private readonly IDtmClient _httpClient;
+        private readonly IDtmgRPCClient _grpcClient;
+
+        /// <summary>
+        /// NewBranch will start a new branch transaction
+        /// </summary>
+        /// <returns></returns>
         public Workflow NewBranch()
         {
+            if (this.WorkflowImp.CurrentOp != DtmCommon.Constant.OpAction)
+            {
+                throw new DtmCommon.DtmException("should not call NewBranch() in Branch callbacks");
+            }
+
             this.WorkflowImp.IDGen.NewSubBranchID();
             this.WorkflowImp.CurrentBranch = this.WorkflowImp.IDGen.CurrentSubBranchID();
             this.WorkflowImp.CurrentActionAdded = false;
@@ -27,46 +39,64 @@ namespace Dtmworkflow
             return this;
         }
 
+        /// <summary>
+        /// OnRollback will set the callback for current branch when rollback happen.
+        /// If you are writing a saga transaction, then you should write the compensation here
+        /// If you are writing a tcc transaction, then you should write the cancel operation here
+        /// </summary>
+        /// <param name="compensate"></param>
+        /// <returns></returns>
         public Workflow OnRollback(WfPhase2Func compensate)
         {
             var branchId = this.WorkflowImp.CurrentBranch;
 
             if (this.WorkflowImp.CurrentRollbackAdded)
-            { 
-            
+            {
+                throw new DtmCommon.DtmException("one branch can only add one rollback callback");
             }
 
             this.WorkflowImp.CurrentRollbackAdded = true;
             this.WorkflowImp.FailedOps.Add(new WorkflowPhase2Item 
             {
                  BranchID = branchId,
-                 Op = "commit",
+                 Op = DtmCommon.Constant.OpCommit,
                  Fn = compensate
             });
 
             return this;
         }
 
+        /// <summary>
+        /// OnCommit will will set the callback for current branch when commit happen.
+        /// If you are writing a tcc transaction, then you should write the confirm operation here
+        /// </summary>
+        /// <param name="fn"></param>
+        /// <returns></returns>
         public Workflow OnCommit(WfPhase2Func fn)
         {
             var branchId = this.WorkflowImp.CurrentBranch;
 
             if (this.WorkflowImp.CurrentRollbackAdded)
             {
-
+                throw new DtmCommon.DtmException("one branch can only add one commit callback");
             }
 
             this.WorkflowImp.CurrentCommitAdded = true;
             this.WorkflowImp.SucceededOps.Add(new WorkflowPhase2Item
             {
                 BranchID = branchId,
-                Op = "commit",
+                Op = DtmCommon.Constant.OpCommit,
                 Fn = fn
             });
 
             return this;
         }
 
+        /// <summary>
+        /// OnFinish will both set the callback for OnCommit and OnRollback
+        /// </summary>
+        /// <param name="fn"></param>
+        /// <returns></returns>
         public Workflow OnFinish(Func<DtmCommon.BranchBarrier, bool, Exception> fn)
         {
             WfPhase2Func commit = (bb) => fn.Invoke(bb, false);
@@ -76,14 +106,23 @@ namespace Dtmworkflow
 
             return this;
         }
+
+        /// <summary>
+        /// Do will do an action which will be recored
+        /// </summary>
+        /// <param name="fn"></param>
+        /// <returns></returns>
+        public async Task<(byte[], Exception)> Do(Func<DtmCommon.BranchBarrier, (byte[], Exception)> fn)
+        {
+            var res = await this.RecordedDo(bb =>
+            {
+                var (r, e) = fn.Invoke(bb);
+                return this.StepResultFromLocal(r, e);
+            });
+
+            return this.StepResultToLocal(res);
+        }
     }
-
-    public delegate Exception WfPhase2Func(DtmCommon.BranchBarrier bb);
-
-
-    internal delegate Exception WfFunc(Workflow wf, byte[] data);
-
-    internal delegate (byte[], Exception) WfFunc2(Workflow wf, byte[] data);
 
     internal class WfOptions
     { 

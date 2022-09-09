@@ -30,7 +30,7 @@ namespace Dtmgrpc
 
         public async Task DtmGrpcCall(TransBase transBase, string operation)
         {
-            var dtmRequest = BuildDtmRequest(transBase);
+            var dtmRequest = Utils.BuildDtmRequest(transBase);
             var method = new Method<dtmgpb.DtmRequest, Empty>(MethodType.Unary, DtmServiceName, operation, DtmRequestMarshaller, DtmReplyMarshaller);
 
             using var channel = GrpcChannel.ForAddress(_options.DtmGrpcUrl);
@@ -97,38 +97,25 @@ namespace Dtmgrpc
             return Utils.TransBaseFromGrpc(context);
         }
 
-        private dtmgpb.DtmRequest BuildDtmRequest(TransBase transBase)
+
+        public async Task<Empty> Submit(dtmgpb.DtmRequest request)
         {
-            var transOptions = new dtmgpb.DtmTransOptions
-            {
-                WaitResult = transBase.WaitResult,
-                TimeoutToFail = transBase.TimeoutToFail,
-                RetryInterval = transBase.RetryInterval,
-                RetryLimit = transBase.RetryLimit,
-            };
+            using var channel = GrpcChannel.ForAddress(_options.DtmGrpcUrl);
+            var client = new dtmgpb.Dtm.DtmClient(channel);
+            var callOptions = new CallOptions()
+                .WithDeadline(DateTime.UtcNow.AddMilliseconds(_options.DtmTimeout));
+            var reply = await client.SubmitAsync(request, callOptions);
+            return reply;
+        }
 
-            if (transBase.BranchHeaders != null)
-            {
-                transOptions.BranchHeaders.Add(transBase.BranchHeaders);
-            }
-
-            var dtmRequest = new dtmgpb.DtmRequest
-            {
-                Gid = transBase.Gid,
-                TransType = transBase.TransType,
-                TransOptions = transOptions,
-                QueryPrepared = transBase.QueryPrepared ?? string.Empty,
-                CustomedData = transBase.CustomData ?? string.Empty,
-                Steps = transBase.Steps == null ? string.Empty : Utils.ToJsonString(transBase.Steps),
-                RollbackReason = transBase.RollbackReason ?? string.Empty,
-            };
-
-            foreach (var item in transBase.BinPayloads ?? new List<byte[]>())
-            {
-                dtmRequest.BinPayloads.Add(ByteString.CopyFrom(item));
-            }
-
-            return dtmRequest;
+        public async Task<dtmgpb.DtmProgressesReply> PrepareWorkflow(dtmgpb.DtmRequest request)
+        {
+            using var channel = GrpcChannel.ForAddress(_options.DtmGrpcUrl);
+            var client = new dtmgpb.Dtm.DtmClient(channel);
+            var callOptions = new CallOptions()
+                .WithDeadline(DateTime.UtcNow.AddMilliseconds(_options.DtmTimeout));
+            var reply = await client.PrepareWorkflowAsync(request, callOptions);
+            return reply;
         }
     }
 }

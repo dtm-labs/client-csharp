@@ -2,6 +2,7 @@
 using Google.Protobuf;
 using Grpc.Core;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Dtmgrpc.DtmGImp
@@ -138,6 +139,40 @@ namespace Dtmgrpc.DtmGImp
             }
 
             throw new RpcException(new Status(StatusCode.Unknown, "normal exception"), ex.Message);
+        }
+
+        public static dtmgpb.DtmRequest BuildDtmRequest(TransBase transBase)
+        {
+            var transOptions = new dtmgpb.DtmTransOptions
+            {
+                WaitResult = transBase.WaitResult,
+                TimeoutToFail = transBase.TimeoutToFail,
+                RetryInterval = transBase.RetryInterval,
+                RetryLimit = transBase.RetryLimit,
+            };
+
+            if (transBase.BranchHeaders != null)
+            {
+                transOptions.BranchHeaders.Add(transBase.BranchHeaders);
+            }
+
+            var dtmRequest = new dtmgpb.DtmRequest
+            {
+                Gid = transBase.Gid,
+                TransType = transBase.TransType,
+                TransOptions = transOptions,
+                QueryPrepared = transBase.QueryPrepared ?? string.Empty,
+                CustomedData = transBase.CustomData ?? string.Empty,
+                Steps = transBase.Steps == null ? string.Empty : Utils.ToJsonString(transBase.Steps),
+                RollbackReason = transBase.RollbackReason ?? string.Empty,
+            };
+
+            foreach (var item in transBase.BinPayloads ?? new List<byte[]>())
+            {
+                dtmRequest.BinPayloads.Add(ByteString.CopyFrom(item));
+            }
+
+            return dtmRequest;
         }
     }
 }
