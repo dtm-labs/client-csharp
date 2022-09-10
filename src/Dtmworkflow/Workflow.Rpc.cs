@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dtmworkflow
 {
-    internal partial class Workflow
+    public partial class Workflow
     {
         private async Task<dtmgpb.DtmProgressesReply> GetProgress()
         {

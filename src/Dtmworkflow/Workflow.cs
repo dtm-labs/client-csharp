@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dtmworkflow
 {
-    internal partial class Workflow
+    public partial class Workflow
     {
         public string Name { get; set; }
 
@@ -18,6 +18,17 @@ namespace Dtmworkflow
 
         private readonly IDtmClient _httpClient;
         private readonly IDtmgRPCClient _grpcClient;
+
+        public Workflow(IDtmClient httpClient, IDtmgRPCClient grpcClient)
+        {
+            this._httpClient = httpClient;
+            this._grpcClient = grpcClient;
+        }
+
+        public System.Net.Http.HttpClient NewRequest()
+        {
+            return _httpClient.GetHttpClient("WF");
+        }
 
         /// <summary>
         /// NewBranch will start a new branch transaction
@@ -97,10 +108,10 @@ namespace Dtmworkflow
         /// </summary>
         /// <param name="fn"></param>
         /// <returns></returns>
-        public Workflow OnFinish(Func<DtmCommon.BranchBarrier, bool, Exception> fn)
+        public Workflow OnFinish(Action<DtmCommon.BranchBarrier, bool> fn)
         {
-            WfPhase2Func commit = (bb) => fn.Invoke(bb, false);
-            WfPhase2Func rollback = (bb) => fn.Invoke(bb, true);
+            WfPhase2Func commit = (bb) => { fn.Invoke(bb, false); return Task.CompletedTask; };
+            WfPhase2Func rollback = (bb) => { fn.Invoke(bb, true); return Task.CompletedTask; }; 
 
             this.OnCommit(commit).OnRollback(rollback);
 
@@ -124,12 +135,12 @@ namespace Dtmworkflow
         }
     }
 
-    internal class WfOptions
+    public class WfOptions
     { 
         public bool CompensateErrorBranch { get; set; }
     }
 
-    internal class WorkflowImp
+    public class WorkflowImp
     { 
         public DtmCommon.BranchIDGen IDGen { get; set; }
         public string CurrentBranch { get; set; }
@@ -142,7 +153,7 @@ namespace Dtmworkflow
         public List<WorkflowPhase2Item> FailedOps { get; set; }
     }
 
-    internal class WorkflowPhase2Item
+    public class WorkflowPhase2Item
     { 
         public string BranchID { get; set; }
 
@@ -151,7 +162,7 @@ namespace Dtmworkflow
         public WfPhase2Func Fn { get; set; }
     }
 
-    internal class StepResult
+    public class StepResult
     { 
         public Exception Error { get; set; }
 

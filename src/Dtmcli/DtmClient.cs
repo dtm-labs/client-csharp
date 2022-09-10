@@ -43,6 +43,11 @@ namespace Dtmcli
             return dtmgid.Gid;
         }
 
+        public HttpClient GetHttpClient(string name)
+        {
+            return _httpClientFactory.CreateClient(name);
+        }
+
         public async Task<HttpResponseMessage> PrepareWorkflow(TransBase tb, CancellationToken cancellationToken)
         {
             var url = string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URLBASE_PREFIX, "prepareWorkflow");

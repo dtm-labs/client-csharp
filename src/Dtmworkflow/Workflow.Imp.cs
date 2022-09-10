@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Dtmworkflow
 {
-    internal partial class Workflow
+    public partial class Workflow
     {
         private void InitProgress(dtmgpb.DtmProgress[] progresses)
         {
@@ -34,7 +34,7 @@ namespace Dtmworkflow
             }
         }
 
-        private async Task<byte[]> Process(WfFunc2 handler, byte[] data)
+        internal async Task<byte[]> Process(WfFunc2 handler, byte[] data)
         {
             var reply = await this.GetProgress();
 
@@ -51,7 +51,17 @@ namespace Dtmworkflow
 
             this.InitProgress(reply.Progresses.ToArray());
 
-            var (res, err) = handler(this,data);
+            byte[] res = null;
+            Exception err = null;
+
+            try
+            {
+                res = await handler(this, data);
+            }
+            catch (Exception ex)
+            {
+                err = ex;
+            }
 
             // TODO: grpc error to dtm error
 
@@ -114,8 +124,17 @@ namespace Dtmworkflow
 
             var r = await this.RecordedDo(bb => 
             {
-                var err = fn.Invoke(bb);
+                Exception err = null;
 
+                try
+                {
+                    fn.Invoke(bb);
+                }
+                catch (Exception ex)
+                {
+                    err = ex;
+                }
+                
                 if (err is DtmCommon.DtmFailureException)
                 {
                     throw new DtmCommon.DtmException("should not return ErrFail in phase2");

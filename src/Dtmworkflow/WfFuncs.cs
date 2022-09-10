@@ -1,11 +1,12 @@
 ﻿using DtmCommon;
 using System;
+using System.Threading.Tasks;
 
 namespace Dtmworkflow
 {
-    public delegate Exception WfPhase2Func(BranchBarrier bb);
+    public delegate Task WfPhase2Func(BranchBarrier bb);
 
-    internal delegate Exception WfFunc(Workflow wf, byte[] data);
+    public delegate Exception WfFunc(Workflow wf, byte[] data);
 
-    internal delegate (byte[], Exception) WfFunc2(Workflow wf, byte[] data);
+    public delegate Task<byte[]> WfFunc2(Workflow wf, byte[] data);
 }

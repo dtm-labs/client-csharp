@@ -1,46 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using Dtmcli;
+using Dtmgrpc;
 
 namespace Dtmworkflow
 {
-    internal class WorkflowFactory
+
+    public interface IWorkflowFactory
     {
-        public string Protocol { get; set; }
-        public string HttpDtm { get; set; }
-        public string HttpCallback { get; set; }
-        public string GrpcDtm { get; set; }
-        public string GrpcCallback { get; set; }
+        Workflow NewWorkflow(string name, string gid, byte[] data, string callback, bool isHttp = true);
+    }
 
-        public Dictionary<string, WfItem> Handlers { get; set; }
+    public class WorkflowFactory : IWorkflowFactory
+    {
+        private readonly IDtmClient _httpClient;
+        private readonly IDtmgRPCClient _grpcClient;
 
-        public byte[] Execute(string name, string gid, byte[] data)
+        public WorkflowFactory(IDtmClient httpClient, IDtmgRPCClient grpcClient)
         {
-            if (!this.Handlers.TryGetValue(name, out var handler))
-            {
-                throw new DtmCommon.DtmException($"workflow '{name}' not registered. please register at startup");
-            }
-
-            return null;
+            this._httpClient = httpClient;
+            this._grpcClient = grpcClient;
         }
 
-        public void Register(string name, WfFunc2 handler, params Action<Workflow>[] custom)
+        public Workflow NewWorkflow(string name, string gid, byte[] data, string callback, bool isHttp = true)
         {
-            if (this.Handlers.TryGetValue(name, out _))
-            {
-                throw new DtmCommon.DtmException($"a handler already exists for {name}");
-            }
-
-            this.Handlers.Add(name, new WfItem 
-            {
-                 Fn = handler,
-                 Custom = custom.ToList()
-            });
-        }
-
-        private Workflow NewWorkflow(string name, string gid, byte[] data)
-        {
-            var wf = new Workflow
+            var wf = new Workflow(_httpClient, _grpcClient)
             { 
                 TransBase = DtmCommon.TransBase.NewTransBase(gid, "workflow", "not inited", ""),
                 Name = name,
@@ -53,18 +37,8 @@ namespace Dtmworkflow
                 },
             };
 
-            wf.TransBase.Protocol = this.Protocol;
-
-            if (this.Protocol == DtmCommon.Constant.ProtocolGRPC)
-            {
-                wf.TransBase.Dtm = this.GrpcDtm;
-                wf.TransBase.QueryPrepared = this.GrpcCallback;
-            }
-            else
-            {
-                wf.TransBase.Dtm = this.HttpDtm;
-                wf.TransBase.QueryPrepared = this.HttpCallback;
-            }
+            wf.TransBase.Protocol = isHttp ? DtmCommon.Constant.ProtocolHTTP : DtmCommon.Constant.ProtocolGRPC;            
+            wf.TransBase.QueryPrepared = callback;
 
             wf.TransBase.CustomData = System.Text.Json.JsonSerializer.Serialize(new { name = wf.Name, data = data });
 
