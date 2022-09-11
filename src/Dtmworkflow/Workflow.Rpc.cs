@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,19 +9,20 @@ namespace Dtmworkflow
 {
     public partial class Workflow
     {
-        private async Task<dtmgpb.DtmProgressesReply> GetProgress()
+        private async Task<DtmProgressesReplyDto> GetProgress()
         {
-            dtmgpb.DtmProgressesReply reply;
+            DtmProgressesReplyDto reply;
             if (this.TransBase.Protocol == DtmCommon.Constant.ProtocolGRPC)
             {
                 var req = Dtmgrpc.DtmGImp.Utils.BuildDtmRequest(this.TransBase);
-                reply = await _grpcClient.PrepareWorkflow(req);
+                var tmpReply = await _grpcClient.PrepareWorkflow(req);
+                reply = DtmProgressesReplyDto.FromGrpcReply(tmpReply);
                 return reply;
             }
 
             var resp = await _httpClient.PrepareWorkflow(this.TransBase, default);
             var res = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
-            reply = System.Text.Json.JsonSerializer.Deserialize<dtmgpb.DtmProgressesReply>(res);
+            reply = System.Text.Json.JsonSerializer.Deserialize<DtmProgressesReplyDto>(res);
             return reply;
         }
 
@@ -87,5 +89,64 @@ namespace Dtmworkflow
 
             await _grpcClient.RegisterBranch(this.TransBase, branchId, bd, added, "");
         }
+    }
+
+    public class DtmProgressesReplyDto
+    {
+        public DtmTransactionDto Transaction { get; set; }
+        public List<DtmProgressDto> Progresses { get; set; }
+
+        public static DtmProgressesReplyDto FromGrpcReply(dtmgpb.DtmProgressesReply reply)
+        {
+            var trans = new DtmTransactionDto
+            {
+                Gid = reply.Transaction.Gid,
+                Status = reply.Transaction.Status,
+                RollbackReason = reply.Transaction.RollbackReason,
+                Result = reply.Transaction.Result,
+            };
+
+            var processes = new List<DtmProgressDto>();
+
+            foreach (var item in reply.Progresses)
+            {
+                processes.Add(new DtmProgressDto
+                {
+                    BranchId = item.BranchID,
+                    Op = item.Op,
+                    Status = item.Status,
+                    BinData = item.BinData.ToByteArray()
+                });
+            }
+
+            return new DtmProgressesReplyDto
+            {
+                Progresses = processes,
+                Transaction = trans
+            };
+        }
+    }
+
+    public class DtmTransactionDto
+    {
+        [JsonPropertyName("gid")]
+        public string Gid { get; set; }
+        [JsonPropertyName("status")]
+        public string Status { get; set; }
+        [JsonPropertyName("rollback_reason")]
+        public string RollbackReason { get; set; }
+        [JsonPropertyName("result")]
+        public string Result { get; set; }
+    }
+
+    public class DtmProgressDto
+    {
+        [JsonPropertyName("status")]
+        public string Status { get; set; }
+        public byte[] BinData { get; set; }
+        [JsonPropertyName("branch_id")]
+        public string BranchId { get; set; }
+        [JsonPropertyName("op")]
+        public string Op { get; set; }
     }
 }

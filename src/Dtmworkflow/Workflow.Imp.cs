@@ -11,26 +11,24 @@ namespace Dtmworkflow
 {
     public partial class Workflow
     {
-        private void InitProgress(dtmgpb.DtmProgress[] progresses)
+        private void InitProgress(DtmProgressDto[] progresses)
         {
             this.WorkflowImp.Progresses = new Dictionary<string, StepResult>();
 
-            foreach (dtmgpb.DtmProgress p in progresses)
+            foreach (var p in progresses)
             {
-                byte[] data = new byte[p.BinData.Length];
-                p.BinData.CopyTo(data, 0);
                 var sr = new StepResult
                 {
                     Status = p.Status,
-                    Data = data,
+                    Data = p.BinData,
                 };
 
                 if (sr.Status == DtmCommon.Constant.StatusFailed)
                 {
-                    sr.Error = new DtmCommon.DtmException(Encoding.UTF8.GetString(data));
+                    sr.Error = new DtmCommon.DtmException(Encoding.UTF8.GetString(p.BinData));
                 }
 
-                this.WorkflowImp.Progresses[$"{p.BranchID}-{p.Op}"] = sr;
+                this.WorkflowImp.Progresses[$"{p.BranchId}-{p.Op}"] = sr;
             }
         }
 

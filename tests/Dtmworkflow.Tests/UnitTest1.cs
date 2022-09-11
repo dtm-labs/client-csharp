@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Dtmworkflow.Tests
@@ -24,17 +25,17 @@ namespace Dtmworkflow.Tests
             WfFunc2 handler = async (wf, data) =>
             {
                 var content = new ByteArrayContent(data);
-                content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
                 wf.NewBranch().OnRollback(async bb =>
                 {
                     var rbClient = wf.NewRequest();
-                    var rbResp = await rbClient.PostAsync("TransOutRevert url", content);
+                    var rbResp = await rbClient.PostAsync("http://localhost:9090/api/TransOutRevert", content);
                     rbResp.EnsureSuccessStatusCode();
                 });
 
                 var zxClient = wf.NewRequest();
-                var zxResp = await zxClient.PostAsync("TransOut url", content);
+                var zxResp = await zxClient.PostAsync("http://localhost:9090/api/TransOut", content);
                 zxResp.EnsureSuccessStatusCode();
 
                 var respBytes = await zxResp.Content.ReadAsByteArrayAsync();
@@ -42,9 +43,11 @@ namespace Dtmworkflow.Tests
                 return respBytes;
             };
 
-            wfgt.Register("wf", handler);
-
-            await wfgt.Execute(gid, gid, System.Text.Encoding.UTF8.GetBytes(""));
+            wfgt.Register(gid, handler);
+            var req = System.Text.Json.JsonSerializer.Serialize(new { userId = "1", amount = 30 });
+            var res = await wfgt.Execute(gid, gid, System.Text.Encoding.UTF8.GetBytes(req), "", true);
+            Console.WriteLine(System.Text.Encoding.UTF8.GetString(res));
+            Assert.True(true);
         }
     }
 }
