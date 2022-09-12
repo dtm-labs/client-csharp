@@ -79,7 +79,7 @@ namespace Dtmworkflow
                 await this.Submit(res, err, default);
             }
 
-            return null;
+            return res;
         }
 
         private async Task SaveResult(string branchId, string op, StepResult sr)

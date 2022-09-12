@@ -46,5 +46,15 @@ namespace Dtmworkflow
                 Custom = custom.ToList()
             });
         }
+
+#if NET5_0_OR_GREATER
+        public async Task ExecuteByQS(Microsoft.AspNetCore.Http.IQueryCollection query, byte[] body, string callback)
+        {
+            _ = query.TryGetValue("gid", out var gid);
+            _ = query.TryGetValue("op", out var op);
+
+            await Execute(op, gid, body, callback, true);
+        }
+#endif
     }
 }

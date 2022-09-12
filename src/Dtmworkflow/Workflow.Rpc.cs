@@ -37,7 +37,7 @@ namespace Dtmworkflow
             {
                 { "status", status },
                 { "rollback_reason", reason },
-                { "result", Convert.ToBase64String(result) },
+                { "result", result == null ? "" : Convert.ToBase64String(result) },
             };
 
             if (this.TransBase.Protocol == DtmCommon.Constant.ProtocolHTTP)
