@@ -131,10 +131,13 @@ namespace Dtmworkflow
     {
         [JsonPropertyName("gid")]
         public string Gid { get; set; }
+
         [JsonPropertyName("status")]
         public string Status { get; set; }
+
         [JsonPropertyName("rollback_reason")]
         public string RollbackReason { get; set; }
+
         [JsonPropertyName("result")]
         public string Result { get; set; }
     }
@@ -143,9 +146,13 @@ namespace Dtmworkflow
     {
         [JsonPropertyName("status")]
         public string Status { get; set; }
+
+        [JsonIgnore]
         public byte[] BinData { get; set; }
+
         [JsonPropertyName("branch_id")]
         public string BranchId { get; set; }
+
         [JsonPropertyName("op")]
         public string Op { get; set; }
     }

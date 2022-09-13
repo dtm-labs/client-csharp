@@ -1,6 +1,7 @@
 ﻿using DtmCommon;
 using Grpc.Core;
 using System;
+using System.Text;
 
 namespace Dtmworkflow
 {
@@ -21,15 +22,15 @@ namespace Dtmworkflow
 
             if ((int)code == 425)
             {
-
+                return (data, new DtmOngingException(data == null ? "" : Encoding.UTF8.GetString(data)));
             }
             else if (code == System.Net.HttpStatusCode.Conflict)
             {
-
+                return (data, new DtmFailureException(data == null ? "" : Encoding.UTF8.GetString(data)));
             }
             else if (code != System.Net.HttpStatusCode.OK)
             {
-
+                return (data, new DtmException(data == null ? "" : Encoding.UTF8.GetString(data)));
             }
 
             return (data, null);

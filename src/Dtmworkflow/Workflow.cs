@@ -130,7 +130,7 @@ namespace Dtmworkflow
             var res = await this.RecordedDo(bb =>
             {
                 var (r, e) = fn.Invoke(bb);
-                return this.StepResultFromLocal(r, e);
+                return Task.FromResult(this.StepResultFromLocal(r, e));
             });
 
             return this.StepResultToLocal(res);

@@ -44,7 +44,7 @@ namespace Dtmworkflow
             }
             else if (status == DtmCommon.Constant.StatusFailed) 
             {
-                throw new DtmCommon.DtmException(reply.Transaction.RollbackReason);
+                throw new DtmCommon.DtmFailureException(reply.Transaction.RollbackReason);
             }
 
             this.InitProgress(reply.Progresses.ToArray());
@@ -61,7 +61,7 @@ namespace Dtmworkflow
                 err = ex;
             }
 
-            // TODO: grpc error to dtm error
+            err = Utils.GrpcError2DtmError(err);
 
             if (err != null && err is not DtmCommon.DtmFailureException) throw err;
 
@@ -120,13 +120,13 @@ namespace Dtmworkflow
         {
             this.WorkflowImp.CurrentBranch = branchId;
 
-            var r = await this.RecordedDo(bb => 
+            var r = await this.RecordedDo(async bb => 
             {
                 Exception err = null;
 
                 try
                 {
-                    fn.Invoke(bb);
+                    await fn.Invoke(bb);
                 }
                 catch (Exception ex)
                 {
@@ -231,7 +231,7 @@ namespace Dtmworkflow
         }
 
 
-        private async Task<StepResult> RecordedDo(Func<DtmCommon.BranchBarrier, StepResult> fn)
+        private async Task<StepResult> RecordedDo(Func<DtmCommon.BranchBarrier, Task<StepResult>> fn)
         {
             var sr = await this.RecordedDoInner(fn);
 
@@ -247,7 +247,7 @@ namespace Dtmworkflow
             return sr;
         }
 
-        private async Task<StepResult> RecordedDoInner(Func<DtmCommon.BranchBarrier, StepResult> fn)
+        private async Task<StepResult> RecordedDoInner(Func<DtmCommon.BranchBarrier, Task<StepResult>> fn)
         {
             var branchId = this.WorkflowImp.CurrentBranch;
             if (this.WorkflowImp.CurrentOp == DtmCommon.Constant.OpAction)
@@ -273,7 +273,7 @@ namespace Dtmworkflow
                 branchID: branchId,
                 op: this.WorkflowImp.CurrentOp);
 
-            r = fn(bb);
+            r = await fn(bb);
 
             try
             {
