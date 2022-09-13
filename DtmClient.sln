@@ -25,9 +25,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AFCF4E29-660
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{ED5B84F1-876F-4617-A4F4-5C160319310C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusiGrpcService", "tests\BusiGrpcService\BusiGrpcService.csproj", "{FFF41358-6974-4E87-840D-C61E1B6BEDC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusiGrpcService", "tests\BusiGrpcService\BusiGrpcService.csproj", "{FFF41358-6974-4E87-840D-C61E1B6BEDC3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dtmgrpc.IntegrationTests", "tests\Dtmgrpc.IntegrationTests\Dtmgrpc.IntegrationTests.csproj", "{AFDB3DCD-55CE-402F-A1B0-FCD4737FE314}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dtmgrpc.IntegrationTests", "tests\Dtmgrpc.IntegrationTests\Dtmgrpc.IntegrationTests.csproj", "{AFDB3DCD-55CE-402F-A1B0-FCD4737FE314}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dtmworkflow.IntegrationTests", "tests\Dtmworkflow.IntegrationTests\Dtmworkflow.IntegrationTests.csproj", "{1F233B34-ADE4-4D46-B831-203393E0F042}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,6 +81,10 @@ Global
 		{AFDB3DCD-55CE-402F-A1B0-FCD4737FE314}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFDB3DCD-55CE-402F-A1B0-FCD4737FE314}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFDB3DCD-55CE-402F-A1B0-FCD4737FE314}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F233B34-ADE4-4D46-B831-203393E0F042}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F233B34-ADE4-4D46-B831-203393E0F042}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F233B34-ADE4-4D46-B831-203393E0F042}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F233B34-ADE4-4D46-B831-203393E0F042}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -95,6 +101,7 @@ Global
 		{9FE3B656-85BC-4B95-8595-6748AEAC222E} = {ED5B84F1-876F-4617-A4F4-5C160319310C}
 		{FFF41358-6974-4E87-840D-C61E1B6BEDC3} = {ED5B84F1-876F-4617-A4F4-5C160319310C}
 		{AFDB3DCD-55CE-402F-A1B0-FCD4737FE314} = {ED5B84F1-876F-4617-A4F4-5C160319310C}
+		{1F233B34-ADE4-4D46-B831-203393E0F042} = {ED5B84F1-876F-4617-A4F4-5C160319310C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A872C3EE-D0B6-4943-8C7D-9ADD28AC029A}
