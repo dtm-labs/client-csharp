@@ -15,16 +15,18 @@ namespace Dtmworkflow
     {
         private readonly IDtmClient _httpClient;
         private readonly IDtmgRPCClient _grpcClient;
+        private readonly Dtmcli.IBranchBarrierFactory _bbFactory;
 
-        public WorkflowFactory(IDtmClient httpClient, IDtmgRPCClient grpcClient)
+        public WorkflowFactory(IDtmClient httpClient, IDtmgRPCClient grpcClient, Dtmcli.IBranchBarrierFactory bbFactory)
         {
             this._httpClient = httpClient;
             this._grpcClient = grpcClient;
+            this._bbFactory = bbFactory;
         }
 
         public Workflow NewWorkflow(string name, string gid, byte[] data, string callback, bool isHttp = true)
         {
-            var wf = new Workflow(_httpClient, _grpcClient)
+            var wf = new Workflow(_httpClient, _grpcClient, _bbFactory)
             { 
                 TransBase = DtmCommon.TransBase.NewTransBase(gid, "workflow", "not inited", ""),
                 Name = name,

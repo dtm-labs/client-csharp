@@ -267,8 +267,11 @@ namespace Dtmworkflow
                 return r;
             }
 
-            // TODO: Create BranchBarrier
-            DtmCommon.BranchBarrier bb = null;
+            var bb = _bbFactory.CreateBranchBarrier(
+                transType: this.TransBase.TransType,
+                gid: this.TransBase.Gid,
+                branchID: branchId,
+                op: this.WorkflowImp.CurrentOp);
 
             r = fn(bb);
 

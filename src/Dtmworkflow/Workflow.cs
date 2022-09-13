@@ -18,11 +18,13 @@ namespace Dtmworkflow
 
         private readonly IDtmClient _httpClient;
         private readonly IDtmgRPCClient _grpcClient;
+        private readonly Dtmcli.IBranchBarrierFactory _bbFactory;
 
-        public Workflow(IDtmClient httpClient, IDtmgRPCClient grpcClient)
+        public Workflow(IDtmClient httpClient, IDtmgRPCClient grpcClient, Dtmcli.IBranchBarrierFactory bbFactory)
         {
             this._httpClient = httpClient;
             this._grpcClient = grpcClient;
+            this._bbFactory = bbFactory;
         }
 
         public System.Net.Http.HttpClient NewRequest()
