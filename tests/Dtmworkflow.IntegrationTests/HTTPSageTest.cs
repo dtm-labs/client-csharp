@@ -71,7 +71,6 @@ namespace Dtmworkflow.IntegrationTests
                 gid,
                 gid,
                 System.Text.Encoding.UTF8.GetBytes(req),
-                $"http://{ITTestHelper.BuisHttpUrl}/api/busi/workflow/resume",
                 true);
 
             Console.WriteLine(res == null ? "" : System.Text.Encoding.UTF8.GetString(res));
@@ -140,7 +139,6 @@ namespace Dtmworkflow.IntegrationTests
                    gid,
                    gid,
                    System.Text.Encoding.UTF8.GetBytes(req),
-                   $"http://localhost:6003/api/busi/workflow/resume",
                    true);
 
                 Console.WriteLine(res == null ? "" : System.Text.Encoding.UTF8.GetString(res));

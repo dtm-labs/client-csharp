@@ -66,7 +66,6 @@ namespace Dtmworkflow.Tests
                 gid,
                 gid,
                 System.Text.Encoding.UTF8.GetBytes(req),
-                "http://localhost:9090/api/workflow/resume",
                 true);
 
             Console.WriteLine(res == null ? "" : System.Text.Encoding.UTF8.GetString(res));
@@ -81,6 +80,7 @@ namespace Dtmworkflow.Tests
             {
                 x.DtmUrl = "http://localhost:36789";
                 x.DtmGrpcUrl = "http://localhost:36790";
+                x.HttpCallback = "http://localhost:9090/api/workflow/resume";
             });
 
             var provider = services.BuildServiceProvider();
@@ -134,7 +134,6 @@ namespace Dtmworkflow.Tests
                 gid,
                 gid,
                 System.Text.Encoding.UTF8.GetBytes(req),
-                "http://localhost:9090/api/workflow/resume",
                 true);
 
             Console.WriteLine(res == null ? "" : System.Text.Encoding.UTF8.GetString(res));

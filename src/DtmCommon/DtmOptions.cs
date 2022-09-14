@@ -31,5 +31,9 @@
         /// branch request timeout in milliseconds, default 10,000 milliseconds(10s)
         /// </summary>
         public int BranchTimeout { get; set; } = 10 * 1000;
+
+        public string HttpCallback { get; set; }
+
+        public string GrpcCallback { get; set; }
     }
 }

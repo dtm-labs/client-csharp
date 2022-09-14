@@ -16,14 +16,14 @@ namespace Dtmworkflow
             this._workflowFactory = workflowFactory;
         }
 
-        public async Task<byte[]> Execute(string name, string gid, byte[] data, string callback, bool isHttp = true)
+        public async Task<byte[]> Execute(string name, string gid, byte[] data, bool isHttp = true)
         {
             if (!this._handlers.TryGetValue(name, out var handler))
             {
                 throw new DtmCommon.DtmException($"workflow '{name}' not registered. please register at startup");
             }
 
-            var wf = _workflowFactory.NewWorkflow(name, gid, data, callback, isHttp);
+            var wf = _workflowFactory.NewWorkflow(name, gid, data, isHttp);
 
             foreach (var fn in handler.Custom)
             {
@@ -48,12 +48,12 @@ namespace Dtmworkflow
         }
 
 #if NET5_0_OR_GREATER
-        public async Task ExecuteByQS(Microsoft.AspNetCore.Http.IQueryCollection query, byte[] body, string callback)
+        public async Task ExecuteByQS(Microsoft.AspNetCore.Http.IQueryCollection query, byte[] body)
         {
             _ = query.TryGetValue("gid", out var gid);
             _ = query.TryGetValue("op", out var op);
 
-            await Execute(op, gid, body, callback, true);
+            await Execute(op, gid, body, true);
         }
 #endif
     }

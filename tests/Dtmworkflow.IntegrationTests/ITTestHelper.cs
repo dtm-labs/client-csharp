@@ -68,6 +68,7 @@ namespace Dtmworkflow.IntegrationTests
                 x.DtmUrl = DTMHttpUrl;
                 x.DtmGrpcUrl = DTMgRPCUrl;
                 x.DtmTimeout = dtmTimout;
+                x.HttpCallback = $"http://{ITTestHelper.BuisHttpUrl}/api/busi/workflow/resume";
             });
 
             var provider = services.BuildServiceProvider();

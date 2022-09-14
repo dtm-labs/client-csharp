@@ -38,7 +38,7 @@ namespace Dtmworkflow
 
         internal static Exception GrpcError2DtmError(Exception ex)
         {
-            if (ex is RpcException rpcEx)
+            if (ex != null && ex is RpcException rpcEx)
             {
                 if (rpcEx.StatusCode == StatusCode.Aborted)
                 {

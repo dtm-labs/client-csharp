@@ -69,7 +69,7 @@ namespace Dtmworkflow
             {
                 var m = new Dictionary<string, string>
                 {
-                    { "data", Encoding.UTF8.GetString(res) },
+                    { "data", res == null ? "" : Encoding.UTF8.GetString(res) },
                     { "branch_id", branchId },
                     { "op", op },
                     { "status", status },
