@@ -6,9 +6,9 @@
     <MicrosoftExtensionsConfigurationNET6>6.0.0</MicrosoftExtensionsConfigurationNET6>
     <MicrosoftExtensionsHttpNET6>6.0.0</MicrosoftExtensionsHttpNET6>
     <MicrosoftExtensionsOptionsConfigurationExtensionsNET6>6.0.0</MicrosoftExtensionsOptionsConfigurationExtensionsNET6>
-    <MicrosoftExtensionsConfigurationNET5>5.0.0</MicrosoftExtensionsConfigurationNET5>
-    <MicrosoftExtensionsHttpNET5>5.0.0</MicrosoftExtensionsHttpNET5>
-    <MicrosoftExtensionsOptionsConfigurationExtensionsNET5>5.0.0</MicrosoftExtensionsOptionsConfigurationExtensionsNET5>
+    <MicrosoftExtensionsConfigurationNET7>7.0.0</MicrosoftExtensionsConfigurationNET7>
+    <MicrosoftExtensionsHttpNET7>7.0.0</MicrosoftExtensionsHttpNET7>
+    <MicrosoftExtensionsOptionsConfigurationExtensionsNET7>7.0.0</MicrosoftExtensionsOptionsConfigurationExtensionsNET7>
     <MicrosoftCSharpNSD21>4.7.0</MicrosoftCSharpNSD21>
     <MicrosoftExtensionsConfigurationNSD21>6.0.0</MicrosoftExtensionsConfigurationNSD21>
     <MicrosoftExtensionsHttpNSD21>6.0.0</MicrosoftExtensionsHttpNSD21>
@@ -32,7 +32,7 @@
     <XunitPackageVersion>2.4.1</XunitPackageVersion>
     <XunitRunnerVisualstudioPackageVersion>2.4.3</XunitRunnerVisualstudioPackageVersion>
     <CoverletCollectorPackageVersion>3.1.2</CoverletCollectorPackageVersion>
-    <MicrosoftExtensionsDependencyInjectionPackageVersion>6.0.0</MicrosoftExtensionsDependencyInjectionPackageVersion>
+    <MicrosoftExtensionsDependencyInjectionPackageVersion>7.0.0</MicrosoftExtensionsDependencyInjectionPackageVersion>
     <DbMockerPackageVersion>1.21.0</DbMockerPackageVersion>
 
   </PropertyGroup>

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net5.0;net6.0</TargetFrameworks>		
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0</TargetFrameworks>		
 		<Description>a c# client for distributed transaction framework dtm. 分布式事务管理器dtm的c#客户端</Description>
 		<PackageTags>dtm,csharp,distributed transaction,tcc,saga,msg</PackageTags>		
 	</PropertyGroup>
@@ -11,7 +11,7 @@
 		<!--<None Include="$(MSBuildThisFileDirectory)../../README.md" Pack="true" PackagePath="/" />-->
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net5.0'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net7.0'">
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
