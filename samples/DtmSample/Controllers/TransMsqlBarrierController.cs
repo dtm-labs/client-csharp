@@ -1,6 +1,7 @@
 ﻿using Dtmcli;
 using DtmSample.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
@@ -9,22 +10,22 @@ using System.Threading.Tasks;
 namespace DtmSample.Controllers
 {
     [ApiController]
-    [Route("/api")]
+    [Route("/api/ms")]
     [ApiExplorerSettings(IgnoreApi = true)]
-    public class TransBarrierController : ControllerBase
+    public class TransMsqlBarrierController : ControllerBase
     {
-        private readonly ILogger<TransBarrierController> _logger;
+        private readonly ILogger<TransMsqlBarrierController> _logger;
         private readonly AppSettings _settings;
         private readonly IBranchBarrierFactory _barrierFactory;
 
-        public TransBarrierController(ILogger<TransBarrierController> logger, IOptions<AppSettings> optionsAccs, IBranchBarrierFactory barrierFactory)
+        public TransMsqlBarrierController(ILogger<TransMsqlBarrierController> logger, IOptions<AppSettings> optionsAccs, IBranchBarrierFactory barrierFactory)
         {
             _logger = logger;
             _settings= optionsAccs.Value;
             _barrierFactory = barrierFactory;
         }
 
-        private MySqlConnection GetBarrierConn() => new(_settings.SqlBarrierConn);
+        private SqlConnection GetBarrierConn() => new(_settings.SqlBarrierConn);
 
         #region TCC
         [HttpPost("barrierTransOutTry")]
@@ -34,7 +35,7 @@ namespace DtmSample.Controllers
 
             var branchBarrier = _barrierFactory.CreateBranchBarrier(Request.Query);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -53,7 +54,7 @@ namespace DtmSample.Controllers
 
             var branchBarrier = _barrierFactory.CreateBranchBarrier(Request.Query);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -72,7 +73,7 @@ namespace DtmSample.Controllers
 
             var branchBarrier = _barrierFactory.CreateBranchBarrier(Request.Query);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -91,7 +92,7 @@ namespace DtmSample.Controllers
 
             var branchBarrier = _barrierFactory.CreateBranchBarrier(Request.Query);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -110,7 +111,7 @@ namespace DtmSample.Controllers
 
             /*var branchBarrier = _barrierFactory.CreateBranchBarrier(trans_type, gid, branch_id, op);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -129,7 +130,7 @@ namespace DtmSample.Controllers
 
             var branchBarrier = _barrierFactory.CreateBranchBarrier(Request.Query);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -148,7 +149,7 @@ namespace DtmSample.Controllers
 
             var branchBarrier = _barrierFactory.CreateBranchBarrier(Request.Query);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -169,7 +170,7 @@ namespace DtmSample.Controllers
 
             var branchBarrier = _barrierFactory.CreateBranchBarrier(Request.Query);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -188,7 +189,7 @@ namespace DtmSample.Controllers
             
             var branchBarrier = _barrierFactory.CreateBranchBarrier(Request.Query);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -207,7 +208,7 @@ namespace DtmSample.Controllers
 
             /*var branchBarrier = _barrierFactory.CreateBranchBarrier(trans_type, gid, branch_id, op);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {
@@ -228,7 +229,7 @@ namespace DtmSample.Controllers
 
             var branchBarrier = _barrierFactory.CreateBranchBarrier(Request.Query);
 
-            using (MySqlConnection conn = GetBarrierConn())
+            using (SqlConnection conn = GetBarrierConn())
             {
                 await branchBarrier.Call(conn, async (tx) =>
                 {

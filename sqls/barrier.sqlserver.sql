@@ -6,7 +6,7 @@ END
 
 GO
 
-IF EXISTS (SELECT * FROM sysobjects WHERE id = object_id(N¡¯[dbo].[barrier]¡¯) and OBJECTPROPERTY(id, N¡¯IsUserTable¡¯) = 1)  
+IF EXISTS (SELECT * FROM sysobjects WHERE id = object_id(N'[dbo].[barrier]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)  
 BEGIN
  DROP TABLE [dbo].[barrier]
 END

@@ -22,7 +22,12 @@ namespace DtmSample
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDtmcli(dtm => dtm.DtmUrl = Configuration.GetValue<string>("AppSettings:DtmUrl"));
+            services.AddDtmcli(dtm =>
+            {
+                dtm.DtmUrl = Configuration.GetValue<string>("AppSettings:DtmUrl");
+                dtm.DBType = Configuration.GetValue<string>("AppSettings:DBType");
+                dtm.BarrierTableName = Configuration.GetValue<string>("AppSettings:BarrierTableName");
+            });
 
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
             services.AddControllers();

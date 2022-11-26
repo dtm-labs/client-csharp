@@ -2,6 +2,7 @@
 using DtmMongoBarrier;
 using DtmSample.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
@@ -32,7 +33,9 @@ namespace DtmSample.Controllers
             _transFactory = transFactory;
         }
 
-        private MySqlConnection GetConn() => new(_settings.BarrierConn);
+        private MySqlConnection GetMysqlConn() => new(_settings.SqlBarrierConn);
+
+        private SqlConnection GetMssqlConn() => new(_settings.SqlBarrierConn);
 
         private MySqlConnection GetErrConn() => new("");
 
@@ -72,9 +75,36 @@ namespace DtmSample.Controllers
                 .Add(_settings.BusiUrl + "/TransOut", new TransRequest("1", -30))
                 .Add(_settings.BusiUrl + "/TransIn", new TransRequest("2", 30));
 
-            using (MySqlConnection conn = GetConn())
+            using (MySqlConnection conn = GetMysqlConn())
             {
                 await msg.DoAndSubmitDB(_settings.BusiUrl + "/msg-queryprepared", conn, async tx =>
+                {
+                    await Task.CompletedTask;
+                });
+            }
+
+            _logger.LogInformation("result gid is {0}", gid);
+
+            return Ok(TransResponse.BuildSucceedResponse());
+        }
+
+        /// <summary>
+        /// MSG DoAndSubmitDB (mssql)
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpPost("msg-db-mssql")]
+        public async Task<IActionResult> MsgDbMsSql(CancellationToken cancellationToken)
+        {
+            var gid = await _dtmClient.GenGid(cancellationToken);
+
+            var msg = _transFactory.NewMsg(gid)
+                .Add(_settings.BusiUrl + "/TransOut", new TransRequest("1", -30))
+                .Add(_settings.BusiUrl + "/TransIn", new TransRequest("2", 30));
+
+            using (SqlConnection conn = GetMssqlConn())
+            {
+                await msg.DoAndSubmitDB(_settings.BusiUrl + "/msg-mssqlqueryprepared", conn, async tx =>
                 {
                     await Task.CompletedTask;
                 });
@@ -146,7 +176,26 @@ namespace DtmSample.Controllers
         {
             var bb = _factory.CreateBranchBarrier(Request.Query);
             _logger.LogInformation("bb {0}", bb);
-            using (MySqlConnection conn = GetConn())
+            using (MySqlConnection conn = GetMysqlConn())
+            {
+                var res = await bb.QueryPrepared(conn);
+
+                return Ok(new { dtm_result = res });
+            }
+        }
+
+
+        /// <summary>
+        /// MSG QueryPrepared(mssql)
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpGet("msg-mssqlqueryprepared")]
+        public async Task<IActionResult> MsgMsSqlQueryPrepared(CancellationToken cancellationToken)
+        {
+            var bb = _factory.CreateBranchBarrier(Request.Query);
+            _logger.LogInformation("bb {0}", bb);
+            using (SqlConnection conn = GetMssqlConn())
             {
                 var res = await bb.QueryPrepared(conn);
 

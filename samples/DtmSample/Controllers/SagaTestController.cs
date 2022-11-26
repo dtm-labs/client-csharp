@@ -141,6 +141,27 @@ namespace DtmSample.Controllers
         }
 
         /// <summary>
+        /// SAGA 异常触发子事务屏障(mssql)
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpPost("saga-mssqlbarrier")]
+        public async Task<IActionResult> SagaMsSQLBarrier(CancellationToken cancellationToken)
+        {
+            var gid = await _dtmClient.GenGid(cancellationToken);
+            var saga = _transFactory.NewSaga(gid)
+                .Add(_settings.BusiUrl + "/ms/barrierTransOutSaga", _settings.BusiUrl + "/ms/barrierTransOutSagaRevert", new TransRequest("1", -30))
+                .Add(_settings.BusiUrl + "/ms/barrierTransInSaga", _settings.BusiUrl + "/ms/barrierTransInSagaRevert", new TransRequest("2", 30))
+                ;
+
+            await saga.Submit(cancellationToken);
+
+            _logger.LogInformation("result gid is {0}", gid);
+
+            return Ok(TransResponse.BuildSucceedResponse());
+        }
+
+        /// <summary>
         /// SAGA 异常触发子事务屏障(mongodb)
         /// </summary>
         /// <param name="cancellationToken"></param>
