@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0</TargetFrameworks>
+	  <Description>a c# client for distributed transaction framework dtm with Dapr utilities. 分布式事务管理器dtm的c#客户端，附带Dapr相关的工具类。</Description>
+	  <PackageTags>dtm,dapr,csharp,distributed transaction,tcc,saga,msg</PackageTags>
+	  <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
