@@ -40,8 +40,8 @@ namespace DtmSample.Controllers
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
             var saga = _transFactory.NewSaga(gid)
-                .Add(DtmDaprDriver.AddrForHTTP("sample", "TransOut"), DtmDaprDriver.AddrForHTTP("sample", "TransOutRevert"), new TransRequest("1", -30))
-                .Add(DtmDaprDriver.AddrForHTTP("sample", "TransIn"), DtmDaprDriver.AddrForHTTP("sample", "TransInRevert"), new TransRequest("2", 30))
+                .Add(DtmDaprDriver.AddrForHTTP("sample", "api/TransOut"), DtmDaprDriver.AddrForHTTP("sample", "api/TransOutRevert"), new TransRequest("1", -30))
+                .Add(DtmDaprDriver.AddrForHTTP("sample", "api/TransIn"), DtmDaprDriver.AddrForHTTP("sample", "api/TransInRevert"), new TransRequest("2", 30))
                 ;
 
             await saga.Submit(cancellationToken);
