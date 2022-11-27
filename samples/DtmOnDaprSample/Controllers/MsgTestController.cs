@@ -51,10 +51,10 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30));
+                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30));
 
-            await msg.PrepareUseDapr("sample", "api/msg-queryprepared", cancellationToken);
+            await msg.PrepareUseDapr("sample", "api/msg-query", cancellationToken);
             await msg.Submit(cancellationToken);
 
             _logger.LogInformation("result gid is {0}", gid);
@@ -73,12 +73,12 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30));
+                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30));
 
             using (MySqlConnection conn = GetMysqlConn())
             {
-                await msg.DoAndSubmitDbUseDapr("sample", "api/msg-queryprepared", conn, async tx =>
+                await msg.DoAndSubmitDbUseDapr("sample", "api/msg-mysqlqueryprepared", conn, async tx =>
                 {
                     await Task.CompletedTask;
                 });
@@ -100,8 +100,8 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30));
+                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30));
 
             using (SqlConnection conn = GetMssqlConn())
             {
@@ -127,25 +127,25 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30));
+                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30));
 
             MongoDB.Driver.IMongoClient cli = new MongoDB.Driver.MongoClient(_settings.MongoBarrierConn);
-            await msg.DoAndSubmitUseDapr("sample", "api/msg-mongoqueryprepared", async bb => 
+            await msg.DoAndSubmitUseDapr("sample", "api/msg-mongoqueryprepared", async bb =>
             {
-                await bb.MongoCall(cli, async x => 
+                await bb.MongoCall(cli, async x =>
                 {
                     await Task.CompletedTask;
                 });
             });
-           
+
             _logger.LogInformation("result gid is {0}", gid);
 
             return Ok(TransResponse.BuildSucceedResponse());
         }
 
         /// <summary>
-        /// MSG EnableWaitResult
+        /// MSG EnableWaitResult (mysql)
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -155,11 +155,11 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30))
+                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30))
                 .EnableWaitResult();
 
-            await msg.PrepareUseDapr("sample", "api/msg-queryprepared", cancellationToken);
+            await msg.PrepareUseDapr("sample", "api/msg-mysqlqueryprepared", cancellationToken);
             await msg.Submit(cancellationToken);
 
             _logger.LogInformation("result gid is {0}", gid);
@@ -168,11 +168,23 @@ namespace DtmSample.Controllers
         }
 
         /// <summary>
+        /// MSG QueryPrepared
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("msg-query")]
+        public IActionResult MsgQueryPrepared()
+        {
+            var gid = Request.Query["gid"];
+            _logger.LogInformation("msg-query: gid {0}", gid);
+            return Ok(TransResponse.BuildSucceedResponse());
+        }
+
+        /// <summary>
         /// MSG QueryPrepared(mysql)
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        [HttpGet("msg-queryprepared")]
+        [HttpGet("msg-mysqlqueryprepared")]
         public async Task<IActionResult> MsgMySqlQueryPrepared(CancellationToken cancellationToken)
         {
             var bb = _factory.CreateBranchBarrier(Request.Query);
