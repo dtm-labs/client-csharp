@@ -1,4 +1,5 @@
 ﻿using Dtmcli;
+using DtmDapr;
 using DtmMongoBarrier;
 using DtmSample.Dtos;
 using Microsoft.AspNetCore.Mvc;
@@ -50,10 +51,10 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .Add(_settings.BusiUrl + "/TransOut", new TransRequest("1", -30))
-                .Add(_settings.BusiUrl + "/TransIn", new TransRequest("2", 30));
+                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30));
 
-            await msg.Prepare(_settings.BusiUrl + "/msg-queryprepared", cancellationToken);
+            await msg.PrepareUseDapr("sample", "api/msg-queryprepared", cancellationToken);
             await msg.Submit(cancellationToken);
 
             _logger.LogInformation("result gid is {0}", gid);
@@ -72,12 +73,12 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .Add(_settings.BusiUrl + "/TransOut", new TransRequest("1", -30))
-                .Add(_settings.BusiUrl + "/TransIn", new TransRequest("2", 30));
+                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30));
 
             using (MySqlConnection conn = GetMysqlConn())
             {
-                await msg.DoAndSubmitDB(_settings.BusiUrl + "/msg-queryprepared", conn, async tx =>
+                await msg.DoAndSubmitDbUseDapr("sample", "api/msg-queryprepared", conn, async tx =>
                 {
                     await Task.CompletedTask;
                 });
@@ -99,12 +100,12 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .Add(_settings.BusiUrl + "/TransOut", new TransRequest("1", -30))
-                .Add(_settings.BusiUrl + "/TransIn", new TransRequest("2", 30));
+                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30));
 
             using (SqlConnection conn = GetMssqlConn())
             {
-                await msg.DoAndSubmitDB(_settings.BusiUrl + "/msg-mssqlqueryprepared", conn, async tx =>
+                await msg.DoAndSubmitDbUseDapr("sample", "api/msg-mssqlqueryprepared", conn, async tx =>
                 {
                     await Task.CompletedTask;
                 });
@@ -126,11 +127,11 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .Add(_settings.BusiUrl + "/TransOut", new TransRequest("1", -30))
-                .Add(_settings.BusiUrl + "/TransIn", new TransRequest("2", 30));
+                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30));
 
             MongoDB.Driver.IMongoClient cli = new MongoDB.Driver.MongoClient(_settings.MongoBarrierConn);
-            await msg.DoAndSubmit(_settings.BusiUrl + "/msg-mongoqueryprepared", async bb => 
+            await msg.DoAndSubmitUseDapr("sample", "api/msg-mongoqueryprepared", async bb => 
             {
                 await bb.MongoCall(cli, async x => 
                 {
@@ -154,11 +155,11 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .Add(_settings.BusiUrl + "/TransOut", new TransRequest("1", -30))
-                .Add(_settings.BusiUrl + "/TransIn", new TransRequest("2", 30))
+                .AddUseDapr("sample","api/TransOut", new TransRequest("1", -30))
+                .AddUseDapr("sample","api/TransIn", new TransRequest("2", 30))
                 .EnableWaitResult();
 
-            await msg.Prepare(_settings.BusiUrl + "/msg-queryprepared", cancellationToken);
+            await msg.PrepareUseDapr("sample", "api/msg-queryprepared", cancellationToken);
             await msg.Submit(cancellationToken);
 
             _logger.LogInformation("result gid is {0}", gid);
