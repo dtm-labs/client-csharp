@@ -1,0 +1,1 @@
+﻿dapr run --app-id sample --app-port 9090 --dapr-http-port 3602 -- dotnet run
