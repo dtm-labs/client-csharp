@@ -42,6 +42,7 @@ jobs:
         ls
         dotnet build src/Dtmcli/Dtmcli.csproj
         dotnet build src/Dtmgrpc/Dtmgrpc.csproj
+        dotnet build src/DtmDapr/DtmDapr.csproj
 
     - name: Run tests on netcoreapp3.1
       run: |
