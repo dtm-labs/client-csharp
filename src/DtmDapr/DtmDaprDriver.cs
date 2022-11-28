@@ -21,6 +21,13 @@ namespace DtmDapr
             return $"{Consts.SchemaHTTP}://DAPR_ENV/{appId}/{method}";
         }
 
+        public static string AddrForProxiedHTTP(string appId, string pathAndQuery)
+        {
+            if (!pathAndQuery.StartsWith("/"))
+                pathAndQuery = "/" + pathAndQuery;
+            return $"{Consts.SchemaProxiedHTTP}://DAPR_ENV/{appId}{pathAndQuery}";
+        }
+
         public static Saga AddUseDapr(this Saga self, string appId, string actionMethod, string compensateMethod, object postData)
         {
             return self.Add(AddrForHTTP(appId, actionMethod),
@@ -48,7 +55,7 @@ namespace DtmDapr
             return self.DoAndSubmit(AddrForHTTP(appId, queryPreparedMethod), busiCall, cancellationToken);
         }
 
-        public static Task<string> CallBranchUseDapr(this Tcc self,object body, string appId, string tryMethod, string confirmMethod, string cancelMethod, CancellationToken cancellationToken = default)
+        public static Task<string> CallBranchUseDapr(this Tcc self, object body, string appId, string tryMethod, string confirmMethod, string cancelMethod, CancellationToken cancellationToken = default)
         {
             return self.CallBranch(body, AddrForHTTP(appId, tryMethod), AddrForHTTP(appId, confirmMethod), AddrForHTTP(appId, cancelMethod), cancellationToken);
         }
