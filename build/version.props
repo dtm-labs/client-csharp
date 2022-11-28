@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
 
-    <DtmCSharpVersion>1.3.0</DtmCSharpVersion>
+    <DtmCSharpVersion>1.4.0</DtmCSharpVersion>
     
   </PropertyGroup>
 </Project>
