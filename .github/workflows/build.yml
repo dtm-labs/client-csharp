@@ -2,77 +2,76 @@ name: Build_And_UnitTest
 
 on:
   push:
-    branches: [ dev, main, 'feat/**' ]
+    branches: [dev, main, "feat/**"]
   pull_request:
-    branches: [ dev, main ]
+    branches: [dev, main]
 
 jobs:
-
-  linux:    
-    name: build on ${{ matrix.os }} 
+  linux:
+    name: build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ windows-latest, ubuntu-latest ]
+        os: [windows-latest, ubuntu-latest]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET SDK 6.0.x
-      uses: actions/setup-dotnet@v1.7.2
-      with:
-        dotnet-version: 6.0.x 
-    
-    - name: Setup .NET SDK 5.0.x
-      uses: actions/setup-dotnet@v1.7.2
-      with:
-        dotnet-version: 5.0.x 
+      - uses: actions/checkout@v3
+      - name: Setup .NET SDK 6.0.x
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
 
-    - name: Setup .NET SDK 3.1.x
-      uses: actions/setup-dotnet@v1.7.2
-      with:
-        dotnet-version: 3.1.x 
+      - name: Setup .NET SDK 7.0.x
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
 
-    - name: Show dotnet Version
-      run: |
-        dotnet --list-sdks
-        dotnet --list-runtimes
+      - name: Setup .NET SDK 3.1.x
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 3.1.x
 
-    - name: Build with dotnet      
-      run: |
-        ls
-        dotnet build src/Dtmcli/Dtmcli.csproj
-        dotnet build src/Dtmgrpc/Dtmgrpc.csproj
+      - name: Show dotnet Version
+        run: |
+          dotnet --list-sdks
+          dotnet --list-runtimes
 
-    - name: Run tests on netcoreapp3.1
-      run: |
-        dotnet test --framework=netcoreapp3.1 tests/Dtmcli.Tests/Dtmcli.Tests.csproj
-        dotnet test --framework=netcoreapp3.1 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj
+      - name: Build with dotnet
+        run: |
+          ls
+          dotnet build src/Dtmcli/Dtmcli.csproj
+          dotnet build src/Dtmgrpc/Dtmgrpc.csproj
 
-    - name: Run tests on net5.0
-      run: |
-        dotnet test --framework=net5.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj
-        dotnet test --framework=net5.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj
+      - name: Run tests on netcoreapp3.1
+        run: |
+          dotnet test --framework=netcoreapp3.1 tests/Dtmcli.Tests/Dtmcli.Tests.csproj
+          dotnet test --framework=netcoreapp3.1 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj
 
-    - name: Run tests on net6.0
-      run: |
-        dotnet test --framework=net6.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj --collect:"XPlat Code Coverage"
-        dotnet test --framework=net6.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
+      - name: Run tests on net7.0
+        run: |
+          dotnet test --framework=net7.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj
+          dotnet test --framework=net7.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj
 
-    - name: Prepare Codecov
-      run: |
-        mkdir ${{ github.workspace }}/coverage/
+      - name: Run tests on net6.0
+        run: |
+          dotnet test --framework=net6.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj --collect:"XPlat Code Coverage"
+          dotnet test --framework=net6.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
 
-        cp ${{ github.workspace }}/tests/Dtmcli.Tests/TestResults/*/coverage.cobertura.xml  ${{ github.workspace }}/coverage/cli.xml
-        cp ${{ github.workspace }}/tests/Dtmgrpc.Tests/TestResults/*/coverage.cobertura.xml  ${{ github.workspace }}/coverage/grpc.xml
+      - name: Prepare Codecov
+        run: |
+          mkdir ${{ github.workspace }}/coverage/
 
-        ls ${{ github.workspace }}/coverage/
+          cp ${{ github.workspace }}/tests/Dtmcli.Tests/TestResults/*/coverage.cobertura.xml  ${{ github.workspace }}/coverage/cli.xml
+          cp ${{ github.workspace }}/tests/Dtmgrpc.Tests/TestResults/*/coverage.cobertura.xml  ${{ github.workspace }}/coverage/grpc.xml
 
-    - name: Upload coverage to Codecov
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      uses: codecov/codecov-action@v2
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        fail_ci_if_error: true
-        files: ${{ github.workspace }}/coverage/cli.xml,${{ github.workspace }}/coverage/grpc.xml
-        name: codecov-dtm-client-csharp
-        verbose: true    
+          ls ${{ github.workspace }}/coverage/
+
+      - name: Upload coverage to Codecov
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          files: ${{ github.workspace }}/coverage/cli.xml,${{ github.workspace }}/coverage/grpc.xml
+          name: codecov-dtm-client-csharp
+          verbose: true
