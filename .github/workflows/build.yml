@@ -47,17 +47,18 @@ jobs:
           dotnet test --framework=netcoreapp3.1 tests/Dtmcli.Tests/Dtmcli.Tests.csproj
           dotnet test --framework=netcoreapp3.1 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj
 
-      - name: Run tests on net7.0
-        run: |
-          dotnet test --framework=net7.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj
-          dotnet test --framework=net7.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj
-
       - name: Run tests on net6.0
         run: |
           dotnet test --framework=net6.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj --collect:"XPlat Code Coverage"
           dotnet test --framework=net6.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
 
+      - name: Run tests on net7.0
+        run: |
+          dotnet test --framework=net7.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj --collect:"XPlat Code Coverage"
+          dotnet test --framework=net7.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
+
       - name: Prepare Codecov
+        continue-on-error: true
         run: |
           mkdir ${{ github.workspace }}/coverage/
 
