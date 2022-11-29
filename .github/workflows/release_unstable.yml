@@ -1,57 +1,57 @@
 name: Release_Unstable
 
 on:
-    push:
-      branches:
+  push:
+    branches:
       - main
 
 jobs:
-  build_artifact:    
+  build_artifact:
     name: Build and upload artifact
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v1
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 6.0.x
-    - name: Build with dotnet
-      run: |
-        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmcli/Dtmcli.csproj        
-        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmgrpc/Dtmgrpc.csproj                
-        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmCommon/DtmCommon.csproj
-        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmSERedisBarrier/DtmSERedisBarrier.csproj
-        dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmMongoBarrier/DtmMongoBarrier.csproj
-    - name: Pack with dotnet
-      run: |
-        ver=alpha`date +%Y%m%d%H%M%S`
-        dotnet pack src/Dtmcli/Dtmcli.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
-        dotnet pack src/Dtmgrpc/Dtmgrpc.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
-        dotnet pack src/DtmCommon/DtmCommon.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
-        dotnet pack src/DtmSERedisBarrier/DtmSERedisBarrier.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
-        dotnet pack src/DtmMongoBarrier/DtmMongoBarrier.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
-    - name: Upload artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: nugetpkgs
-        path: /home/runner/work/nugetpkgs  
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+      - name: Build with dotnet
+        run: |
+          dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmcli/Dtmcli.csproj        
+          dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmgrpc/Dtmgrpc.csproj                
+          dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmCommon/DtmCommon.csproj
+          dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmSERedisBarrier/DtmSERedisBarrier.csproj
+          dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmMongoBarrier/DtmMongoBarrier.csproj
+      - name: Pack with dotnet
+        run: |
+          ver=alpha`date +%Y%m%d%H%M%S`
+          dotnet pack src/Dtmcli/Dtmcli.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
+          dotnet pack src/Dtmgrpc/Dtmgrpc.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
+          dotnet pack src/DtmCommon/DtmCommon.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
+          dotnet pack src/DtmSERedisBarrier/DtmSERedisBarrier.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
+          dotnet pack src/DtmMongoBarrier/DtmMongoBarrier.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: nugetpkgs
+          path: /home/runner/work/nugetpkgs
 
   release_nuget:
-      name: Release to Nuget
-      needs: build_artifact
-      runs-on: ubuntu-latest
-  
-      steps:
-        - name: Download build artifacts
-          uses: actions/download-artifact@v1
-          with:
-            name: nugetpkgs
-        - name: list nugetpkgs
-          run: ls nugetpkgs
-        - name: Release
-          run: |
-            for file in nugetpkgs/*.nupkg
-            do
-              dotnet nuget push $file -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate -s https://www.nuget.org/api/v2/package
-            done
+    name: Release to Nuget
+    needs: build_artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: nugetpkgs
+      - name: list nugetpkgs
+        run: ls nugetpkgs
+      - name: Release
+        run: |
+          for file in nugetpkgs/*.nupkg
+          do
+            dotnet nuget push $file -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate -s https://www.nuget.org/api/v2/package
+          done
