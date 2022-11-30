@@ -198,7 +198,7 @@ namespace DtmCommon
 
             var reason = string.Empty;
 
-            var sql = string.Format(QueryPreparedSqlFormat, DtmOptions.BarrierTableName);
+            var sql = string.Format(QueryPreparedSqlFormat, DtmOptions.BarrierSqlTableName);
 
             try
             {

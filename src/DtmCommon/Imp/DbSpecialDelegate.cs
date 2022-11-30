@@ -10,9 +10,9 @@ namespace DtmCommon
 
         public DbSpecialDelegate(IEnumerable<IDbSpecial> specials, IOptions<DtmOptions> optionsAccs)
         {
-            var dbSpecial = specials.FirstOrDefault(x => x.Name.Equals(optionsAccs.Value.DBType));
+            var dbSpecial = specials.FirstOrDefault(x => x.Name.Equals(optionsAccs.Value.SqlDbType));
 
-            if (dbSpecial == null) throw new DtmException($"unknown db type '{optionsAccs.Value.DBType}'");
+            if (dbSpecial == null) throw new DtmException($"unknown db type '{optionsAccs.Value.SqlDbType}'");
 
             _special = dbSpecial;
         }

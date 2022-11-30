@@ -84,8 +84,8 @@ namespace DtmMongoBarrier
            
             try
             {
-                var fs = bb.DtmOptions.BarrierTableName.Split('.');
-                var barrier = session.Client.GetDatabase(fs[0]).GetCollection<DtmBarrierDocument>(fs[1]);
+                var barrier = session.Client.GetDatabase(bb.DtmOptions.BarrierMongoDbName)
+                    .GetCollection<DtmBarrierDocument>(bb.DtmOptions.BarrierMongoColName);
 
                 var filter = BuildFilters(bb.Gid, Constant.Barrier.MSG_BRANCHID, Constant.TYPE_MSG, Constant.Barrier.MSG_BARRIER_ID);
                 var cursor = await barrier.FindAsync<DtmBarrierDocument>(filter);
@@ -112,8 +112,8 @@ namespace DtmMongoBarrier
             if (session == null) return (-1, err);
             if (string.IsNullOrWhiteSpace(op)) return (0, err);
 
-            var fs = bb.DtmOptions.BarrierTableName.Split('.');
-            var barrier = session.Client.GetDatabase(fs[0]).GetCollection<DtmBarrierDocument>(fs[1]);
+            var barrier = session.Client.GetDatabase(bb.DtmOptions.BarrierMongoDbName)
+                .GetCollection<DtmBarrierDocument>(bb.DtmOptions.BarrierMongoColName);
 
             List<DtmBarrierDocument> res = null;
 

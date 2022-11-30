@@ -13,14 +13,24 @@
         public string DtmGrpcUrl { get; set; }
 
         /// <summary>
-        /// barrier table type. default mysql
+        /// barrier sql table type. default mysql
         /// </summary>
-        public string DBType { get; set; } = "mysql";
+        public string SqlDbType { get; set; } = "mysql";
 
         /// <summary>
-        /// barrier table name, default dtm_barrier.barrier
+        /// barrier sql table name, default dtm_barrier.barrier
         /// </summary>
-        public string BarrierTableName { get; set; } = "dtm_barrier.barrier";
+        public string BarrierSqlTableName { get; set; } = "dtm_barrier.barrier";
+
+        /// <summary>
+        /// barrier MongoDB Database name, default is dtm_barrier
+        /// </summary>
+        public string BarrierMongoDbName { get; set; } = "dtm_barrier";
+
+        /// <summary>
+        /// barrier MongoDB Collection name, default is barrier
+        /// </summary>
+        public string BarrierMongoColName { get; set; } = "barrier";
 
         /// <summary>
         /// dtm server request timeout in milliseconds, default 10,000 milliseconds(10s)
