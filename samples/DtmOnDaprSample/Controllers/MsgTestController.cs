@@ -51,10 +51,10 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30));
+                .Add("sample", "api/TransOut", new TransRequest("1", -30))
+                .Add("sample", "api/TransIn", new TransRequest("2", 30));
 
-            await msg.PrepareUseDapr("sample", "api/msg-query", cancellationToken);
+            await msg.Prepare("sample", "api/msg-query", cancellationToken);
             await msg.Submit(cancellationToken);
 
             _logger.LogInformation("result gid is {0}", gid);
@@ -73,12 +73,12 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30));
+                .Add("sample", "api/TransOut", new TransRequest("1", -30))
+                .Add("sample", "api/TransIn", new TransRequest("2", 30));
 
             using (MySqlConnection conn = GetMysqlConn())
             {
-                await msg.DoAndSubmitDbUseDapr("sample", "api/msg-mysqlqueryprepared", conn, async tx =>
+                await msg.DoAndSubmitDB("sample", "api/msg-mysqlqueryprepared", conn, async tx =>
                 {
                     await Task.CompletedTask;
                 });
@@ -100,12 +100,12 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30));
+                .Add("sample", "api/TransOut", new TransRequest("1", -30))
+                .Add("sample", "api/TransIn", new TransRequest("2", 30));
 
             using (SqlConnection conn = GetMssqlConn())
             {
-                await msg.DoAndSubmitDbUseDapr("sample", "api/msg-mssqlqueryprepared", conn, async tx =>
+                await msg.DoAndSubmitDB("sample", "api/msg-mssqlqueryprepared", conn, async tx =>
                 {
                     await Task.CompletedTask;
                 });
@@ -127,11 +127,11 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30));
+                .Add("sample", "api/TransOut", new TransRequest("1", -30))
+                .Add("sample", "api/TransIn", new TransRequest("2", 30));
 
             MongoDB.Driver.IMongoClient cli = new MongoDB.Driver.MongoClient(_settings.MongoBarrierConn);
-            await msg.DoAndSubmitUseDapr("sample", "api/msg-mongoqueryprepared", async bb =>
+            await msg.DoAndSubmit("sample", "api/msg-mongoqueryprepared", async bb =>
             {
                 await bb.MongoCall(cli, async x =>
                 {
@@ -155,11 +155,11 @@ namespace DtmSample.Controllers
             var gid = await _dtmClient.GenGid(cancellationToken);
 
             var msg = _transFactory.NewMsg(gid)
-                .AddUseDapr("sample", "api/TransOut", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransIn", new TransRequest("2", 30))
+                .Add("sample", "api/TransOut", new TransRequest("1", -30))
+                .Add("sample", "api/TransIn", new TransRequest("2", 30))
                 .EnableWaitResult();
 
-            await msg.PrepareUseDapr("sample", "api/msg-mysqlqueryprepared", cancellationToken);
+            await msg.Prepare("sample", "api/msg-mysqlqueryprepared", cancellationToken);
             await msg.Submit(cancellationToken);
 
             _logger.LogInformation("result gid is {0}", gid);

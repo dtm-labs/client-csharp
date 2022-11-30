@@ -40,8 +40,8 @@ namespace DtmSample.Controllers
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
             var saga = _transFactory.NewSaga(gid)
-                .AddUseDapr("sample", "api/TransOut", "api/TransOutRevert", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
+                .Add("sample", "api/TransOut", "api/TransOutRevert", new TransRequest("1", -30))
+                .Add("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
                 ;
 
             await saga.Submit(cancellationToken);
@@ -61,8 +61,8 @@ namespace DtmSample.Controllers
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
             var saga = _transFactory.NewSaga(gid)
-                .AddUseDapr("sample", "api/TransOutError", "api/TransOutRevert", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
+                .Add("sample", "api/TransOutError", "api/TransOutRevert", new TransRequest("1", -30))
+                .Add("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
                 ;
 
             await saga.Submit(cancellationToken);
@@ -82,8 +82,8 @@ namespace DtmSample.Controllers
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
             var saga = _transFactory.NewSaga(gid)
-                .AddUseDapr("sample", "api/TransOut", "api/TransOutRevert", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
+                .Add("sample", "api/TransOut", "api/TransOutRevert", new TransRequest("1", -30))
+                .Add("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
                 .EnableWaitResult()
                 ;
 
@@ -104,10 +104,10 @@ namespace DtmSample.Controllers
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
             var saga = _transFactory.NewSaga(gid)
-                .AddUseDapr("sample", "api/TransOut", "api/TransOutRevert", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransOut", "api/TransOutRevert", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
-                .AddUseDapr("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
+                .Add("sample", "api/TransOut", "api/TransOutRevert", new TransRequest("1", -30))
+                .Add("sample", "api/TransOut", "api/TransOutRevert", new TransRequest("1", -30))
+                .Add("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
+                .Add("sample", "api/TransIn", "api/TransInRevert", new TransRequest("2", 30))
                 .EnableConcurrent()
                 .AddBranchOrder(2, new List<int> { 0, 1 })
                 .AddBranchOrder(3, new List<int> { 0, 1 })
@@ -130,8 +130,8 @@ namespace DtmSample.Controllers
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
             var saga = _transFactory.NewSaga(gid)
-                .AddUseDapr("sample", "api/barrierTransOutSaga", "api/barrierTransOutSagaRevert", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/barrierTransInSaga", "api/barrierTransInSagaRevert", new TransRequest("2", 30))
+                .Add("sample", "api/barrierTransOutSaga", "api/barrierTransOutSagaRevert", new TransRequest("1", -30))
+                .Add("sample", "api/barrierTransInSaga", "api/barrierTransInSagaRevert", new TransRequest("2", 30))
                 ;
 
             await saga.Submit(cancellationToken);
@@ -151,8 +151,8 @@ namespace DtmSample.Controllers
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
             var saga = _transFactory.NewSaga(gid)
-                .AddUseDapr("sample", "api/ms/barrierTransOutSaga", "api/ms/barrierTransOutSagaRevert", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/ms/barrierTransInSaga", "api/ms/barrierTransInSagaRevert", new TransRequest("2", 30))
+                .Add("sample", "api/ms/barrierTransOutSaga", "api/ms/barrierTransOutSagaRevert", new TransRequest("1", -30))
+                .Add("sample", "api/ms/barrierTransInSaga", "api/ms/barrierTransInSagaRevert", new TransRequest("2", 30))
                 ;
 
             await saga.Submit(cancellationToken);
@@ -172,8 +172,8 @@ namespace DtmSample.Controllers
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
             var saga = _transFactory.NewSaga(gid)
-                .AddUseDapr("sample", "api/mg/barrierTransOutSaga", "api/mg/barrierTransOutSagaRevert", new TransRequest("1", -30))
-                .AddUseDapr("sample", "api/mg/barrierTransInSaga", "api/mg/barrierTransInSagaRevert", new TransRequest("2", 30))
+                .Add("sample", "api/mg/barrierTransOutSaga", "api/mg/barrierTransOutSagaRevert", new TransRequest("1", -30))
+                .Add("sample", "api/mg/barrierTransInSaga", "api/mg/barrierTransInSagaRevert", new TransRequest("2", 30))
                 ;
 
             await saga.Submit(cancellationToken);

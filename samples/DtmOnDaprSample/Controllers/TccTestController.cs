@@ -42,10 +42,10 @@ namespace DtmSample.Controllers
                 await _globalTransaction.Excecute(async (tcc) =>
                 {
                     // 用户1 转出30元
-                    var res1 = await tcc.CallBranchUseDapr(new TransRequest("1", -30), "sample", "api/TransOutTry", "api/TransOutConfirm", "api/TransOutCancel", cancellationToken);
+                    var res1 = await tcc.CallBranch(new TransRequest("1", -30), "sample", "api/TransOutTry", "api/TransOutConfirm", "api/TransOutCancel", cancellationToken);
 
                     // 用户2 转入30元
-                    var res2 = await tcc.CallBranchUseDapr(new TransRequest("2", 30), "sample", "api/TransInTry", "api/TransInConfirm", "api/TransInCancel", cancellationToken);
+                    var res2 = await tcc.CallBranch(new TransRequest("2", 30), "sample", "api/TransInTry", "api/TransInConfirm", "api/TransInCancel", cancellationToken);
                     _logger.LogInformation($"tcc returns: {res1}-{res2}");
                 }, cancellationToken);
 
@@ -71,10 +71,10 @@ namespace DtmSample.Controllers
                 await _globalTransaction.Excecute(async (tcc) =>
                 {
                     // 用户1 转出30元
-                    var res1 = await tcc.CallBranchUseDapr(new TransRequest("1", -30), "sample", "api/TransOutTryError", "api/TransOutConfirm", "api/TransOutCancel", cancellationToken);
+                    var res1 = await tcc.CallBranch(new TransRequest("1", -30), "sample", "api/TransOutTryError", "api/TransOutConfirm", "api/TransOutCancel", cancellationToken);
 
                     // 用户2 转入30元
-                    var res2 = await tcc.CallBranchUseDapr(new TransRequest("2", 30), "sample", "api/TransInTry", "api/TransInConfirm", "api/TransInCancel", cancellationToken);
+                    var res2 = await tcc.CallBranch(new TransRequest("2", 30), "sample", "api/TransInTry", "api/TransInConfirm", "api/TransInCancel", cancellationToken);
                     _logger.LogInformation($"tcc returns: {res1}-{res2}");
 
                     // 老版本的需要自己抛异常，新版本会抛出 DtmcliException
@@ -109,10 +109,10 @@ namespace DtmSample.Controllers
                 await _globalTransaction.Excecute(gid, async (tcc) =>
                 {
                     // 用户1 转出30元
-                    var res1 = await tcc.CallBranchUseDapr(new TransRequest("1", -30), "sample", "api/TransOutTry", "api/TransOutConfirm", "api/TransOutCancel", cancellationToken);
+                    var res1 = await tcc.CallBranch(new TransRequest("1", -30), "sample", "api/TransOutTry", "api/TransOutConfirm", "api/TransOutCancel", cancellationToken);
 
                     // 用户2 转入30元
-                    var res2 = await tcc.CallBranchUseDapr(new TransRequest("2", 30), "sample", "api/TransInTry", "api/TransInConfirm", "api/TransInCancel", cancellationToken);
+                    var res2 = await tcc.CallBranch(new TransRequest("2", 30), "sample", "api/TransInTry", "api/TransInConfirm", "api/TransInCancel", cancellationToken);
                     _logger.LogInformation($"tcc returns: {res1}-{res2}");
                 }, cancellationToken);
 
@@ -138,10 +138,10 @@ namespace DtmSample.Controllers
                 await _globalTransaction.Excecute(async (tcc) =>
                 {
                     // 用户1 转出30元
-                    var res1 = await tcc.CallBranchUseDapr(new TransRequest("1", -30), "sample", "api/barrierTransOutTry", "api/barrierTransOutConfirm", "api/barrierTransOutCancel", cancellationToken);
+                    var res1 = await tcc.CallBranch(new TransRequest("1", -30), "sample", "api/barrierTransOutTry", "api/barrierTransOutConfirm", "api/barrierTransOutCancel", cancellationToken);
 
                     // 用户2 转入30元
-                    var res2 = await tcc.CallBranchUseDapr(new TransRequest("2", 30), "sample", "api/barrierTransInTryError", "api/barrierTransInConfirm", "api/barrierTransInCancel", cancellationToken);
+                    var res2 = await tcc.CallBranch(new TransRequest("2", 30), "sample", "api/barrierTransInTryError", "api/barrierTransInConfirm", "api/barrierTransInCancel", cancellationToken);
                     _logger.LogInformation($"tcc returns: {res1}-{res2}");
 
                     // 老版本的需要自己抛异常，新版本会抛出 DtmcliException
@@ -175,10 +175,10 @@ namespace DtmSample.Controllers
                 await _globalTransaction.Excecute(async (tcc) =>
                 {
                     // 用户1 转出30元
-                    var res1 = await tcc.CallBranchUseDapr(new TransRequest("1", -30), "sample", "api/ms/barrierTransOutTry", "api/ms/barrierTransOutConfirm", "api/ms/barrierTransOutCancel", cancellationToken);
+                    var res1 = await tcc.CallBranch(new TransRequest("1", -30), "sample", "api/ms/barrierTransOutTry", "api/ms/barrierTransOutConfirm", "api/ms/barrierTransOutCancel", cancellationToken);
 
                     // 用户2 转入30元
-                    var res2 = await tcc.CallBranchUseDapr(new TransRequest("2", 30), "sample", "api/ms/barrierTransInTryError", "api/ms/barrierTransInConfirm", "api/ms/barrierTransInCancel", cancellationToken);
+                    var res2 = await tcc.CallBranch(new TransRequest("2", 30), "sample", "api/ms/barrierTransInTryError", "api/ms/barrierTransInConfirm", "api/ms/barrierTransInCancel", cancellationToken);
                     _logger.LogInformation($"tcc returns: {res1}-{res2}");
 
                     // 老版本的需要自己抛异常，新版本会抛出 DtmcliException
@@ -213,10 +213,10 @@ namespace DtmSample.Controllers
                 await _globalTransaction.Excecute(async (tcc) =>
                 {
                     // 用户1 转出30元
-                    var res1 = await tcc.CallBranchUseDapr(new TransRequest("1", -30), "sample", "api/mg/barrierTransOutTry", "api/mg/barrierTransOutConfirm", "api/mg/barrierTransOutCancel", cancellationToken);
+                    var res1 = await tcc.CallBranch(new TransRequest("1", -30), "sample", "api/mg/barrierTransOutTry", "api/mg/barrierTransOutConfirm", "api/mg/barrierTransOutCancel", cancellationToken);
 
                     // 用户2 转入30元
-                    var res2 = await tcc.CallBranchUseDapr(new TransRequest("2", 30), "sample", "api/mg/barrierTransInTryError", "api/mg/barrierTransInConfirm", "api/mg/barrierTransInCancel", cancellationToken);
+                    var res2 = await tcc.CallBranch(new TransRequest("2", 30), "sample", "api/mg/barrierTransInTryError", "api/mg/barrierTransInConfirm", "api/mg/barrierTransInCancel", cancellationToken);
                     _logger.LogInformation($"tcc returns: {res1}-{res2}");
 
                     // 老版本的需要自己抛异常，新版本会抛出 DtmcliException
