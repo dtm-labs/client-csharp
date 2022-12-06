@@ -26,8 +26,8 @@ namespace DtmSample
             services.AddDtmcli(dtm =>
             {
                 dtm.DtmUrl = DtmDaprDriver.GenerateDtmUrl();
-                dtm.DBType = Configuration.GetValue<string>("AppSettings:DBType");
-                dtm.BarrierTableName = Configuration.GetValue<string>("AppSettings:BarrierTableName");
+                dtm.SqlDbType = Configuration.GetValue<string>("AppSettings:SqlDbType");
+                dtm.BarrierSqlTableName = Configuration.GetValue<string>("AppSettings:BarrierSqlTableName");
             });
 
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));

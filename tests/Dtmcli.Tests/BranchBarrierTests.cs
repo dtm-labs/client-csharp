@@ -137,7 +137,7 @@ namespace Dtmcli.Tests
 
             var branchBarrier = factory.CreateBranchBarrier("msg", "gid", "bid", "msg");
 
-            Assert.Equal("aaa.bbb", branchBarrier.DtmOptions.BarrierTableName);
+            Assert.Equal("aaa.bbb", branchBarrier.DtmOptions.BarrierSqlTableName);
         }
 
         [Fact]

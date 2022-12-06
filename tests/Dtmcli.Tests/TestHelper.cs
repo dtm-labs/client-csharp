@@ -60,8 +60,8 @@ namespace Dtmcli.Tests
             services.AddDtmcli(x =>
             {
                 x.DtmUrl = dtm;
-                x.DBType = db;
-                x.BarrierTableName = tbName;
+                x.SqlDbType = db;
+                x.BarrierSqlTableName = tbName;
             });
 
             var provider = services.BuildServiceProvider();

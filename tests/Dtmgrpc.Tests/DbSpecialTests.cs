@@ -36,7 +36,7 @@ namespace Dtmgrpc.Tests
             services.AddDtmGrpc(x =>
             {
                 x.DtmGrpcUrl = dtm;
-                x.DBType = "postgres";
+                x.SqlDbType = "postgres";
             });
 
             var provider = services.BuildServiceProvider();
@@ -60,7 +60,7 @@ namespace Dtmgrpc.Tests
             services.AddDtmGrpc(x =>
             {
                 x.DtmGrpcUrl = dtm;
-                x.DBType = "sqlserver";
+                x.SqlDbType = "sqlserver";
             });
 
             var provider = services.BuildServiceProvider();
@@ -83,7 +83,7 @@ namespace Dtmgrpc.Tests
             services.AddDtmGrpc(x =>
             {
                 x.DtmGrpcUrl = dtm;
-                x.DBType = "other";
+                x.SqlDbType = "other";
             });
 
             var provider = services.BuildServiceProvider();
