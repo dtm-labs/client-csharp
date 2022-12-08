@@ -107,7 +107,7 @@ namespace Dtmgrpc.Tests
             services.AddDtmGrpc(x =>
             {
                 x.DtmGrpcUrl = dtm;
-                x.BarrierTableName = "aaa.bbb";
+                x.BarrierSqlTableName = "aaa.bbb";
             });
 
             var provider = services.BuildServiceProvider();
@@ -116,7 +116,7 @@ namespace Dtmgrpc.Tests
 
             var branchBarrier = factory.CreateBranchBarrier("msg", "gid", "bid", "msg");
 
-            Assert.Equal("aaa.bbb", branchBarrier.DtmOptions.BarrierTableName);
+            Assert.Equal("aaa.bbb", branchBarrier.DtmOptions.BarrierSqlTableName);
         }
 
         [Fact]
@@ -128,7 +128,7 @@ namespace Dtmgrpc.Tests
             services.AddDtmGrpc(x =>
             {
                 x.DtmGrpcUrl = dtm;
-                x.BarrierTableName = "aaa.bbb";
+                x.BarrierSqlTableName = "aaa.bbb";
             });
 
             var provider = services.BuildServiceProvider();

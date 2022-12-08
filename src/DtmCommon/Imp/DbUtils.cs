@@ -24,7 +24,7 @@ namespace DtmCommon
 
             try
             {
-                var str = string.Concat(_options.BarrierTableName, "(trans_type, gid, branch_id, op, barrier_id, reason) values(@trans_type,@gid,@branch_id,@op,@barrier_id,@reason)");
+                var str = string.Concat(_options.BarrierSqlTableName, "(trans_type, gid, branch_id, op, barrier_id, reason) values(@trans_type,@gid,@branch_id,@op,@barrier_id,@reason)");
                 var sql = _specialDelegate.GetDbSpecial().GetInsertIgnoreTemplate(str, Constant.Barrier.PG_CONSTRAINT);
 
                 sql = _specialDelegate.GetDbSpecial().GetPlaceHoldSQL(sql);

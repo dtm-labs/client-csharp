@@ -110,16 +110,16 @@ namespace Dtmcli.Tests
             var services = new ServiceCollection();
             services.AddDtmBarrier(x =>
             {
-                x.DBType = "mysql";
-                x.BarrierTableName = "dtm_barrier.barrier2";
+                x.SqlDbType = "mysql";
+                x.BarrierSqlTableName = "dtm_barrier.barrier2";
             });
 
             var provider = services.BuildServiceProvider();
 
             var dtmOptionsAccs = provider.GetService<IOptions<DtmOptions>>();
             var dtmOptions = dtmOptionsAccs.Value;
-            Assert.Equal("mysql", dtmOptions.DBType);
-            Assert.Equal("dtm_barrier.barrier2", dtmOptions.BarrierTableName);
+            Assert.Equal("mysql", dtmOptions.SqlDbType);
+            Assert.Equal("dtm_barrier.barrier2", dtmOptions.BarrierSqlTableName);
 
             var dtmClient = provider.GetService<IDtmClient>();
             Assert.Null(dtmClient);
@@ -136,8 +136,8 @@ namespace Dtmcli.Tests
         {
             var dict = new Dictionary<string, string>
             {
-               { "dtm:DBType", "mysql" },
-               { "dtm:BarrierTableName", "dtm_barrier.barrier2" },
+               { "dtm:SqlDbType", "mysql" },
+               { "dtm:BarrierSqlTableName", "dtm_barrier.barrier2" },
             };
 
             var config = new ConfigurationBuilder().AddInMemoryCollection(dict).Build();
@@ -149,8 +149,8 @@ namespace Dtmcli.Tests
 
             var dtmOptionsAccs = provider.GetService<IOptions<DtmOptions>>();
             var dtmOptions = dtmOptionsAccs.Value;
-            Assert.Equal("mysql", dtmOptions.DBType);
-            Assert.Equal("dtm_barrier.barrier2", dtmOptions.BarrierTableName);
+            Assert.Equal("mysql", dtmOptions.SqlDbType);
+            Assert.Equal("dtm_barrier.barrier2", dtmOptions.BarrierSqlTableName);
 
             var dtmClient = provider.GetService<IDtmClient>();
             Assert.Null(dtmClient);

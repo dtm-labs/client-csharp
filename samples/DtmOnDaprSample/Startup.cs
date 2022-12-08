@@ -1,4 +1,5 @@
 using Dtmcli;
+using DtmDapr;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -24,7 +25,7 @@ namespace DtmSample
         {
             services.AddDtmcli(dtm =>
             {
-                dtm.DtmUrl = Configuration.GetValue<string>("AppSettings:DtmUrl");
+                dtm.DtmUrl = DtmDaprDriver.GenerateDtmUrl();
                 dtm.SqlDbType = Configuration.GetValue<string>("AppSettings:SqlDbType");
                 dtm.BarrierSqlTableName = Configuration.GetValue<string>("AppSettings:BarrierSqlTableName");
             });
