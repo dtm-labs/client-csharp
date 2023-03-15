@@ -11,6 +11,8 @@ namespace Dtmcli
 {
     public class Msg
     {
+        private long _delay = 0;
+
         private readonly TransBase _transBase;
         private readonly IDtmClient _dtmClient;
         private readonly IBranchBarrierFactory _branchBarrierFactory;
@@ -41,6 +43,7 @@ namespace Dtmcli
 
         public async Task Submit(CancellationToken cancellationToken = default)
         {
+            this.BuildCustimOptions();
             await this._dtmClient.TransCallDtm(this._transBase, this._transBase, Constant.Request.OPERATION_SUBMIT, cancellationToken);
         }
 
@@ -132,6 +135,25 @@ namespace Dtmcli
         {
             this._transBase.BranchHeaders = headers;
             return this;
+        }
+
+        /// <summary>
+        /// Set delay to call branch, unit second
+        /// </summary>
+        /// <param name="delay">delay second</param>
+        /// <returns></returns>
+        public Msg SetDelay(long delay)
+        {
+            this._delay = delay;
+            return this;
+        }
+
+        private void BuildCustimOptions()
+        {
+            if (this._delay > 0)
+            { 
+                _transBase.CustomData = JsonSerializer.Serialize(new { delay = this._delay });
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +14,8 @@ namespace Dtmgrpc
     public class MsgGrpc
     {
         private static readonly string Action = "action";
+
+        private long _delay = 0;
 
         private readonly TransBase _transBase;
         private readonly IDtmgRPCClient _dtmClient;
@@ -44,6 +47,7 @@ namespace Dtmgrpc
 
         public async Task Submit(CancellationToken cancellationToken = default)
         {
+            this.BuildCustimOptions();
             await this._dtmClient.DtmGrpcCall(this._transBase, Constant.Op.Submit);
         }
 
@@ -142,6 +146,25 @@ namespace Dtmgrpc
         {
             this._transBase.BranchHeaders = headers;
             return this;
+        }
+
+        /// <summary>
+        /// Set delay to call branch, unit second
+        /// </summary>
+        /// <param name="delay">delay second</param>
+        /// <returns></returns>
+        public MsgGrpc SetDelay(long delay)
+        {
+            this._delay = delay;
+            return this;
+        }
+
+        private void BuildCustimOptions()
+        {
+            if (this._delay > 0)
+            {
+                _transBase.CustomData = JsonSerializer.Serialize(new { delay = this._delay });
+            }
         }
     }
 }
