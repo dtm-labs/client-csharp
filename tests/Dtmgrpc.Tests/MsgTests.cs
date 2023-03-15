@@ -51,6 +51,7 @@ namespace Dtmgrpc.Tests
                .EnableWaitResult()
                .SetRetryInterval(10)
                .SetTimeoutToFail(100)
+               .SetDelay(10)
                .SetBranchHeaders(new Dictionary<string, string>
                 {
                     { "bh1", "123" },

@@ -48,6 +48,7 @@ namespace Dtmcli.Tests
                .EnableWaitResult()
                .SetRetryInterval(10)
                .SetTimeoutToFail(100)
+               .SetDelay(10)
                .SetBranchHeaders(new Dictionary<string, string>
                 {
                     { "bh1", "123" },
@@ -210,6 +211,12 @@ namespace Dtmcli.Tests
                 Assert.Contains("bh2", transBase.BranchHeaders.Keys);
                 Assert.Equal(2, transBase.Payloads.Count);
                 Assert.Equal(2, transBase.Steps.Count);
+
+                if(request.RequestUri.AbsolutePath.Contains("submit",StringComparison.OrdinalIgnoreCase))
+                {
+                    Assert.NotEmpty(transBase.CustomData);
+                    Assert.Contains("10", transBase.CustomData);
+                }
 
                 var content = new StringContent("{\"dtm_result\":\"SUCCESS\"}");
 
