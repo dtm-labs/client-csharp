@@ -34,6 +34,11 @@ namespace Dtmcli
             return this;
         }
 
+        public Msg AddTopic(string topic, object postData)
+        {
+            return this.Add($"{DtmCommon.Constant.MsgTopicPrefix}{topic}", postData);
+        }
+
         public async Task Prepare(string queryPrepared, CancellationToken cancellationToken = default)
         {
             this._transBase.QueryPrepared = !string.IsNullOrWhiteSpace(queryPrepared)? queryPrepared : this._transBase.QueryPrepared;

@@ -18,6 +18,8 @@ namespace DtmCommon
         /// </summary>
         public static readonly string ResultDuplicated = "DUPLICATED";
 
+        public static readonly string MsgTopicPrefix = "topic://";
+
         internal class Op
         {
             internal static readonly string Submit = "Submit";
