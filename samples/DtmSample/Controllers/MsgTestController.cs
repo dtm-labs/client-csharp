@@ -218,5 +218,47 @@ namespace DtmSample.Controllers
             var res = await bb.MongoQueryPrepared(cli);
             return Ok(new { dtm_result = res });
         }
+
+        /// <summary>
+        /// MSG with not exist topic will get 【topic not found】
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpGet("msg-topic-notfound")]
+        public async Task<IActionResult> MsgWithTopicNotFound(CancellationToken cancellationToken)
+        {
+            var gid = await _dtmClient.GenGid(cancellationToken);
+            var req = new TransRequest("1", -30);
+            var msg = _transFactory.NewMsg(gid)
+                .AddTopic("not_exist_topic", req);
+
+            await msg.Prepare(_settings.BusiUrl + "/msg-queryprepared", cancellationToken);
+            await msg.Submit(cancellationToken);
+
+            return Ok(TransResponse.BuildSucceedResponse());
+        }
+
+        /// <summary>
+        /// MSG with exist topic
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpGet("msg-topic")]
+        public async Task<IActionResult> MsgWithTopic(CancellationToken cancellationToken)
+        {
+            var gid = await _dtmClient.GenGid(cancellationToken);
+
+            // should subscribe at first
+            var topic ="mytopic";
+
+            var req = new TransRequest("1", -30);
+            var msg = _transFactory.NewMsg(gid)
+                .AddTopic(topic, req);
+
+            await msg.Prepare(_settings.BusiUrl + "/msg-queryprepared", cancellationToken);
+            await msg.Submit(cancellationToken);
+
+            return Ok(TransResponse.BuildSucceedResponse());
+        }
     }
 }
