@@ -5,6 +5,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,6 +46,7 @@ namespace Dtmcli.Tests
 
             msg.Add(busi + "/TransOut", req)
                .Add(busi + "/TransIn", req)
+               .AddTopic("test-topic", req)
                .EnableWaitResult()
                .SetRetryInterval(10)
                .SetTimeoutToFail(100)
@@ -209,10 +211,11 @@ namespace Dtmcli.Tests
                 Assert.Equal(100, transBase.TimeoutToFail);
                 Assert.Contains("bh1", transBase.BranchHeaders.Keys);
                 Assert.Contains("bh2", transBase.BranchHeaders.Keys);
-                Assert.Equal(2, transBase.Payloads.Count);
-                Assert.Equal(2, transBase.Steps.Count);
+                Assert.Equal(3, transBase.Payloads.Count);
+                Assert.Equal(3, transBase.Steps.Count);
+                Assert.Contains("topic://test-topic", transBase.Steps.SelectMany(x => x.Values).ToList());
 
-                if(request.RequestUri.AbsolutePath.Contains("submit",StringComparison.OrdinalIgnoreCase))
+                if (request.RequestUri.AbsolutePath.Contains("submit",StringComparison.OrdinalIgnoreCase))
                 {
                     Assert.NotEmpty(transBase.CustomData);
                     Assert.Contains("10", transBase.CustomData);

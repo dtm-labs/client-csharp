@@ -13,6 +13,9 @@ service Dtm {
   rpc Prepare(DtmRequest) returns (google.protobuf.Empty) {}
   rpc Abort(DtmRequest) returns (google.protobuf.Empty) {}
   rpc RegisterBranch(DtmBranchRequest) returns (google.protobuf.Empty) {}
+  rpc Subscribe(DtmTopicRequest) returns (google.protobuf.Empty){}
+  rpc Unsubscribe(DtmTopicRequest) returns (google.protobuf.Empty){}
+  rpc DeleteTopic(DtmTopicRequest) returns (google.protobuf.Empty){}
 }
 
 message DtmTransOptions {
@@ -49,4 +52,10 @@ message DtmBranchRequest {
   string Op = 4;
   map<string, string> Data = 5;
   bytes BusiPayload = 6;
+}
+
+message DtmTopicRequest {
+  string Topic = 1;
+  string URL = 2;
+  string Remark = 3;
 }

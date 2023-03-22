@@ -48,6 +48,7 @@ namespace Dtmgrpc.Tests
 
             msg.Add(busi + "/TransOut", req)
                .Add(busi + "/TransIn", req)
+               .AddTopic("mytopic", req)
                .EnableWaitResult()
                .SetRetryInterval(10)
                .SetTimeoutToFail(100)

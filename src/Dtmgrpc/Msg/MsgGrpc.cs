@@ -38,6 +38,11 @@ namespace Dtmgrpc
             return this;
         }
 
+        public MsgGrpc AddTopic(string topic, IMessage payload)
+        {
+            return this.Add($"{Constant.MsgTopicPrefix}{topic}", payload);
+        }
+
         public async Task Prepare(string queryPrepared, CancellationToken cancellationToken = default)
         {
             this._transBase.QueryPrepared = !string.IsNullOrWhiteSpace(queryPrepared) ? queryPrepared : this._transBase.QueryPrepared;
