@@ -47,10 +47,7 @@ namespace Dtmgrpc
 
         public async Task Submit()
         {
-            if (this._concurrent)
-            {
-                this._transBase.CustomData = Utils.ToJsonString(new { orders = this._orders, concurrent = this._concurrent });
-            }
+            this.BuildCustimOptions();
 
             await _dtmClient.DtmGrpcCall(this._transBase, Constant.Op.Submit).ConfigureAwait(false);
         }
@@ -109,6 +106,14 @@ namespace Dtmgrpc
         {
             this._transBase.RetryLimit = limit;
             return this;
+        }
+
+        private void BuildCustimOptions()
+        {
+            if (this._concurrent)
+            {
+                this._transBase.CustomData = Utils.ToJsonString(new { orders = this._orders, concurrent = this._concurrent });
+            }
         }
     }
 }

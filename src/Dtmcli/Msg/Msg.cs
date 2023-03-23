@@ -48,7 +48,7 @@ namespace Dtmcli
 
         public async Task Submit(CancellationToken cancellationToken = default)
         {
-            this.BuildCustimOptions();
+            this.BuildCustomOptions();
             await this._dtmClient.TransCallDtm(this._transBase, this._transBase, Constant.Request.OPERATION_SUBMIT, cancellationToken);
         }
 
@@ -153,7 +153,7 @@ namespace Dtmcli
             return this;
         }
 
-        private void BuildCustimOptions()
+        private void BuildCustomOptions()
         {
             if (this._delay > 0)
             { 

@@ -33,7 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPackageVersion6)" />
+		<PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPackageVersion7)" />
 		<PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpNSD21)" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationNSD21)" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="$(MicrosoftExtensionsHttpNSD21)" />

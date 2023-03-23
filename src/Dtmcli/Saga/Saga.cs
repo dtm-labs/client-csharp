@@ -44,11 +44,7 @@ namespace Dtmcli
 
         public async Task Submit(CancellationToken cancellationToken = default)
         {
-            if (this._concurrent)
-            {
-                this._transBase.CustomData = JsonSerializer.Serialize(new { orders = this._orders, concurrent = this._concurrent });
-            }
-
+            this.BuildCustomOptions();
             await _dtmClient.TransCallDtm(this._transBase, this._transBase, Constant.Request.OPERATION_SUBMIT, cancellationToken).ConfigureAwait(false);
         }
 
@@ -106,6 +102,14 @@ namespace Dtmcli
         {
             this._transBase.RetryLimit = limit;
             return this;
+        }
+
+        private void BuildCustomOptions()
+        {
+            if (this._concurrent)
+            {
+                this._transBase.CustomData = JsonSerializer.Serialize(new { orders = this._orders, concurrent = this._concurrent });
+            }
         }
     }
 }
