@@ -2,11 +2,11 @@
   <PropertyGroup>
     <!-- DtmCommon -->
     <DapperPackageVersion>2.0.123</DapperPackageVersion>
-    <SystemTextJsonPackageVersion6>6.0.2</SystemTextJsonPackageVersion6>
+    <SystemTextJsonPackageVersion6>6.0.7</SystemTextJsonPackageVersion6>
     <MicrosoftExtensionsConfigurationNET6>6.0.0</MicrosoftExtensionsConfigurationNET6>
     <MicrosoftExtensionsHttpNET6>6.0.0</MicrosoftExtensionsHttpNET6>
     <MicrosoftExtensionsOptionsConfigurationExtensionsNET6>6.0.0</MicrosoftExtensionsOptionsConfigurationExtensionsNET6>
-    <SystemTextJsonPackageVersion7>7.0.0</SystemTextJsonPackageVersion7>
+    <SystemTextJsonPackageVersion7>7.0.2</SystemTextJsonPackageVersion7>
     <MicrosoftExtensionsConfigurationNET7>7.0.0</MicrosoftExtensionsConfigurationNET7>
     <MicrosoftExtensionsHttpNET7>7.0.0</MicrosoftExtensionsHttpNET7>
     <MicrosoftExtensionsOptionsConfigurationExtensionsNET7>7.0.0</MicrosoftExtensionsOptionsConfigurationExtensionsNET7>
@@ -16,25 +16,27 @@
     <MicrosoftExtensionsOptionsConfigurationExtensionsNSD21>6.0.0</MicrosoftExtensionsOptionsConfigurationExtensionsNSD21>
 
     <!-- Dtmgrpc -->
-    <GoogleProtobufPackageVersion>3.21.9</GoogleProtobufPackageVersion>
-    <GrpcNetClientFactoryPackageVersion>2.50.0</GrpcNetClientFactoryPackageVersion>
-    <GrpcToolsPackageVersion>2.50.0</GrpcToolsPackageVersion>
+    <GoogleProtobufPackageVersion>3.22.1</GoogleProtobufPackageVersion>
+    <GrpcNetClientFactoryPackageVersion>2.52.0</GrpcNetClientFactoryPackageVersion>
+    <GrpcToolsPackageVersion>2.52.0</GrpcToolsPackageVersion>
 
     <!-- Barrier Extension -->
-    <MongoDBDriverPackageVersion>2.18.0</MongoDBDriverPackageVersion>
-    <StackExchangeRedisPackageVersion>2.5.61</StackExchangeRedisPackageVersion>
+    <MongoDBDriverPackageVersion>2.19.0</MongoDBDriverPackageVersion>
+    <StackExchangeRedisPackageVersion>2.6.96</StackExchangeRedisPackageVersion>
 
 
-    <!-- TEST -->
-    <GrpcAspNetCorePackageVersion>2.50.0</GrpcAspNetCorePackageVersion>
-    <MySqlConnectorPackageVersion>2.2.1</MySqlConnectorPackageVersion>
-    <MicrosoftNETTestSdkPackageVersion>17.4.0</MicrosoftNETTestSdkPackageVersion>
-    <MoqPackageVersion>4.18.2</MoqPackageVersion>
+    <!-- TEST And Samples -->
+    <GrpcAspNetCorePackageVersion>2.52.0</GrpcAspNetCorePackageVersion>
+    <MySqlConnectorPackageVersion>2.2.5</MySqlConnectorPackageVersion>
+    <MicrosoftNETTestSdkPackageVersion>17.5.0</MicrosoftNETTestSdkPackageVersion>
+    <MoqPackageVersion>4.18.4</MoqPackageVersion>
     <XunitPackageVersion>2.4.2</XunitPackageVersion>
     <XunitRunnerVisualstudioPackageVersion>2.4.5</XunitRunnerVisualstudioPackageVersion>
     <CoverletCollectorPackageVersion>3.2.0</CoverletCollectorPackageVersion>
     <MicrosoftExtensionsDependencyInjectionPackageVersion>7.0.0</MicrosoftExtensionsDependencyInjectionPackageVersion>
     <DbMockerPackageVersion>1.22.0</DbMockerPackageVersion>
+    <MicrosoftDataSqlClientPackageVersion>5.1.0</MicrosoftDataSqlClientPackageVersion>
+    <SwashbuckleAspNetCorePackageVersion>6.5.0</SwashbuckleAspNetCorePackageVersion>
 
   </PropertyGroup>
 </Project>

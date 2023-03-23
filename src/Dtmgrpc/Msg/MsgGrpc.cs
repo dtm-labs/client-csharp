@@ -52,7 +52,7 @@ namespace Dtmgrpc
 
         public async Task Submit(CancellationToken cancellationToken = default)
         {
-            this.BuildCustimOptions();
+            this.BuildCustomOptions();
             await this._dtmClient.DtmGrpcCall(this._transBase, Constant.Op.Submit);
         }
 
@@ -164,7 +164,7 @@ namespace Dtmgrpc
             return this;
         }
 
-        private void BuildCustimOptions()
+        private void BuildCustomOptions()
         {
             if (this._delay > 0)
             {

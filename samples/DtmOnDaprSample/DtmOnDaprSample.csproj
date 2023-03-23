@@ -8,10 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Dapper" Version="2.0.123" />
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
-		<PackageReference Include="MySqlConnector" Version="2.2.1" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+		<PackageReference Include="Dapper" Version="$(DapperPackageVersion)" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="$(MicrosoftDataSqlClientPackageVersion)" />
+		<PackageReference Include="MySqlConnector" Version="$(MySqlConnectorPackageVersion)" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="$(SwashbuckleAspNetCorePackageVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
