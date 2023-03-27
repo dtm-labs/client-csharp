@@ -1,4 +1,5 @@
 ﻿using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -264,7 +265,7 @@ namespace Dtmworkflow
             var r = this.GetStepResult();
             if (r != null)
             {
-                // log
+                _logger.LogDebug("progress restored: '{0}' '{1}' '{2}' '{3}' '{4}'", branchId, this.WorkflowImp.CurrentOp, r.Error, r.Status, r.Data);
                 return r;
             }
 
@@ -291,8 +292,12 @@ namespace Dtmworkflow
         private StepResult GetStepResult()
         {
             var key = $"{this.WorkflowImp.CurrentBranch}-{this.WorkflowImp.CurrentOp}";
+            StepResult res = null;
+            this.WorkflowImp.Progresses.TryGetValue(key, out res);
 
-            return this.WorkflowImp.Progresses.TryGetValue(key, out var res) ? res : null;
+            _logger.LogDebug("getStepResult: {0} {1}", key, res);
+
+            return res;
         }
     }
 }

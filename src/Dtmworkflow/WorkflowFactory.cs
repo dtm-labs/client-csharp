@@ -32,7 +32,7 @@ namespace Dtmworkflow
 
         public Workflow NewWorkflow(string name, string gid, byte[] data, bool isHttp = true)
         {
-            var wf = new Workflow(_httpClient, _grpcClient, _bbFactory)
+            var wf = new Workflow(_httpClient, _grpcClient, _bbFactory, _logger)
             {
                 TransBase = TransBase.NewTransBase(gid, "workflow", "not inited", ""),
                 Name = name,

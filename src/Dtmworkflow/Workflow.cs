@@ -1,5 +1,6 @@
 ﻿using Dtmcli;
 using Dtmgrpc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -19,12 +20,14 @@ namespace Dtmworkflow
         private readonly IDtmClient _httpClient;
         private readonly IDtmgRPCClient _grpcClient;
         private readonly Dtmcli.IBranchBarrierFactory _bbFactory;
+        private readonly ILogger _logger;
 
-        public Workflow(IDtmClient httpClient, IDtmgRPCClient grpcClient, Dtmcli.IBranchBarrierFactory bbFactory)
+        public Workflow(IDtmClient httpClient, IDtmgRPCClient grpcClient, Dtmcli.IBranchBarrierFactory bbFactory, ILogger logger)
         {
             this._httpClient = httpClient;
             this._grpcClient = grpcClient;
             this._bbFactory = bbFactory;
+            this._logger = logger;
         }
 
         public System.Net.Http.HttpClient NewRequest()
