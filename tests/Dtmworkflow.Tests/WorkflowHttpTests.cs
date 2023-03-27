@@ -274,7 +274,7 @@ namespace Dtmworkflow.Tests
 
         private Mock<Workflow> SetupWorkFlow(Mock<IDtmClient> httpClient, Mock<IDtmgRPCClient> grpcClient, Mock<Dtmcli.IBranchBarrierFactory> httpBb)
         {
-            var wf = new Mock<Workflow>(httpClient.Object, grpcClient.Object, httpBb.Object);
+            var wf = new Mock<Workflow>(httpClient.Object, grpcClient.Object, httpBb.Object, NullLogger.Instance);
             var tb = TransBase.NewTransBase("1", "workflow", "not inited", "");
             tb.Protocol = Constant.ProtocolHTTP;
             wf.SetupProperty(x => x.TransBase, tb);
