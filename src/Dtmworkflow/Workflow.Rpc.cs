@@ -94,7 +94,10 @@ namespace Dtmworkflow
 
     public class DtmProgressesReplyDto
     {
+        [JsonPropertyName("transaction")]
         public DtmTransactionDto Transaction { get; set; }
+
+        [JsonPropertyName("progresses")]
         public List<DtmProgressDto> Progresses { get; set; }
 
         public static DtmProgressesReplyDto FromGrpcReply(dtmgpb.DtmProgressesReply reply)

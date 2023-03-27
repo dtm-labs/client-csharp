@@ -18,11 +18,11 @@ namespace Dtmcli.DtmImp
             // System.Net.HttpStatusCode do not contain StatusTooEarly
             if ((int)resp.StatusCode == StatusTooEarly || str.Contains(DtmCommon.Constant.ResultOngoing))
             {
-                return new DtmException(DtmCommon.Constant.ResultOngoing);
+                return new DtmOngingException();
             }
             else if (resp.StatusCode == HttpStatusCode.Conflict || str.Contains(DtmCommon.Constant.ResultFailure))
             {
-                return new DtmException(DtmCommon.Constant.ResultFailure);
+                return new DtmFailureException();
             }
             else if (resp.StatusCode != HttpStatusCode.OK)
             {

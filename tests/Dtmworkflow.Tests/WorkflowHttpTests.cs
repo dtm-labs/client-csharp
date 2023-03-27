@@ -4,9 +4,11 @@ using Dtmgrpc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using static System.Net.WebRequestMethods;
 
 namespace Dtmworkflow.Tests
 {
@@ -21,9 +23,7 @@ namespace Dtmworkflow.Tests
             var httpBb = new Mock<Dtmcli.IBranchBarrierFactory>();
 
             SetupPrepareWorkflow(httpClient, DtmCommon.Constant.StatusSucceed, "123");
-
-            var wf = new Mock<Workflow>(httpClient.Object, grpcClient.Object, httpBb.Object);
-            wf.SetupProperty(x => x.TransBase, TransBase.NewTransBase("1", "workflow", "not inited", ""));
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
@@ -52,9 +52,7 @@ namespace Dtmworkflow.Tests
             var httpBb = new Mock<Dtmcli.IBranchBarrierFactory>();
 
             SetupPrepareWorkflow(httpClient, DtmCommon.Constant.StatusFailed, "123");
-
-            var wf = new Mock<Workflow>(httpClient.Object, grpcClient.Object, httpBb.Object);
-            wf.SetupProperty(x => x.TransBase, TransBase.NewTransBase("1", "workflow", "not inited", ""));
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
@@ -88,11 +86,7 @@ namespace Dtmworkflow.Tests
             };
 
             SetupPrepareWorkflow(httpClient, Constant.StatusSubmitted, "123", progressDtos);
-
-            var wf = new Mock<Workflow>(httpClient.Object, grpcClient.Object, httpBb.Object);
-            var tb = TransBase.NewTransBase("1", "workflow", "not inited", "");
-            tb.Protocol = Constant.ProtocolHTTP;
-            wf.SetupProperty(x => x.TransBase, tb);
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
@@ -127,11 +121,7 @@ namespace Dtmworkflow.Tests
             };
 
             SetupPrepareWorkflow(httpClient, Constant.StatusSubmitted, "123", progressDtos);
-
-            var wf = new Mock<Workflow>(httpClient.Object, grpcClient.Object, httpBb.Object);
-            var tb = TransBase.NewTransBase("1", "workflow", "not inited", "");
-            tb.Protocol = Constant.ProtocolHTTP;
-            wf.SetupProperty(x => x.TransBase, tb);
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
@@ -165,11 +155,7 @@ namespace Dtmworkflow.Tests
             };
 
             SetupPrepareWorkflow(httpClient, Constant.StatusSubmitted, "123", progressDtos);
-
-            var wf = new Mock<Workflow>(httpClient.Object, grpcClient.Object, httpBb.Object);
-            var tb = TransBase.NewTransBase("1", "workflow", "not inited", "");
-            tb.Protocol = Constant.ProtocolHTTP;
-            wf.SetupProperty(x => x.TransBase, tb);
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
@@ -188,69 +174,87 @@ namespace Dtmworkflow.Tests
             Assert.Null(res);
         }
 
-        //[Fact]
-        //public async void Rollback()
-        //{
-        //    var factory = new Mock<IWorkflowFactory>();
-        //    var httpClient = new Mock<IDtmClient>();
-        //    var grpcClient = new Mock<IDtmgRPCClient>();
-        //    var httpBb = new Mock<Dtmcli.IBranchBarrierFactory>();
-
-        //    var progressDtos = new List<DtmProgressDto>
-        //    {
-        //        new DtmProgressDto { Status = Constant.StatusSucceed, BranchId = "01", Op = Constant.OpAction },
-        //        new DtmProgressDto { Status = Constant.StatusSucceed, BranchId = "02", Op = Constant.OpAction }
-        //    };
-
-        //    SetupPrepareWorkflow(httpClient, Constant.StatusSubmitted, "123", progressDtos);
-
-        //    var wf = new Mock<Workflow>(httpClient.Object, grpcClient.Object, httpBb.Object);
-        //    var tb = TransBase.NewTransBase("1", "workflow", "not inited", "");
-        //    tb.Protocol = Constant.ProtocolHTTP;
-        //    wf.SetupProperty(x => x.TransBase, tb);
-
-        //    factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
-
-        //    var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
-
-        //    var wfName = nameof(Execute_Should_Return_Null_When_WfFunc2_ThrowDtmFailureException);
-        //    var gid = Guid.NewGuid().ToString("N");
-            
-        //    var func = new Mock<WfPhase2Func>();
-
-        //    WfFunc2 handler = async (wf, data) => 
-        //    {
-        //        var handler = new WfMockHttpMessageHandler(HttpStatusCode.Conflict, "123");
-        //        var content = new ByteArrayContent(data);
-        //        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-        //        var client = wf.NewBranch().OnRollback(func.Object).NewRequest(handler);
-
-        //        var outResp = await client.PostAsync("URL", content);
-        //        outResp.EnsureSuccessStatusCode();
-
-        //        return await outResp.Content.ReadAsByteArrayAsync();
-        //    };
-        //    wfgt.Register(wfName, handler);
-        //    var req = JsonSerializer.Serialize(new { userId = "1", amount = 30 });
-
-        //    var res = await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true);
-
-        //    func.Verify(x => x.Invoke(It.IsAny<BranchBarrier>()), Times.Once);
-        //}
-
-        private async Task DoNewBranchRequest(Workflow wf, byte[] data, string url, HttpStatusCode statusCode, string resp)
+        [Fact]
+        public async void Rollback_Should_Be_Executed()
         {
-            var handler = new WfMockHttpMessageHandler(statusCode, resp);
+            var factory = new Mock<IWorkflowFactory>();
+            var httpClient = new Mock<IDtmClient>();
+            var grpcClient = new Mock<IDtmgRPCClient>();
+            var httpBb = new Mock<Dtmcli.IBranchBarrierFactory>();
 
-            var content = new ByteArrayContent(data);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            var client = wf.NewBranch().NewRequest(handler);
+            var progressDtos = new List<DtmProgressDto>
+            {
+                new DtmProgressDto { Status = Constant.StatusSucceed, BranchId = "01", Op = Constant.OpAction }
+            };
 
-            var outResp = await client.PostAsync(url, content);
-            outResp.EnsureSuccessStatusCode();
+            SetupPrepareWorkflow(httpClient, Constant.StatusSubmitted, "123", progressDtos);
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
+           
+            factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
+
+            var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+
+            var wfName = nameof(Rollback_Should_Be_Executed);
+            var gid = Guid.NewGuid().ToString("N");
+
+            var func = new Mock<WfPhase2Func>();
+
+            WfFunc2 handler = (wf, data) =>
+            {
+                var client = wf.NewBranch().OnRollback(func.Object).NewRequest();
+
+                // Do request and Failure 
+                throw new DtmFailureException();
+            };
+            wfgt.Register(wfName, handler);
+            var req = JsonSerializer.Serialize(new { userId = "1", amount = 30 });
+
+            var res = await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true);
+
+            func.Verify(x => x.Invoke(It.IsAny<BranchBarrier>()), Times.Once);
         }
 
+        [Fact]
+        public async void Commit_Should_Be_Executed()
+        {
+            var factory = new Mock<IWorkflowFactory>();
+            var httpClient = new Mock<IDtmClient>();
+            var grpcClient = new Mock<IDtmgRPCClient>();
+            var httpBb = new Mock<Dtmcli.IBranchBarrierFactory>();
+
+            var progressDtos = new List<DtmProgressDto>
+            {
+                new DtmProgressDto { Status = Constant.StatusSucceed, BranchId = "01", Op = Constant.OpAction }
+            };
+
+            SetupPrepareWorkflow(httpClient, Constant.StatusSubmitted, "123", progressDtos);
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
+
+            factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
+
+            var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+
+            var wfName = nameof(Commit_Should_Be_Executed);
+            var gid = Guid.NewGuid().ToString("N");
+
+            var rollBackFunc = new Mock<WfPhase2Func>();
+            var commitFunc = new Mock<WfPhase2Func>();
+
+            WfFunc2 handler = async (wf, data) =>
+            {
+                var client = wf.NewBranch().OnRollback(rollBackFunc.Object).OnCommit(commitFunc.Object).NewRequest();
+                
+                // Do Request without error
+                return await Task.FromResult(Encoding.UTF8.GetBytes("123"));
+            };
+            wfgt.Register(wfName, handler);
+            var req = JsonSerializer.Serialize(new { userId = "1", amount = 30 });
+
+            await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true);
+
+            rollBackFunc.Verify(x => x.Invoke(It.IsAny<BranchBarrier>()), Times.Never);
+            commitFunc.Verify(x => x.Invoke(It.IsAny<BranchBarrier>()), Times.Once);
+        }
 
         private void SetupPrepareWorkflow(Mock<IDtmClient> httpClient, string status, string result, List<DtmProgressDto> progressDtos = null)
         {
@@ -266,6 +270,29 @@ namespace Dtmworkflow.Tests
                     Progresses = progressDtos
                 }));
             httpClient.Setup(x => x.PrepareWorkflow(It.IsAny<DtmCommon.TransBase>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(httpResp));
+        }
+
+        private Mock<Workflow> SetupWorkFlow(Mock<IDtmClient> httpClient, Mock<IDtmgRPCClient> grpcClient, Mock<Dtmcli.IBranchBarrierFactory> httpBb)
+        {
+            var wf = new Mock<Workflow>(httpClient.Object, grpcClient.Object, httpBb.Object);
+            var tb = TransBase.NewTransBase("1", "workflow", "not inited", "");
+            tb.Protocol = Constant.ProtocolHTTP;
+            wf.SetupProperty(x => x.TransBase, tb);
+            var wfImp = new WorkflowImp
+            {
+                IDGen = new BranchIDGen(),
+                SucceededOps = new List<WorkflowPhase2Item>(),
+                FailedOps = new List<WorkflowPhase2Item>(),
+                CurrentOp = DtmCommon.Constant.OpAction,
+            };
+            wf.SetupProperty(x => x.WorkflowImp, wfImp);
+            var wfOption = new WfOptions
+            {
+                CompensateErrorBranch = true,
+            };
+            wf.SetupProperty(x => x.Options, wfOption);
+
+            return wf;
         }
 
         public class WfMockHttpMessageHandler : DelegatingHandler

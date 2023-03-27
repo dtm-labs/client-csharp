@@ -1,9 +1,7 @@
 ﻿using Dtmcli;
 using Dtmgrpc;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Dtmworkflow
@@ -12,16 +10,15 @@ namespace Dtmworkflow
     {
         public string Name { get; set; }
 
-        public WfOptions Options { get; set; }
+        public virtual WfOptions Options { get; set; }
 
         public virtual DtmCommon.TransBase TransBase { get; set; }
 
-        public WorkflowImp WorkflowImp { get; set; } = new WorkflowImp();
+        public virtual WorkflowImp WorkflowImp { get; set; } = new WorkflowImp();
 
         private readonly IDtmClient _httpClient;
         private readonly IDtmgRPCClient _grpcClient;
         private readonly Dtmcli.IBranchBarrierFactory _bbFactory;
-        private readonly ILogger _logger;
 
         public Workflow(IDtmClient httpClient, IDtmgRPCClient grpcClient, Dtmcli.IBranchBarrierFactory bbFactory)
         {
@@ -33,11 +30,6 @@ namespace Dtmworkflow
         public System.Net.Http.HttpClient NewRequest()
         {
             return _httpClient.GetHttpClient("WF");
-        }
-
-        internal System.Net.Http.HttpClient NewRequest(HttpMessageHandler handler)
-        {
-            return new HttpClient(handler);
         }
 
         /// <summary>
@@ -54,7 +46,7 @@ namespace Dtmworkflow
             this.WorkflowImp.IDGen.NewSubBranchID();
             this.WorkflowImp.CurrentBranch = this.WorkflowImp.IDGen.CurrentSubBranchID();
             this.WorkflowImp.CurrentActionAdded = false;
-            this.WorkflowImp.CurrentActionAdded = false;
+            this.WorkflowImp.CurrentCommitAdded = false;
             this.WorkflowImp.CurrentRollbackAdded = false;
 
             return this;
@@ -97,7 +89,7 @@ namespace Dtmworkflow
         {
             var branchId = this.WorkflowImp.CurrentBranch;
 
-            if (this.WorkflowImp.CurrentRollbackAdded)
+            if (this.WorkflowImp.CurrentCommitAdded)
             {
                 throw new DtmCommon.DtmException("one branch can only add one commit callback");
             }
@@ -133,12 +125,12 @@ namespace Dtmworkflow
         /// </summary>
         /// <param name="fn"></param>
         /// <returns></returns>
-        public async Task<(byte[], Exception)> Do(Func<DtmCommon.BranchBarrier, (byte[], Exception)> fn)
+        public async Task<(byte[], Exception)> Do(Func<DtmCommon.BranchBarrier, Task<(byte[], Exception)>> fn)
         {
-            var res = await this.RecordedDo(bb =>
+            var res = await this.RecordedDo(async bb =>
             {
-                var (r, e) = fn.Invoke(bb);
-                return Task.FromResult(this.StepResultFromLocal(r, e));
+                var (r, e) = await fn.Invoke(bb);
+                return this.StepResultFromLocal(r, e);
             });
 
             return this.StepResultToLocal(res);

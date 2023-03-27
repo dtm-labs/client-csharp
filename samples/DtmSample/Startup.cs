@@ -1,4 +1,5 @@
 using Dtmcli;
+using Dtmworkflow;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -22,11 +23,14 @@ namespace DtmSample
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDtmcli(dtm =>
+            services.AddDtmWorkflow(dtm => 
             {
                 dtm.DtmUrl = Configuration.GetValue<string>("AppSettings:DtmUrl");
                 dtm.SqlDbType = Configuration.GetValue<string>("AppSettings:SqlDbType");
                 dtm.BarrierSqlTableName = Configuration.GetValue<string>("AppSettings:BarrierSqlTableName");
+                dtm.DtmGrpcUrl = Configuration.GetValue<string>("AppSettings:DtmGrpcUrl");
+                dtm.HttpCallback = "";
+                dtm.GrpcCallback = "";
             });
 
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
