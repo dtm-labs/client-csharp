@@ -33,11 +33,11 @@ namespace Dtmcli.Tests
         [Fact]
         public async void RespAsErrorCompatible_Should_Throw_Ongoing_Exception()
         {
-            HttpResponseMessage resp = new HttpResponseMessage();           
+            HttpResponseMessage resp = new HttpResponseMessage();
             resp.Content = new StringContent("ONGOING");
 
             var res = await DtmImp.Utils.RespAsErrorCompatible(resp);
-            Assert.IsType<DtmCommon.DtmException>(res);
+            Assert.IsType<DtmCommon.DtmOngingException>(res);
             Assert.Equal("ONGOING", res.Message);
         }
 
@@ -51,7 +51,7 @@ namespace Dtmcli.Tests
             resp.Content = new StringContent(msg);
 
             var res = await DtmImp.Utils.RespAsErrorCompatible(resp);
-            Assert.IsType<DtmCommon.DtmException>(res);
+            Assert.IsType<DtmCommon.DtmFailureException>(res);
             Assert.Equal("FAILURE", res.Message);
         }
 

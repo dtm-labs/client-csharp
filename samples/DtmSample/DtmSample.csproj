@@ -17,6 +17,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\..\src\Dtmcli\Dtmcli.csproj" />
 	  <ProjectReference Include="..\..\src\DtmMongoBarrier\DtmMongoBarrier.csproj" />
+	  <ProjectReference Include="..\..\src\Dtmworkflow\Dtmworkflow.csproj" />
 	</ItemGroup>
 
 </Project>

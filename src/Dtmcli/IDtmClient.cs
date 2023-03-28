@@ -16,6 +16,10 @@ namespace Dtmcli
 
         Task<HttpResponseMessage> TransRequestBranch(TransBase tb, HttpMethod method, object body, string branchID, string op, string url, CancellationToken cancellationToken);
 
+        Task<HttpResponseMessage> PrepareWorkflow(TransBase tb, CancellationToken cancellationToken);
+        
+        HttpClient GetHttpClient(string name);
+
 #if NET5_0_OR_GREATER
         TransBase TransBaseFromQuery(Microsoft.AspNetCore.Http.IQueryCollection query);
 #endif
