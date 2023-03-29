@@ -24,6 +24,7 @@ jobs:
           dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmSERedisBarrier/DtmSERedisBarrier.csproj
           dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmMongoBarrier/DtmMongoBarrier.csproj
           dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/DtmDapr/DtmDapr.csproj
+          dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmworkflow/Dtmworkflow.csproj
       - name: Pack with dotnet
         run: |
           ver=alpha`date +%Y%m%d%H%M%S`
@@ -33,8 +34,9 @@ jobs:
           dotnet pack src/DtmSERedisBarrier/DtmSERedisBarrier.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
           dotnet pack src/DtmMongoBarrier/DtmMongoBarrier.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
           dotnet pack src/DtmDapr/DtmDapr.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
+          dotnet pack src/Dtmworkflow/Dtmworkflow.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
       - name: Upload artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: nugetpkgs
           path: /home/runner/work/nugetpkgs
@@ -46,7 +48,7 @@ jobs:
 
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: nugetpkgs
       - name: list nugetpkgs

@@ -47,8 +47,8 @@ jobs:
           mysql -h127.0.0.1 -uroot -p123456 < /home/runner/work/client-csharp/client-csharp/sqls/busi.mysql.sql
       - name: Setup DTM server
         run: |
-          wget https://github.com/dtm-labs/dtm/releases/download/v1.16.5/dtm_1.16.5_linux_amd64.tar.gz
-          tar -xvf dtm_1.16.5_linux_amd64.tar.gz
+          wget https://github.com/dtm-labs/dtm/releases/download/v1.17.1/dtm_1.17.1_linux_amd64.tar.gz
+          tar -xvf dtm_1.17.1_linux_amd64.tar.gz
           pwd
           mkdir /home/runner/work/client-csharp/client-csharp/logs
           nohup ./dtm > /home/runner/work/client-csharp/client-csharp/logs/dtm.log 2>&1 &
@@ -60,10 +60,11 @@ jobs:
           nohup dotnet run > /home/runner/work/client-csharp/client-csharp/logs/app.log 2>&1 &
       - name: Run Integration Tests
         run: |
+          dotnet build tests/Dtmgrpc.IntegrationTests/Dtmgrpc.IntegrationTests.csproj 
           dotnet test tests/Dtmgrpc.IntegrationTests/Dtmgrpc.IntegrationTests.csproj
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dtm-logs
           path: /home/runner/work/client-csharp/client-csharp/logs
