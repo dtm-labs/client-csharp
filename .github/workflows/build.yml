@@ -15,50 +15,41 @@ jobs:
         os: [windows-latest, ubuntu-latest]
 
     steps:
-      - name: Setup .NET SDK 7.0.x
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 7.0.x
-
       - uses: actions/checkout@v3
-      - name: Setup .NET SDK 6.0.x
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 6.0.x
-
-      - name: Setup .NET SDK 3.1.x
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 3.1.x
+          dotnet-version: |
+            7.0.x
+            6.0.x
+            3.1.x
 
       - name: Show dotnet Version
         run: |
           dotnet --list-sdks
-          dotnet --list-runtimes
+          dotnet --list-runtimes          
 
       - name: Build with dotnet
         run: |
-          ls
-          dotnet build src/Dtmcli/Dtmcli.csproj
-          dotnet build src/Dtmgrpc/Dtmgrpc.csproj
-          dotnet build src/DtmMongoBarrier/DtmMongoBarrier.csproj
-          dotnet build src/DtmSERedisBarrier/DtmSERedisBarrier.csproj
-          dotnet build src/DtmDapr/DtmDapr.csproj
+          dotnet build DtmClient.sln
 
-      - name: Run tests on netcoreapp3.1
-        run: |
-          dotnet test --framework=netcoreapp3.1 tests/Dtmcli.Tests/Dtmcli.Tests.csproj
-          dotnet test --framework=netcoreapp3.1 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj
+      # - name: Run tests on netcoreapp3.1
+      #   run: |
+      #     dotnet test --framework=netcoreapp3.1 tests/Dtmcli.Tests/Dtmcli.Tests.csproj
+      #     dotnet test --framework=netcoreapp3.1 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj
+      #     dotnet test --framework=netcoreapp3.1 tests/Dtmworkflow.Tests/Dtmworkflow.Tests.csproj
 
-      - name: Run tests on net6.0
-        run: |
-          dotnet test --framework=net6.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj --collect:"XPlat Code Coverage"
-          dotnet test --framework=net6.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
+      # - name: Run tests on net6.0
+      #   run: |
+      #     dotnet test --framework=net6.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj --collect:"XPlat Code Coverage"
+      #     dotnet test --framework=net6.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
+      #     dotnet test --framework=net6.0 tests/Dtmworkflow.Tests/Dtmworkflow.Tests.csproj --collect:"XPlat Code Coverage"
 
       - name: Run tests on net7.0
         run: |
           dotnet test --framework=net7.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj --collect:"XPlat Code Coverage"
           dotnet test --framework=net7.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
+          dotnet test --framework=net7.0 tests/Dtmworkflow.Tests/Dtmworkflow.Tests.csproj --collect:"XPlat Code Coverage"
 
       - name: Prepare Codecov
         continue-on-error: true
@@ -67,15 +58,16 @@ jobs:
 
           cp ${{ github.workspace }}/tests/Dtmcli.Tests/TestResults/*/coverage.cobertura.xml  ${{ github.workspace }}/coverage/cli.xml
           cp ${{ github.workspace }}/tests/Dtmgrpc.Tests/TestResults/*/coverage.cobertura.xml  ${{ github.workspace }}/coverage/grpc.xml
+          cp ${{ github.workspace }}/tests/Dtmworkflow.Tests/TestResults/*/coverage.cobertura.xml  ${{ github.workspace }}/coverage/wf.xml
 
           ls ${{ github.workspace }}/coverage/
 
       - name: Upload coverage to Codecov
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-          files: ${{ github.workspace }}/coverage/cli.xml,${{ github.workspace }}/coverage/grpc.xml
+          files: ${{ github.workspace }}/coverage/cli.xml,${{ github.workspace }}/coverage/grpc.xml,${{ github.workspace }}/coverage/wf.xml
           name: codecov-dtm-client-csharp
           verbose: true
