@@ -1,6 +1,12 @@
-﻿using DtmSample.Dtos;
+﻿using Dapper;
+using Dtmcli;
+using DtmSample.Dtos;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using MySqlConnector;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DtmSample.Controllers
 {
@@ -10,10 +16,12 @@ namespace DtmSample.Controllers
     public class TransController : ControllerBase
     {
         private readonly ILogger<TransController> _logger;
+        private readonly XaLocalTransaction _xaTrans;
 
-        public TransController(ILogger<TransController> logger)
+        public TransController(ILogger<TransController> logger, XaLocalTransaction xaTrans)
         {
             _logger = logger;
+            _xaTrans = xaTrans;
         }
 
         #region TCC
@@ -119,7 +127,42 @@ namespace DtmSample.Controllers
             _logger.LogInformation("TransInConfirm, QueryString={0}", Request.QueryString);
             _logger.LogInformation("用户: {0},转入 {1} 元---回滚", body.UserId, body.Amount);
             return Ok(TransResponse.BuildSucceedResponse());
-        } 
+        }
+        #endregion
+
+        #region Xa
+        [HttpPost("XaTransOut")]
+        public async Task<IActionResult> XaTransOut(CancellationToken token)
+        {
+            //todo: Connection pooling needs to be turned off for mysql versions below 8.0
+            using var conn = new MySqlConnection("Server=en.dtm.pub; Port=3306; User ID=dtm; Password=passwd123dtm; Database=dtm_busi;Pooling=False");
+            await this._xaTrans.ExcecuteAsync(this.Request.Query, conn, "mysql", async (dbConn, xa) =>
+            {
+                var body = await this.Request.ReadFromJsonAsync<TransRequest>();
+                await dbConn.ExecuteAsync($"UPDATE dtm_busi.user_account SET balance = balance + {body.Amount} where user_id = '{body.UserId}'");
+                _logger.LogInformation("XaTransOut, QueryString={0}", Request.QueryString);
+                _logger.LogInformation("用户: {0},转出 {1} 元", body.UserId, body.Amount);
+            }, token);
+
+            return Ok(TransResponse.BuildSucceedResponse());
+        }
+
+        [HttpPost("XaTransIn")]
+        public async Task<IActionResult> XaTransIn(CancellationToken token)
+        {
+            //todo: Connection pooling needs to be turned off for mysql versions below 8.0
+            using var conn = new MySqlConnection("Server=en.dtm.pub; Port=3306; User ID=dtm; Password=passwd123dtm; Database=dtm_busi;Pooling=False");
+            await this._xaTrans.ExcecuteAsync(this.Request.Query, conn, "mysql", async (dbConn, xa) =>
+            {
+                var body = await this.Request.ReadFromJsonAsync<TransRequest>();
+                await dbConn.ExecuteAsync($"UPDATE dtm_busi.user_account SET balance = balance + {body.Amount} where user_id = '{body.UserId}'");
+                _logger.LogInformation("XaTransIn, QueryString={0}", Request.QueryString);
+                _logger.LogInformation("用户: {0},转入 {1} 元", body.UserId, body.Amount);
+            }, token);
+
+            return Ok(TransResponse.BuildSucceedResponse());
+        }
         #endregion
     }
 }
+
