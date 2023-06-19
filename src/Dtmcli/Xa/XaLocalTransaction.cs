@@ -45,11 +45,14 @@ namespace Dtmcli
             }
         }
 
-        private async Task HandleLocalTrans(Xa xa, DbConnection conn, IDbSpecial dbSpecial, Func<DbConnection, Xa,Task> outsideAction, CancellationToken token)
+        private async Task HandleLocalTrans(Xa xa, DbConnection conn, IDbSpecial dbSpecial, Func<DbConnection, Xa, Task> outsideAction, CancellationToken token)
         {
             var xaBranchID = $"{xa.Gid}-{xa.BranchIDGen.BranchID}";
             await conn.ExecuteAsync(dbSpecial.GetXaSQL("start", xaBranchID));
-            await this._utils.InsertBarrier(conn, xa.TransType, xa.Gid, xa.BranchIDGen.BranchID, DtmCommon.Constant.OpAction, xa.BranchIDGen.BranchID, DtmCommon.Constant.OpAction);
+            var (_, ex) = await this._utils.InsertBarrier(conn, xa.TransType, xa.Gid, xa.BranchIDGen.BranchID, DtmCommon.Constant.OpAction, xa.BranchIDGen.BranchID, DtmCommon.Constant.OpAction);
+            if (ex != null || conn.State != ConnectionState.Open)
+                throw new DtmOngingException(ex?.Message);
+
             await outsideAction(conn, xa);
             await _dtmClient.TransRegisterBranch(xa, this.BuildRegisterItems(xa), Constant.Request.OPERATION_REGISTERBRANCH, token);
             await conn.ExecuteAsync(dbSpecial.GetXaSQL("end", xaBranchID));
@@ -63,7 +66,9 @@ namespace Dtmcli
             await conn.ExecuteAsync(dbSpecia.GetXaSQL(xaCommon, xaBranchID));
             if (DtmCommon.Constant.OpRollback == xa.Op)
             {
-                await this._utils.InsertBarrier(conn, "xa", xa.Gid, xa.BranchIDGen.BranchID, DtmCommon.Constant.OpAction, xa.BranchIDGen.BranchID, xa.Op);
+                var (_, ex) = await this._utils.InsertBarrier(conn, "xa", xa.Gid, xa.BranchIDGen.BranchID, DtmCommon.Constant.OpAction, xa.BranchIDGen.BranchID, xa.Op);
+                if (ex != null || conn.State != ConnectionState.Open)
+                    throw new DtmOngingException(ex?.Message);
             }
         }
 
