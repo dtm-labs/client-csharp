@@ -92,6 +92,8 @@ namespace Dtmcli
             services.TryAddSingleton<IDtmTransFactory, DtmTransFactory>();
             services.TryAddSingleton<IDtmClient, DtmClient>();
             services.TryAddSingleton<TccGlobalTransaction>();
+            services.TryAddSingleton<XaGlobalTransaction>();
+            services.TryAddSingleton<XaLocalTransaction>();
 
             DtmCommon.ServiceCollectionExtensions.AddDtmCommon(services);
 

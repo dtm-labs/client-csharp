@@ -13,7 +13,6 @@ namespace Dtmcli
     public class DtmClient : IDtmClient
     {
         private static readonly char Slash = '/';
-        private static readonly string QueryStringFormat = "dtm={0}&gid={1}&trans_type={2}&branch_id={3}&op={4}";
         private static readonly string QuestionMark = "?";
         private static readonly string And = "&";
 
@@ -91,13 +90,10 @@ namespace Dtmcli
 
         public async Task<HttpResponseMessage> TransRequestBranch(TransBase tb, HttpMethod method, object body, string branchID, string op, string url, CancellationToken cancellationToken)
         {
-            var queryParams = string.Format(
-                QueryStringFormat,
-                string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URLBASE_PREFIX),
-                tb.Gid,
-                tb.TransType,
-                branchID,
-                op);
+            var uriPath = string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URLBASE_PREFIX);
+            var queryParams = tb.TransType == "xa" ?
+                 $"dtm={uriPath}&gid={tb.Gid}&trans_type={tb.TransType}&branch_id={branchID}&op={op}&phase2_url={url}" :
+                 $"dtm={uriPath}&gid={tb.Gid}&trans_type={tb.TransType}&branch_id={branchID}&op={op}";
 
             var client = _httpClientFactory.CreateClient(Constant.BranchClientHttpName);
           
