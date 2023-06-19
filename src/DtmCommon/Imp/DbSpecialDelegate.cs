@@ -12,8 +12,8 @@ namespace DtmCommon
 
         public DbSpecialDelegate(IEnumerable<IDbSpecial> specials, IOptions<DtmOptions> optionsAccs)
         {
-            this._specialDic = specials.ToDictionary((i) => i.Name);
-            this._specialDic.TryGetValue(optionsAccs.Value.SqlDbType,out _special);
+            this._specialDic = GetSpecialDictionary(specials);
+            this._specialDic.TryGetValue(optionsAccs.Value.SqlDbType, out _special);
             if (_specialDic.TryGetValue(optionsAccs.Value.SqlDbType, out _special) == false)
                 throw new DtmException($"unknown db type '{optionsAccs.Value.SqlDbType}'");
         }
@@ -27,6 +27,18 @@ namespace DtmCommon
                 throw new DtmException($"unknown db type '{sqlDbType}'");
 
             return special;
+        }
+
+        Dictionary<string, IDbSpecial> GetSpecialDictionary(IEnumerable<IDbSpecial> specials)
+        {
+            Dictionary<string, IDbSpecial> specialDic = new();
+            foreach (var special in specials)
+            {
+                if (specialDic.ContainsKey(special.Name) == false)
+                    specialDic.Add(special.Name, special);
+            }
+
+            return specialDic;
         }
     }
 
