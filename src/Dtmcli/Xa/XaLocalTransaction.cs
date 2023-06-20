@@ -61,9 +61,19 @@ namespace Dtmcli
 
         private async Task XaHandlePhase2(Xa xa, DbConnection conn, IDbSpecial dbSpecia)
         {
-            var xaBranchID = $"{xa.Gid}-{xa.BranchIDGen.BranchID}";
-            var xaCommon = xa.Op == DtmCommon.Constant.OpCommit ? "commit" : "rollback";
-            await conn.ExecuteAsync(dbSpecia.GetXaSQL(xaCommon, xaBranchID));
+            try
+            {
+                var xaBranchID = $"{xa.Gid}-{xa.BranchIDGen.BranchID}";
+                var xaCommon = xa.Op == DtmCommon.Constant.OpCommit ? "commit" : "rollback";
+                await conn.ExecuteAsync(dbSpecia.GetXaSQL(xaCommon, xaBranchID));
+            }
+            catch (Exception ex) when (ex.Message.Contains("XAER_NOTA")) { }
+            catch (Exception ex) when (ex.Message.Contains("does not exist")) { }
+            catch
+            {
+                throw;
+            }
+
             if (DtmCommon.Constant.OpRollback == xa.Op)
             {
                 var (_, ex) = await this._utils.InsertBarrier(conn, "xa", xa.Gid, xa.BranchIDGen.BranchID, DtmCommon.Constant.OpAction, xa.BranchIDGen.BranchID, xa.Op);
