@@ -13,8 +13,7 @@ namespace DtmCommon
         public DbSpecialDelegate(IEnumerable<IDbSpecial> specials, IOptions<DtmOptions> optionsAccs)
         {
             this._specialDic = GetSpecialDictionary(specials);
-            this._specialDic.TryGetValue(optionsAccs.Value.SqlDbType, out _special);
-            if (_specialDic.TryGetValue(optionsAccs.Value.SqlDbType, out _special) == false)
+            if (this._specialDic.TryGetValue(optionsAccs.Value.SqlDbType, out _special) == false)
                 throw new DtmException($"unknown db type '{optionsAccs.Value.SqlDbType}'");
         }
 
