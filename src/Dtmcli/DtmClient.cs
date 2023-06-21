@@ -91,7 +91,7 @@ namespace Dtmcli
         public async Task<HttpResponseMessage> TransRequestBranch(TransBase tb, HttpMethod method, object body, string branchID, string op, string url, CancellationToken cancellationToken)
         {
             var uriPath = string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URLBASE_PREFIX);
-            var queryParams = tb.TransType == "xa" ?
+            var queryParams = tb.TransType == DtmCommon.Constant.TYPE_XA ?
                  $"dtm={uriPath}&gid={tb.Gid}&trans_type={tb.TransType}&branch_id={branchID}&op={op}&phase2_url={url}" :
                  $"dtm={uriPath}&gid={tb.Gid}&trans_type={tb.TransType}&branch_id={branchID}&op={op}";
 
