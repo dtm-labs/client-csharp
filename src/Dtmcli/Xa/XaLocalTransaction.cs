@@ -32,7 +32,7 @@ namespace Dtmcli
             var dbSpecial = this._dbSpecia.GetDbSpecialByName(dbType);
             if (ConnectionState.Open != conn.State)
             {
-                conn.Open();
+               await conn.OpenAsync();
             }
 
             if (DtmCommon.Constant.OpCommit == xa.Op || DtmCommon.Constant.OpRollback == xa.Op)
