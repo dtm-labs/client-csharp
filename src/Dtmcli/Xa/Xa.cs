@@ -1,10 +1,12 @@
 ﻿using Dtmcli.DtmImp;
 using DtmCommon;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using static Dtmcli.Constant;
 
 namespace Dtmcli
 {
@@ -45,5 +47,64 @@ namespace Dtmcli
 
         [JsonIgnore]
         public string Phase2Url { get; set; }
+
+
+#if NET5_0_OR_GREATER
+        public static Xa FromQuery(IDtmClient dtmClient, Microsoft.AspNetCore.Http.IQueryCollection quersy)
+        {
+            if (quersy.TryGetValue(Request.GID, out var gid) == false || string.IsNullOrEmpty(gid))
+                throw new ArgumentNullException(Request.GID);
+
+            if (quersy.TryGetValue(Request.TRANS_TYPE, out var transType) == false || string.IsNullOrEmpty(transType))
+                throw new ArgumentNullException(Request.TRANS_TYPE);
+
+            if (quersy.TryGetValue(Request.OP, out var op) == false || string.IsNullOrEmpty(op))
+                throw new ArgumentNullException(Request.OP);
+
+            if (quersy.TryGetValue(Request.BRANCH_ID, out var branchID) == false || string.IsNullOrEmpty(branchID))
+                throw new ArgumentNullException(Request.BRANCH_ID);
+
+            quersy.TryGetValue(Request.DTM, out var dtm);
+            quersy.TryGetValue(Request.PHASE2_URL, out var phase2Url);
+
+            return new(dtmClient)
+            {
+                Gid = gid,
+                Dtm = dtm,
+                Op = op,
+                TransType = transType,
+                Phase2Url = phase2Url,
+                BranchIDGen = new BranchIDGen(branchID),
+            };
+        }
+#else
+        public static Xa FromQuery(IDtmClient dtmClient, IDictionary<string, string> quersy)
+        {
+            if (!quersy.TryGetValue(Request.GID, out var gid) == false || string.IsNullOrEmpty(gid))
+                throw new ArgumentNullException(Request.GID);
+
+            if (quersy.TryGetValue(Request.TRANS_TYPE, out var transType) == false || string.IsNullOrEmpty(transType))
+                throw new ArgumentNullException(Request.TRANS_TYPE);
+
+            if (quersy.TryGetValue(Request.OP, out var op) == false || string.IsNullOrEmpty(op))
+                throw new ArgumentNullException(Request.OP);
+
+            if (quersy.TryGetValue(Request.BRANCH_ID, out var branchID) == false || string.IsNullOrEmpty(branchID))
+                throw new ArgumentNullException(Request.BRANCH_ID);
+
+            quersy.TryGetValue(Request.DTM, out var dtm);
+            quersy.TryGetValue(Request.PHASE2_URL, out var phase2Url);
+
+            return new(dtmClient)
+            {
+                Gid = gid,
+                Dtm = dtm,
+                Op = op,
+                TransType = transType,
+                Phase2Url = phase2Url,
+                BranchIDGen = new BranchIDGen(branchID),
+            };
+        }
+#endif
     }
 }

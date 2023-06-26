@@ -26,13 +26,26 @@ namespace Dtmcli
             this._logger = factory.CreateLogger<XaGlobalTransaction>();
         }
 
-        public async Task Excecute(IDictionary<string, string> values, DbConnection conn, string dbType, Func<DbConnection, Xa, Task> xaFunc, CancellationToken token = default)
+#if NET5_0_OR_GREATER
+        public async Task ExcecuteAsync(Microsoft.AspNetCore.Http.IQueryCollection quersy, DbConnection conn, string dbType, Func<DbConnection, Xa, Task> xaFunc, CancellationToken token = default)
         {
-            var xa = this.XaFromQuery(values);
+            Xa xa = Xa.FromQuery(this._dtmClient, quersy);
+            await this.InternalExcecuteAsync(xa, conn, dbType, xaFunc, token);
+        }
+#else
+        public async Task ExcecuteAsync(IDictionary<string, string> values, DbConnection conn, string dbType, Func<DbConnection, Xa, Task> xaFunc, CancellationToken token = default)
+        {
+            var xa = Xa.FromQuery(this._dtmClient, values);
+            await this.InternalExcecuteAsync(xa, conn, dbType, xaFunc, token);
+        }
+#endif
+
+        private async Task InternalExcecuteAsync(Xa xa, DbConnection conn, string dbType, Func<DbConnection, Xa, Task> xaFunc, CancellationToken token = default)
+        {
             var dbSpecial = this._dbSpecia.GetDbSpecialByName(dbType);
             if (ConnectionState.Open != conn.State)
             {
-               await conn.OpenAsync();
+                await conn.OpenAsync();
             }
 
             if (DtmCommon.Constant.OpCommit == xa.Op || DtmCommon.Constant.OpRollback == xa.Op)
@@ -80,18 +93,6 @@ namespace Dtmcli
                 if (ex != null || conn.State != ConnectionState.Open)
                     throw new DtmOngingException(ex?.Message);
             }
-        }
-
-        private Xa XaFromQuery(IDictionary<string, string> values)
-        {
-            Xa xa = new(this._dtmClient);
-            xa.Gid = values[Request.GID];
-            xa.TransType = values[Request.TRANS_TYPE];
-            xa.Dtm = values.ContainsKey(Request.DTM) ? values[Request.DTM] : string.Empty;
-            xa.BranchIDGen = new BranchIDGen(values[Request.BRANCH_ID]);
-            xa.Op = values[Request.OP];
-            xa.Phase2Url = values.ContainsKey("phase2_url") ? values["phase2_url"] : string.Empty;
-            return xa;
         }
 
         private Dictionary<string, string> BuildRegisterItems(Xa xa)

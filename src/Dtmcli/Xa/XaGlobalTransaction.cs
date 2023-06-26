@@ -17,7 +17,7 @@ namespace Dtmcli
             this._logger = factory.CreateLogger<XaGlobalTransaction>();
         }
 
-        public async Task<string> Excecute(Func<Xa, Task> xa_cb, CancellationToken cancellationToken = default)
+        public async Task<string> ExcecuteAsync(Func<Xa, Task> xa_cb, CancellationToken cancellationToken = default)
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
             await this.Excecute(gid, xa_cb, cancellationToken);
@@ -26,10 +26,10 @@ namespace Dtmcli
 
         public async Task Excecute(string gid, Func<Xa, Task> xa_cb, CancellationToken cancellationToken = default)
         {
-            await Excecute(gid, null, xa_cb, cancellationToken);
+            await ExcecuteAsync(gid, null, xa_cb, cancellationToken);
         }
 
-        public async Task Excecute(string gid, Action<Xa> custom, Func<Xa, Task> xa_cb, CancellationToken cancellationToken = default)
+        public async Task ExcecuteAsync(string gid, Action<Xa> custom, Func<Xa, Task> xa_cb, CancellationToken cancellationToken = default)
         {
             Xa xa = new(this._dtmClient, gid);
             if (null != custom)
@@ -37,7 +37,6 @@ namespace Dtmcli
 
             try
             {
-                //todo : tb unused
                 await _dtmClient.TransCallDtm(null, xa, Constant.Request.OPERATION_PREPARE, cancellationToken);
                 await xa_cb(xa);
                 await _dtmClient.TransCallDtm(null, xa, Constant.Request.OPERATION_SUBMIT, cancellationToken);

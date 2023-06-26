@@ -43,6 +43,8 @@
 
             internal const string OPERATION_REGISTERBRANCH = "registerBranch";
 
+            internal const string PHASE2_URL = "phase2_url";
+
             /// <summary>
             /// branch type for message, SAGA, XA
             /// </summary>
