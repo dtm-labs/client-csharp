@@ -50,22 +50,22 @@ namespace Dtmcli
 
 
 #if NET5_0_OR_GREATER
-        public static Xa FromQuery(IDtmClient dtmClient, Microsoft.AspNetCore.Http.IQueryCollection quersy)
+        public static Xa FromQuery(IDtmClient dtmClient, Microsoft.AspNetCore.Http.IQueryCollection query)
         {
-            if (quersy.TryGetValue(Request.GID, out var gid) == false || string.IsNullOrEmpty(gid))
+            if (query.TryGetValue(Request.GID, out var gid) == false || string.IsNullOrEmpty(gid))
                 throw new ArgumentNullException(Request.GID);
 
-            if (quersy.TryGetValue(Request.TRANS_TYPE, out var transType) == false || string.IsNullOrEmpty(transType))
+            if (query.TryGetValue(Request.TRANS_TYPE, out var transType) == false || string.IsNullOrEmpty(transType))
                 throw new ArgumentNullException(Request.TRANS_TYPE);
 
-            if (quersy.TryGetValue(Request.OP, out var op) == false || string.IsNullOrEmpty(op))
+            if (query.TryGetValue(Request.OP, out var op) == false || string.IsNullOrEmpty(op))
                 throw new ArgumentNullException(Request.OP);
 
-            if (quersy.TryGetValue(Request.BRANCH_ID, out var branchID) == false || string.IsNullOrEmpty(branchID))
+            if (query.TryGetValue(Request.BRANCH_ID, out var branchID) == false || string.IsNullOrEmpty(branchID))
                 throw new ArgumentNullException(Request.BRANCH_ID);
 
-            quersy.TryGetValue(Request.DTM, out var dtm);
-            quersy.TryGetValue(Request.PHASE2_URL, out var phase2Url);
+            query.TryGetValue(Request.DTM, out var dtm);
+            query.TryGetValue(Request.PHASE2_URL, out var phase2Url);
 
             return new(dtmClient)
             {
@@ -78,22 +78,22 @@ namespace Dtmcli
             };
         }
 #else
-        public static Xa FromQuery(IDtmClient dtmClient, IDictionary<string, string> quersy)
+        public static Xa FromQuery(IDtmClient dtmClient, IDictionary<string, string> query)
         {
-            if (!quersy.TryGetValue(Request.GID, out var gid) == false || string.IsNullOrEmpty(gid))
+            if (!query.TryGetValue(Request.GID, out var gid) == false || string.IsNullOrEmpty(gid))
                 throw new ArgumentNullException(Request.GID);
 
-            if (quersy.TryGetValue(Request.TRANS_TYPE, out var transType) == false || string.IsNullOrEmpty(transType))
+            if (query.TryGetValue(Request.TRANS_TYPE, out var transType) == false || string.IsNullOrEmpty(transType))
                 throw new ArgumentNullException(Request.TRANS_TYPE);
 
-            if (quersy.TryGetValue(Request.OP, out var op) == false || string.IsNullOrEmpty(op))
+            if (query.TryGetValue(Request.OP, out var op) == false || string.IsNullOrEmpty(op))
                 throw new ArgumentNullException(Request.OP);
 
-            if (quersy.TryGetValue(Request.BRANCH_ID, out var branchID) == false || string.IsNullOrEmpty(branchID))
+            if (query.TryGetValue(Request.BRANCH_ID, out var branchID) == false || string.IsNullOrEmpty(branchID))
                 throw new ArgumentNullException(Request.BRANCH_ID);
 
-            quersy.TryGetValue(Request.DTM, out var dtm);
-            quersy.TryGetValue(Request.PHASE2_URL, out var phase2Url);
+            query.TryGetValue(Request.DTM, out var dtm);
+            query.TryGetValue(Request.PHASE2_URL, out var phase2Url);
 
             return new(dtmClient)
             {
