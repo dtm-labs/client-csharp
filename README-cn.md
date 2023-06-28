@@ -267,7 +267,7 @@ public class MyBusi
 
     public async Task DoBusAsync()
     {
-        await _globalTransaction.Excecute(async (Xa xa) =>
+        await _globalTransaction.ExcecuteAsync(async (Xa xa) =>
         {
             await xa.CallBranch(new TransRequest("1", -30), _settings.BusiUrl + "/XaTransOut", cancellationToken);
             await xa.CallBranch(new TransRequest("2", 30), _settings.BusiUrl + "/XaTransIn", cancellationToken);
