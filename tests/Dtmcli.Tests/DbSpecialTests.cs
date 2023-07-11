@@ -53,5 +53,22 @@ namespace Dtmcli.Tests
             var ex = Assert.Throws<DtmException>(() => provider.GetRequiredService<DbSpecialDelegate>());
             Assert.Equal("unknown db type 'other'", ex.Message);
         }
+
+        [Fact]
+        public void Test_Specific_DbSpecial()
+        {
+            var provider = TestHelper.AddDtmCli();
+            var dbSpecialDelegate = provider.GetRequiredService<DbSpecialDelegate>();
+
+            var mysqlSpecial = dbSpecialDelegate.GetDbSpecialByName("mysql");
+            var postgresSpecial = dbSpecialDelegate.GetDbSpecialByName("postgres");
+            var sqlserverSpecial = dbSpecialDelegate.GetDbSpecialByName("sqlserver");
+            var dtmException = Assert.Throws<DtmException>(() => dbSpecialDelegate.GetDbSpecialByName("other"));
+
+            Assert.IsType<MysqlDBSpecial>(mysqlSpecial);
+            Assert.IsType<PostgresDBSpecial>(postgresSpecial);
+            Assert.IsType<SqlServerDBSpecial>(sqlserverSpecial);
+            Assert.Equal("unknown db type 'other'", dtmException.Message);
+        }
     }
 }

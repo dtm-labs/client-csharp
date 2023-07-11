@@ -7,6 +7,7 @@ namespace DtmCommon
         public static readonly string TYPE_TCC = "tcc";
         public static readonly string TYPE_SAGA = "saga";
         public static readonly string TYPE_MSG = "msg";
+        public static readonly string TYPE_XA = "xa";
 
         public static readonly string ResultFailure = "FAILURE";
         public static readonly string ResultSuccess = "SUCCESS";

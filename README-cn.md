@@ -253,6 +253,28 @@ public class MyBusi
 }
 ```
 
+### XA pattern
+
+```cs
+public class MyBusi
+{ 
+    private readonly Dtmcli.XaGlobalTransaction _globalTransaction;
+
+    public MyBusi(Dtmcli.XaGlobalTransaction globalTransaction)
+    {
+        this._globalTransaction = globalTransaction;
+    }
+
+    public async Task DoBusAsync()
+    {
+        await _globalTransaction.ExcecuteAsync(async (Xa xa) =>
+        {
+            await xa.CallBranch(new TransRequest("1", -30), _settings.BusiUrl + "/XaTransOut", cancellationToken);
+            await xa.CallBranch(new TransRequest("2", 30), _settings.BusiUrl + "/XaTransIn", cancellationToken);
+        }, cancellationToken);
+    }
+}
+```
 
 ## 可运行的使用示例
 
