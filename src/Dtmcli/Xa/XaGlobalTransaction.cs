@@ -20,11 +20,11 @@ namespace Dtmcli
         public async Task<string> ExcecuteAsync(Func<Xa, Task> xa_cb, CancellationToken cancellationToken = default)
         {
             var gid = await _dtmClient.GenGid(cancellationToken);
-            await this.Excecute(gid, xa_cb, cancellationToken);
+            await this.ExcecuteAsync(gid, xa_cb, cancellationToken);
             return gid;
         }
 
-        public async Task Excecute(string gid, Func<Xa, Task> xa_cb, CancellationToken cancellationToken = default)
+        public async Task ExcecuteAsync(string gid, Func<Xa, Task> xa_cb, CancellationToken cancellationToken = default)
         {
             await ExcecuteAsync(gid, null, xa_cb, cancellationToken);
         }
