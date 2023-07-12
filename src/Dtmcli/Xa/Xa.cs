@@ -14,7 +14,7 @@ namespace Dtmcli
     {
         private readonly IDtmClient _dtmClient;
 
-        internal Xa(IDtmClient dtmHttpClient, string gid)
+        public Xa(IDtmClient dtmHttpClient, string gid)
         {
             this._dtmClient = dtmHttpClient;
             this.Gid = gid;
@@ -22,7 +22,7 @@ namespace Dtmcli
             this.BranchIDGen = new BranchIDGen();
         }
 
-        internal Xa(IDtmClient dtmHttpClient)
+        public Xa(IDtmClient dtmHttpClient)
         {
             this._dtmClient = dtmHttpClient;
         }
