@@ -46,6 +46,7 @@ namespace Dtmcli
                 xa.RollbackReason = ex.Message.Substring(0, ex.Message.Length > 1023 ? 1023 : ex.Message.Length);
                 _logger.LogError(ex, "prepare or submitting global transaction error");
                 await _dtmClient.TransCallDtm(null, xa, Constant.Request.OPERATION_ABORT, cancellationToken);
+                throw;
             }
         }
     }
