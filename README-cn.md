@@ -87,7 +87,7 @@ services.AddDtmcli(x =>
     x.BranchTimeout = 10000;
     
     // 子事务屏障的数据库类型, mysql, postgres, sqlserver
-    x.DBType = "mysql";
+    x.SqlDbType = "mysql";
 
     // 子事务屏障的数据表名
     x.BarrierTableName = "dtm_barrier.barrier";
@@ -108,7 +108,7 @@ services.AddDtmcli(Configuration, "dtm");
     "DtmUrl": "http://localhost:36789",
     "DtmTimeout": 10000,
     "BranchTimeout": 10000,
-    "DBType": "mysql",
+    "SqlDbType": "mysql",
     "BarrierTableName": "dtm_barrier.barrier",
   }
 }

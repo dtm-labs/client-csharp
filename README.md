@@ -94,7 +94,7 @@ services.AddDtmcli(x =>
     x.BranchTimeout = 10000;
     
     // barrier database type, mysql, postgres, sqlserver
-    x.DBType = "mysql";
+    x.SqlDbType = "mysql";
 
     // barrier table name
     x.BarrierTableName = "dtm_barrier.barrier";
@@ -115,7 +115,7 @@ And the configuration file
     "DtmUrl": "http://localhost:36789",
     "DtmTimeout": 10000,
     "BranchTimeout": 10000,
-    "DBType": "mysql",
+    "SqlDbType": "mysql",
     "BarrierTableName": "dtm_barrier.barrier",
   }
 }
