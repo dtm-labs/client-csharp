@@ -265,12 +265,32 @@ public class MyBusi
         this._globalTransaction = globalTransaction;
     }
 
-    public async Task DoBusAsync()
+    public async Task DoBusAsync(CancellationToken cancellationToken)
     {
+        var svc = "http://localhost:5005";
+
         await _globalTransaction.ExcecuteAsync(async (Xa xa) =>
         {
-            await xa.CallBranch(new TransRequest("1", -30), _settings.BusiUrl + "/XaTransOut", cancellationToken);
-            await xa.CallBranch(new TransRequest("2", 30), _settings.BusiUrl + "/XaTransIn", cancellationToken);
+            // NOTE: XA 模式的限制
+            // 当前模式仅支持mysql、postgresDB，请修改相应的客户端配置，如SqlDbType等。
+            // 如使用Mysql并且版本低于8.0需关闭连接池使用
+
+            // 调用 XA 子事务
+            await xa.CallBranch(
+                // 参数
+                new TransRequest("1", -30), 
+
+                // 操作的 URL
+                svc + "/XaTransOut",
+
+                // 取消令牌
+                cancellationToken);
+            
+            await xa.CallBranch(
+                new TransRequest("2", 30), 
+                svc + "/XaTransIn", 
+                cancellationToken);
+
         }, cancellationToken);
     }
 }
