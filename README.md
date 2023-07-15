@@ -94,7 +94,7 @@ services.AddDtmcli(x =>
     x.BranchTimeout = 10000;
     
     // barrier database type, mysql, postgres, sqlserver
-    x.DBType = "mysql";
+    x.SqlDbType = "mysql";
 
     // barrier table name
     x.BarrierTableName = "dtm_barrier.barrier";
@@ -115,7 +115,7 @@ And the configuration file
     "DtmUrl": "http://localhost:36789",
     "DtmTimeout": 10000,
     "BranchTimeout": 10000,
-    "DBType": "mysql",
+    "SqlDbType": "mysql",
     "BarrierTableName": "dtm_barrier.barrier",
   }
 }
@@ -273,12 +273,32 @@ public class MyBusi
         this._globalTransaction = globalTransaction;
     }
 
-    public async Task DoBusAsync()
+    public async Task DoBusAsync(CancellationToken cancellationToken)
     {
+        var svc = "http://localhost:5005";
+
         await _globalTransaction.ExcecuteAsync(async (Xa xa) =>
         {
-            await xa.CallBranch(new TransRequest("1", -30), _settings.BusiUrl + "/XaTransOut", cancellationToken);
-            await xa.CallBranch(new TransRequest("2", 30), _settings.BusiUrl + "/XaTransIn", cancellationToken);
+            // NOTE: Limitations of using Xa mode
+            // The current mode only supports mysql, postgresDB, please modify the corresponding client configuration, such as SqlDbType, etc.
+            // Connection pooling needs to be turned off for mysql versions below 8.0
+
+            // Create XA sub-transaction
+            await xa.CallBranch(
+                // Arguments of action
+                new TransRequest("1", -30), 
+
+                // URL of action 
+                svc + "/XaTransOut",
+
+                // Cancel token
+                cancellationToken);
+            
+            await xa.CallBranch(
+                new TransRequest("2", 30), 
+                svc + "/XaTransIn", 
+                cancellationToken);
+
         }, cancellationToken);
     }
 }
