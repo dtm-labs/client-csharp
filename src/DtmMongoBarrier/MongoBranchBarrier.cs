@@ -18,17 +18,10 @@ namespace DtmMongoBarrier
 
                 return true;
             };
-            await MongoCallCore(bb, mc, innerCall);
+            await MongoCall(bb, mc, innerCall);
         }
 
         public static async Task MongoCall(this BranchBarrier bb, IMongoClient mc, Func<IClientSessionHandle, Task<bool>> busiCall)
-        {
-            Func<IClientSessionHandle, Task<bool>> innerCall = async session =>
-                await busiCall.Invoke(session);
-
-            await MongoCallCore(bb, mc, innerCall);
-        }
-        private static async Task MongoCallCore(this BranchBarrier bb, IMongoClient mc, Func<IClientSessionHandle, Task<bool>> innerCall)
         {
             bb.BarrierID = bb.BarrierID + 1;
             var bid = bb.BarrierID.ToString().PadLeft(2, '0');
