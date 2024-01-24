@@ -12,55 +12,23 @@ namespace DtmMongoBarrier
     {
         public static async Task MongoCall(this BranchBarrier bb, IMongoClient mc, Func<IClientSessionHandle, Task> busiCall)
         {
-            bb.BarrierID = bb.BarrierID + 1;
-            var bid = bb.BarrierID.ToString().PadLeft(2, '0');
-
-            var session = await mc.StartSessionAsync();
-
-            session.StartTransaction();
-
-            try
+            Func<IClientSessionHandle, Task<bool>> innerCall = async session =>
             {
-                var originOp = Constant.Barrier.OpDict.TryGetValue(bb.Op, out var ot) ? ot : string.Empty;
-
-                var (originAffected, oEx) = await MongoInsertBarrier(bb, session, bb.BranchID, originOp, bid, bb.Op);
-                var (currentAffected, rEx) = await MongoInsertBarrier(bb, session, bb.BranchID, bb.Op, bid, bb.Op);
-
-                bb?.Logger?.LogDebug("mongo originAffected: {originAffected} currentAffected: {currentAffected}", originAffected, currentAffected);
-
-                if (bb.IsMsgRejected(rEx?.Message, bb.Op, currentAffected))
-                    throw new DtmDuplicatedException();
-
-                if (oEx != null || rEx != null)
-                {
-                    throw oEx ?? rEx;
-                }
-
-                var isNullCompensation = bb.IsNullCompensation(bb.Op, originAffected);
-                var isDuplicateOrPend = bb.IsDuplicateOrPend(currentAffected);
-
-                if (isNullCompensation || isDuplicateOrPend)
-                {
-                    bb?.Logger?.LogInformation("mongo Will not exec busiCall, isNullCompensation={isNullCompensation}, isDuplicateOrPend={isDuplicateOrPend}", isNullCompensation, isDuplicateOrPend);
-                    await session.CommitTransactionAsync();
-                    return;
-                }
-
                 await busiCall.Invoke(session);
 
-                await session.CommitTransactionAsync();
-            }
-            catch (Exception ex)
-            {
-                bb?.Logger?.LogError(ex, "Mongo Call error, gid={gid}, trans_type={trans_type}", bb.Gid, bb.TransType);
-
-                await session.AbortTransactionAsync();
-
-                throw;
-            }
+                return true;
+            };
+            await MongoCallCore(bb, mc, innerCall);
         }
 
         public static async Task MongoCall(this BranchBarrier bb, IMongoClient mc, Func<IClientSessionHandle, Task<bool>> busiCall)
+        {
+            Func<IClientSessionHandle, Task<bool>> innerCall = async session =>
+                await busiCall.Invoke(session);
+
+            await MongoCallCore(bb, mc, innerCall);
+        }
+        private static async Task MongoCallCore(this BranchBarrier bb, IMongoClient mc, Func<IClientSessionHandle, Task<bool>> innerCall)
         {
             bb.BarrierID = bb.BarrierID + 1;
             var bid = bb.BarrierID.ToString().PadLeft(2, '0');
@@ -95,8 +63,8 @@ namespace DtmMongoBarrier
                     await session.CommitTransactionAsync();
                     return;
                 }
+                var autoCommit = await innerCall.Invoke(session);
 
-                var autoCommit = await busiCall.Invoke(session);
                 if (autoCommit)
                 {
                     await session.CommitTransactionAsync();
@@ -111,7 +79,6 @@ namespace DtmMongoBarrier
                 throw;
             }
         }
-
         public static async Task<string> MongoQueryPrepared(this BranchBarrier bb, IMongoClient mc)
         {
             var session = await mc.StartSessionAsync();
