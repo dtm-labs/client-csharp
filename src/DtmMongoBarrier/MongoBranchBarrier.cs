@@ -56,7 +56,7 @@ namespace DtmMongoBarrier
                     await session.CommitTransactionAsync();
                     return;
                 }
-                var autoCommit = await innerCall.Invoke(session);
+                var autoCommit = await busiCall.Invoke(session);
 
                 if (autoCommit)
                 {
