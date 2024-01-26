@@ -12,6 +12,17 @@ namespace DtmMongoBarrier
     {
         public static async Task MongoCall(this BranchBarrier bb, IMongoClient mc, Func<IClientSessionHandle, Task> busiCall)
         {
+            Func<IClientSessionHandle, Task<bool>> innerCall = async session =>
+            {
+                await busiCall.Invoke(session);
+
+                return true;
+            };
+            await MongoCall(bb, mc, innerCall);
+        }
+
+        public static async Task MongoCall(this BranchBarrier bb, IMongoClient mc, Func<IClientSessionHandle, Task<bool>> busiCall)
+        {
             bb.BarrierID = bb.BarrierID + 1;
             var bid = bb.BarrierID.ToString().PadLeft(2, '0');
 
@@ -41,14 +52,16 @@ namespace DtmMongoBarrier
 
                 if (isNullCompensation || isDuplicateOrPend)
                 {
-                    bb?.Logger?.LogInformation("mongo Will not exec busiCall, isNullCompensation={isNullCompensation}, isDuplicateOrPend={isDuplicateOrPend}", isNullCompensation, isDuplicateOrPend);                    
+                    bb?.Logger?.LogInformation("mongo Will not exec busiCall, isNullCompensation={isNullCompensation}, isDuplicateOrPend={isDuplicateOrPend}", isNullCompensation, isDuplicateOrPend);
                     await session.CommitTransactionAsync();
                     return;
                 }
+                var autoCommit = await busiCall.Invoke(session);
 
-                await busiCall.Invoke(session);
-
-                await session.CommitTransactionAsync();
+                if (autoCommit)
+                {
+                    await session.CommitTransactionAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -59,20 +72,19 @@ namespace DtmMongoBarrier
                 throw;
             }
         }
-
         public static async Task<string> MongoQueryPrepared(this BranchBarrier bb, IMongoClient mc)
         {
             var session = await mc.StartSessionAsync();
 
             try
             {
-                 await MongoInsertBarrier(
-                     bb,
-                     session,
-                     Constant.Barrier.MSG_BRANCHID,
-                     Constant.TYPE_MSG,
-                     Constant.Barrier.MSG_BARRIER_ID,
-                     Constant.Barrier.MSG_BARRIER_REASON);
+                await MongoInsertBarrier(
+                    bb,
+                    session,
+                    Constant.Barrier.MSG_BRANCHID,
+                    Constant.TYPE_MSG,
+                    Constant.Barrier.MSG_BARRIER_ID,
+                    Constant.Barrier.MSG_BARRIER_REASON);
             }
             catch (Exception ex)
             {
@@ -81,7 +93,7 @@ namespace DtmMongoBarrier
             }
 
             var reason = string.Empty;
-           
+
             try
             {
                 var barrier = session.Client.GetDatabase(bb.DtmOptions.BarrierMongoDbName)
@@ -155,7 +167,7 @@ namespace DtmMongoBarrier
         }
 
         private static FilterDefinition<DtmBarrierDocument> BuildFilters(string gid, string branchId, string op, string barrierId)
-        { 
+        {
             return new FilterDefinitionBuilder<DtmBarrierDocument>().And(
                     Builders<DtmBarrierDocument>.Filter.Eq(x => x.GId, gid),
                     Builders<DtmBarrierDocument>.Filter.Eq(x => x.BranchId, branchId),
