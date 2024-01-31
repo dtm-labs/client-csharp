@@ -145,7 +145,7 @@ namespace DtmMongoBarrier
             {
                 try
                 {
-                    await barrier.InsertOneAsync(new DtmBarrierDocument
+                    await barrier.InsertOneAsync(session,new DtmBarrierDocument
                     {
                         TransType = bb.TransType,
                         GId = bb.Gid,
