@@ -74,6 +74,16 @@ namespace Dtmgrpc
             this._transBase.TimeoutToFail = timeoutToFail;
             return this;
         }
+        /// <summary>
+        /// Set request timeout
+        /// </summary>
+        /// <param name="requestTimeout">request timeout</param>
+        /// <returns></returns>
+        public SagaGrpc SetRequestTimeout(long requestTimeout)
+        {
+            this._transBase.RequestTimeout = requestTimeout;
+            return this;
+        }
 
         /// <summary>
         /// Set retry interval for trans, unit is second

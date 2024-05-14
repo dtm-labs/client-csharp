@@ -19,6 +19,8 @@ namespace DtmCommon
 
         [JsonPropertyName("timeout_to_fail")]
         public long TimeoutToFail { get; set; }
+        [JsonPropertyName("request_timeout")]
+        public long RequestTimeout { get; set; }
 
         [JsonPropertyName("retry_interval")]
         public long RetryInterval { get; set; }
