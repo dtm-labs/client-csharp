@@ -149,6 +149,7 @@ namespace Dtmgrpc.DtmGImp
                 TimeoutToFail = transBase.TimeoutToFail,
                 RetryInterval = transBase.RetryInterval,
                 RetryLimit = transBase.RetryLimit,
+                RequestTimeout = transBase.RequestTimeout,
             };
 
             if (transBase.BranchHeaders != null)
