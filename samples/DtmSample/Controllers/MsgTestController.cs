@@ -187,6 +187,22 @@ namespace DtmSample.Controllers
 
         /// <summary>
         /// MSG QueryPrepared(mssql)
+        /// 
+        /// tips: Starting with server v1.10, dtm server changed to use the http status code, but was compatible with the body returned by older versions
+        /// The http status code 200 with unrecognized body It will be as normal!
+        /// eg: v1.18.0 [dtm/client/dtmcli/utils.go · dtm-labs/dtm](https://github.com/dtm-labs/dtm/blob/v1.18.0/client/dtmcli/utils.go)
+        /// func HTTPResp2DtmError(resp *resty.Response) error {
+        /// code := resp.StatusCode()
+        ///     str := resp.String()
+        /// if code == http.StatusTooEarly || strings.Contains(str, ResultOngoing) {
+        ///     return ErrorMessage2Error(str, ErrOngoing)
+        /// } else if code == http.StatusConflict || strings.Contains(str, ResultFailure) {
+        ///     return ErrorMessage2Error(str, ErrFailure)
+        /// } else if code != http.StatusOK {
+        ///     return errors.New(str)
+        /// }
+        ///     return nil
+        /// }
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
