@@ -119,15 +119,20 @@ namespace DtmCommon
                 throw;
             }
         }
+
+        public async Task Call(DbConnection db, Func<Task> busiCall, TransactionScopeOption transactionScope = TransactionScopeOption.Required, IsolationLevel isolationLevel = IsolationLevel.Serializable)
+        {
+            await Call(db, busiCall, transactionScope, isolationLevel, TransactionScopeAsyncFlowOption.Suppress);
+        }
         
-         public async Task Call(DbConnection db, Func<Task> busiCall, TransactionScopeOption transactionScope = TransactionScopeOption.Required, IsolationLevel isolationLevel = IsolationLevel.Serializable)
+        public async Task Call(DbConnection db, Func<Task> busiCall, TransactionScopeOption transactionScope, IsolationLevel isolationLevel, TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption)
         {
             this.BarrierID = this.BarrierID + 1;
             var bid = this.BarrierID.ToString().PadLeft(2, '0');
 
             // check the connection state
             if (db.State != System.Data.ConnectionState.Open) await db.OpenAsync();
-            using (var scope = new TransactionScope(transactionScope, new TransactionOptions { IsolationLevel = isolationLevel }))
+            using (var scope = new TransactionScope(transactionScope, new TransactionOptions { IsolationLevel = isolationLevel }, transactionScopeAsyncFlowOption))
             {
                 try
                 {
