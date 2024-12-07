@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
+            8.0.x
             7.0.x
             6.0.x
             3.1.x
@@ -45,11 +46,11 @@ jobs:
       #     dotnet test --framework=net6.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
       #     dotnet test --framework=net6.0 tests/Dtmworkflow.Tests/Dtmworkflow.Tests.csproj --collect:"XPlat Code Coverage"
 
-      - name: Run tests on net7.0
+      - name: Run tests on net8.0
         run: |
-          dotnet test --framework=net7.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj --collect:"XPlat Code Coverage"
-          dotnet test --framework=net7.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
-          dotnet test --framework=net7.0 tests/Dtmworkflow.Tests/Dtmworkflow.Tests.csproj --collect:"XPlat Code Coverage"
+          dotnet test --framework=net8.0 tests/Dtmcli.Tests/Dtmcli.Tests.csproj --collect:"XPlat Code Coverage"
+          dotnet test --framework=net8.0 tests/Dtmgrpc.Tests/Dtmgrpc.Tests.csproj --collect:"XPlat Code Coverage"
+          dotnet test --framework=net8.0 tests/Dtmworkflow.Tests/Dtmworkflow.Tests.csproj --collect:"XPlat Code Coverage"
 
       - name: Prepare Codecov
         continue-on-error: true
