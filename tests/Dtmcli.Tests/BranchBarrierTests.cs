@@ -178,5 +178,31 @@ namespace Dtmcli.Tests
             Assert.Equal(DtmCommon.Constant.ResultDuplicated, ex.Message);
             mockBusiCall.Verify(x => x.Invoke(It.IsAny<System.Data.Common.DbTransaction>()), Times.Never);
         }
+
+        [Fact]
+        public async void QueryPrepared_InsertException()
+        {
+            var branchBarrier = _factory.CreateBranchBarrier("msg", "gid", "bid", "msg");
+
+            var connQ = GetDbConnection();
+            connQ.Mocks.When(cmd => cmd.CommandText.Contains("insert", StringComparison.Ordinal))
+                .ThrowsException(new Exception("DB account no insert permission"));
+            connQ.Mocks.When(cmd => cmd.CommandText.Contains("select", StringComparison.OrdinalIgnoreCase))
+                .ReturnsScalar<string>(cmd => null);
+
+            var qRes = await branchBarrier.QueryPrepared(connQ);
+            Assert.NotEqual("Object reference not set to an instance of an object.", qRes);
+            Assert.Equal("DB account no insert permission", qRes);
+        }
+
+        [Fact]
+        public async void QueryPrepared_DbIsNull()
+        {
+            var branchBarrier = _factory.CreateBranchBarrier("msg", "gid", "bid", "msg");
+
+            var qRes = await branchBarrier.QueryPrepared(db: null);
+            Assert.NotEqual("Object reference not set to an instance of an object.", qRes);
+            Assert.Equal("db is null", qRes);
+        }
     }
 }

@@ -184,21 +184,21 @@ namespace DtmCommon
 
         public async Task<string> QueryPrepared(DbConnection db)
         {
-            try
+            if (db == null) return "db is null";
+
+            (int _, Exception insertException) = await DbUtils.InsertBarrier(
+                db,
+                this.TransType,
+                this.Gid,
+                Constant.Barrier.MSG_BRANCHID,
+                Constant.TYPE_MSG,
+                Constant.Barrier.MSG_BARRIER_ID,
+                Constant.Barrier.MSG_BARRIER_REASON);
+
+            if (insertException != null)
             {
-                var tmp = await DbUtils.InsertBarrier(
-                    db,
-                    this.TransType,
-                    this.Gid,
-                    Constant.Barrier.MSG_BRANCHID,
-                    Constant.TYPE_MSG,
-                    Constant.Barrier.MSG_BARRIER_ID,
-                    Constant.Barrier.MSG_BARRIER_REASON);
-            }
-            catch (Exception ex)
-            {
-                Logger?.LogWarning(ex, "Insert Barrier error, gid={gid}", this.Gid);
-                return ex.Message;
+                Logger?.LogWarning(insertException, "Insert Barrier error, gid={gid}", this.Gid);
+                return insertException.Message;
             }
 
             var reason = string.Empty;
