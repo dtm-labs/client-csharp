@@ -1,4 +1,5 @@
-﻿using Dtmcli;
+﻿using System.Net;
+using Dtmcli;
 using DtmMongoBarrier;
 using DtmSample.Dtos;
 using Microsoft.AspNetCore.Mvc;
@@ -184,6 +185,23 @@ namespace DtmSample.Controllers
             }
         }
 
+        /// <summary>
+        /// MSG QueryPrepared(mongo)
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpGet("msg-mongoqueryprepared")]
+        public async Task<IActionResult> MsgMongoQueryPrepared(CancellationToken cancellationToken)
+        {
+            var bb = _factory.CreateBranchBarrier(Request.Query);
+            _logger.LogInformation("bb {0}", bb);
+
+            MongoDB.Driver.IMongoClient cli = new MongoDB.Driver.MongoClient(_settings.MongoBarrierConn);
+            var res = await bb.MongoQueryPrepared(cli);
+            return Ok(new { dtm_result = res });
+        }
+        
+        
 
         /// <summary>
         /// MSG QueryPrepared(mssql)
@@ -211,28 +229,55 @@ namespace DtmSample.Controllers
         {
             var bb = _factory.CreateBranchBarrier(Request.Query);
             _logger.LogInformation("bb {0}", bb);
-            using (SqlConnection conn = GetMssqlConn())
+            
+            string ret;
+            await using (SqlConnection conn = GetMssqlConn())
             {
-                var res = await bb.QueryPrepared(conn);
-
-                return Ok(new { dtm_result = res });
+                ret = await bb.QueryPrepared(conn);
             }
+            
+            (int status, object res) = Result2HttpJson(ret);
+            return StatusCode(status, res);
         }
-
-        /// <summary>
-        /// MSG QueryPrepared(mongo)
-        /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        [HttpGet("msg-mongoqueryprepared")]
-        public async Task<IActionResult> MsgMongoQueryPrepared(CancellationToken cancellationToken)
+        
+        // ref go implement： dtmutil.WrapHandler -> dtmcli.Result2HttpJSON
+        // Result2HttpJSON return the http code and json result
+        // if result is error, the return proper code, else return StatusOK
+        // func Result2HttpJSON(result interface{}) (code int, res interface{}) {
+        //     err, _ := result.(error)
+        //     if err == nil {
+        //         code = http.StatusOK
+        //         res = result
+        //     } else {
+        //         res = map[string]string{
+        //             "error": err.Error(),
+        //         }
+        //         if errors.Is(err, ErrFailure) {
+        //             code = http.StatusConflict
+        //         } else if errors.Is(err, ErrOngoing) {
+        //             code = http.StatusTooEarly
+        //         } else if err != nil {
+        //             code = http.StatusInternalServerError
+        //         }
+        //     }
+        //     return
+        // }
+        private static (int httpStatusCode, object bodyObj) Result2HttpJson(string ret)
         {
-            var bb = _factory.CreateBranchBarrier(Request.Query);
-            _logger.LogInformation("bb {0}", bb);
+            if (ret == string.Empty)
+                return ((int)HttpStatusCode.OK, ret);
 
-            MongoDB.Driver.IMongoClient cli = new MongoDB.Driver.MongoClient(_settings.MongoBarrierConn);
-            var res = await bb.MongoQueryPrepared(cli);
-            return Ok(new { dtm_result = res });
+            var res = new { error = ret };
+            switch (ret)
+            {
+                // Code 409 => ErrFailure; Code 425 => ErrOngoing; Code 500 => InternalServerError
+                case "FAILURE":
+                    return ((int)HttpStatusCode.Conflict, res);
+                case "ONGOING":
+                    return (425 /*HttpStatusCode.TooEarly*/, res);
+                default:
+                    return ((int)HttpStatusCode.InternalServerError, res);
+            }
         }
 
         /// <summary>
