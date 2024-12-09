@@ -1,9 +1,11 @@
 IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = 'dtm_barrier')
 BEGIN
    CREATE DATABASE dtm_barrier
-   USE dtm_barrier
 END
 
+GO
+
+USE dtm_barrier
 GO
 
 IF EXISTS (SELECT * FROM sysobjects WHERE id = object_id(N'[dbo].[barrier]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)  
