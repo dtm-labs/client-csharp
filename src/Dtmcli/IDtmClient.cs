@@ -23,5 +23,7 @@ namespace Dtmcli
 #if NET5_0_OR_GREATER
         TransBase TransBaseFromQuery(Microsoft.AspNetCore.Http.IQueryCollection query);
 #endif
+        
+        Task<TransGlobal> Query(string gid, CancellationToken cancellationToken);
     }
 }
