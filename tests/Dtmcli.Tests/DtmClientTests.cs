@@ -198,6 +198,64 @@ namespace Dtmcli.Tests
                 await client.Query(gid: "my-gid", new CancellationToken());
             });
         }
+        
+        
+        
+        [Fact]
+        public async Task QueryStatus_Should_Succeed()
+        {
+            var factory = new Mock<IHttpClientFactory>();
+            var options = Microsoft.Extensions.Options.Options.Create(new DtmCommon.DtmOptions { DtmUrl = "http://localhost:8080" });
+            /*
+               {
+                   "branches": [],
+                   "transaction": {
+                       "id": 7,
+                       "gid": "mV9RGqZCV2mdn9YA6T2TPC",
+                       "trans_type": "msg",
+                       "status": "prepared",
+                       "protocol": "http"
+                   }
+               }                  
+             */
+            var mockHttpMessageHandler = new ClientMockHttpMessageHandler(HttpStatusCode.OK, "{\n    \"branches\": [],\n    \"transaction\": {\n        \"id\": 7,\n        \"gid\": \"mV9RGqZCV2mdn9YA6T2TPC\",\n        \"trans_type\": \"msg\",\n        \"status\": \"prepared\",\n        \"protocol\": \"http\"\n    }\n}  ");
+            factory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(new HttpClient(mockHttpMessageHandler));
+            var client = new DtmClient(factory.Object, options);
+            string status = await client.QueryStatus(gid: "my-gid", new CancellationToken());
+            Assert.Equal("prepared", status);
+        }
+        
+        [Fact]
+        public async Task QueryStatus_Not_Exist_Gid()
+        {
+            var factory = new Mock<IHttpClientFactory>();
+            var options = Microsoft.Extensions.Options.Options.Create(new DtmCommon.DtmOptions { DtmUrl = "http://localhost:8080" });
+            /*
+               {
+                 "branches": [],
+                 "transaction": null
+               }               
+             */
+            var mockHttpMessageHandler = new ClientMockHttpMessageHandler(HttpStatusCode.OK, "{\n  \"branches\": [],\n  \"transaction\": null\n}\n");
+            factory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(new HttpClient(mockHttpMessageHandler));
+            var client = new DtmClient(factory.Object, options);
+            string status = await client.QueryStatus(gid: "my-gid", new CancellationToken());
+            Assert.Empty(status);
+        }
+        
+        [Fact]
+        public async Task QueryStatus_Should_Throw_Exception()
+        {
+            var factory = new Mock<IHttpClientFactory>();
+            var options = Microsoft.Extensions.Options.Options.Create(new DtmCommon.DtmOptions { DtmUrl = "http://localhost:8080" });
+            var mockHttpMessageHandler = new ClientMockHttpMessageHandler(HttpStatusCode.InternalServerError, "");
+            factory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(new HttpClient(mockHttpMessageHandler));
+            var client = new DtmClient(factory.Object, options);
+            await Assert.ThrowsAsync<DtmCommon.DtmException>(async () =>
+            {
+                await client.QueryStatus(gid: "my-gid", new CancellationToken());
+            });
+        }
     }
 
     internal class ClientMockHttpMessageHandler : DelegatingHandler

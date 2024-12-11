@@ -25,5 +25,7 @@ namespace Dtmcli
 #endif
         
         Task<TransGlobal> Query(string gid, CancellationToken cancellationToken);
+        
+        Task<string> QueryStatus(string gid, CancellationToken cancellationToken);
     }
 }

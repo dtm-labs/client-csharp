@@ -4,6 +4,19 @@ using System.Text.Json.Serialization;
 
 namespace Dtmcli;
 
+/// <summary>
+/// query status only
+/// </summary>
+internal class TransGlobalForStatus
+{
+    [JsonPropertyName("transaction")] public DtmTransactionForStatus Transaction { get; set; }
+    
+    public class  DtmTransactionForStatus
+    {
+        [JsonPropertyName("status")] public string Status { get; set; }
+    }
+}
+
 // convert from json(a prepared TCC global trans sample) to c# code
 public class TransGlobal
 {

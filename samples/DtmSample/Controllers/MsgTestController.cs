@@ -276,9 +276,9 @@ namespace DtmSample.Controllers
 
             return Ok(TransResponse.BuildSucceedResponse());
         }
-        
+
         /// <summary>
-        /// MSG with exist topic
+        /// query
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -287,6 +287,18 @@ namespace DtmSample.Controllers
         {
             TransGlobal trans = await _dtmClient.Query(gid, cancellationToken);
             return Ok(trans);
+        }
+
+        /// <summary>
+        /// query status
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpGet("query-status")]
+        public async Task<IActionResult> QueryStatus(string gid, CancellationToken cancellationToken)
+        {
+            string status = await _dtmClient.QueryStatus(gid, cancellationToken);
+            return Ok(status);
         }
     }
 }
