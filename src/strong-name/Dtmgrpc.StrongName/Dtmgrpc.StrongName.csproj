@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0</TargetFrameworks>
+        <Description>a c# client for distributed transaction framework dtm. 分布式事务管理器dtm的c#客户端</Description>
+        <PackageTags>dtm,csharp,distributed transaction,tcc,saga,msg</PackageTags>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\..\build\DtmClient.snk</AssemblyOriginatorKeyFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Protobuf Include="..\..\Dtmgrpc\dtmgpb\dtmgimp.proto" GrpcServices="Client"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)"/>
+        <PackageReference Include="Grpc.Net.ClientFactory" Version="$(GrpcNetClientFactoryPackageVersion)"/>
+        <PackageReference Include="Grpc.Tools" Version="$(GrpcToolsPackageVersion)">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\DtmCommon.StrongName\DtmCommon.StrongName.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\..\Dtmgrpc\**\*.cs" Exclude="..\..\Dtmgrpc\obj\**\*.cs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\..\build\DtmClient.snk">
+            <Link>DtmClient.snk</Link>
+        </None>
+    </ItemGroup>
+
+</Project>
