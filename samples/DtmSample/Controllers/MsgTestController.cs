@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using Dtmcli;
 using DtmMongoBarrier;
 using DtmSample.Dtos;
@@ -239,8 +238,6 @@ namespace DtmSample.Controllers
             return Ok(new { dtm_result = res });
         }
         
-        
-
         /// <summary>
         /// MSG QueryPrepared(mssql)
         /// 
@@ -267,55 +264,23 @@ namespace DtmSample.Controllers
         {
             var bb = _factory.CreateBranchBarrier(Request.Query);
             _logger.LogInformation("bb {0}", bb);
-            
+
             string ret;
             await using (SqlConnection conn = GetMssqlConn())
             {
                 ret = await bb.QueryPrepared(conn);
             }
-            
-            (int status, object res) = Result2HttpJson(ret);
-            return StatusCode(status, res);
-        }
-        
-        // ref go implement： dtmutil.WrapHandler -> dtmcli.Result2HttpJSON
-        // Result2HttpJSON return the http code and json result
-        // if result is error, the return proper code, else return StatusOK
-        // func Result2HttpJSON(result interface{}) (code int, res interface{}) {
-        //     err, _ := result.(error)
-        //     if err == nil {
-        //         code = http.StatusOK
-        //         res = result
-        //     } else {
-        //         res = map[string]string{
-        //             "error": err.Error(),
-        //         }
-        //         if errors.Is(err, ErrFailure) {
-        //             code = http.StatusConflict
-        //         } else if errors.Is(err, ErrOngoing) {
-        //             code = http.StatusTooEarly
-        //         } else if err != nil {
-        //             code = http.StatusInternalServerError
-        //         }
-        //     }
-        //     return
-        // }
-        private static (int httpStatusCode, object bodyObj) Result2HttpJson(string ret)
-        {
-            if (ret == string.Empty)
-                return ((int)HttpStatusCode.OK, ret);
 
-            var res = new { error = ret };
-            switch (ret)
-            {
-                // Code 409 => ErrFailure; Code 425 => ErrOngoing; Code 500 => InternalServerError
-                case "FAILURE":
-                    return ((int)HttpStatusCode.Conflict, res);
-                case "ONGOING":
-                    return (425 /*HttpStatusCode.TooEarly*/, res);
-                default:
-                    return ((int)HttpStatusCode.InternalServerError, res);
-            }
+            ret = Dtmcli.DtmImp.Utils.OrString(ret, DtmCommon.Constant.ResultSuccess);
+            Exception error = Dtmcli.DtmImp.Utils.String2DtmError(ret);
+
+            return WrapHandler(error);
+        }
+
+        private IActionResult WrapHandler(Exception error)
+        {
+            (int status, object res) = Dtmcli.DtmImp.Utils.Result2HttpJson(error);
+            return StatusCode(status, res);
         }
 
         /// <summary>

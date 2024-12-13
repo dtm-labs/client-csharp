@@ -39,5 +39,61 @@ namespace Dtmcli.DtmImp
                 throw new DtmException(string.Format(CheckStatusMsgFormat, status.ToString(), dtmResult));
             }
         }
+
+        /// <summary>
+        /// OrString return the first not null or not empty string
+        /// </summary>
+        /// <param name="ss"></param>
+        /// <returns></returns>
+        public static string OrString(params string[] ss)
+        {
+            foreach (var s in ss)
+            {
+                if (!string.IsNullOrEmpty(s))
+                    return s;
+            }
+
+            return "";
+        }
+
+        /// <summary>
+        /// translate string to dtm error
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static Exception String2DtmError(string str)
+        {
+            if (str == DtmCommon.Constant.ResultSuccess || str == string.Empty)
+                return null;
+            if (str == string.Empty)
+                return null;
+            if (str == DtmCommon.Constant.ResultFailure)
+                return new DtmCommon.DtmFailureException();
+            if (str == DtmCommon.Constant.ResultOngoing)
+                return new DtmCommon.DtmOngingException();
+            return new Exception(str);
+        }
+
+        /// <summary>
+        /// translate object to http response
+        /// 409 => ErrFailure; Code 425 => ErrOngoing; Code 500 => InternalServerError
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public static (int httpStatusCode, object res) Result2HttpJson(object result)
+        {
+            if (result is not Exception err)
+            {
+                return ((int)(HttpStatusCode.OK), result);
+            }
+
+            var res = new { error = err.Message };
+            if (err is DtmFailureException)
+                return ((int)HttpStatusCode.Conflict, res);
+            if (err is DtmOngingException)
+                return (425 /*HttpStatusCode.TooEarly*/, res);
+
+            return ((int)HttpStatusCode.InternalServerError, res);
+        }
     }
 }

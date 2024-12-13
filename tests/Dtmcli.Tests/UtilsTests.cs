@@ -1,6 +1,10 @@
-﻿using Xunit;
+﻿using System;
+using Xunit;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json.Serialization;
+using DtmCommon;
+using Newtonsoft.Json;
 
 namespace Dtmcli.Tests
 {
@@ -61,6 +65,45 @@ namespace Dtmcli.Tests
         public void CheckStatus_Should_Throw_Failure_Exception(HttpStatusCode code, string msg)
         {
             Assert.Throws<DtmCommon.DtmException>(() => DtmImp.Utils.CheckStatus(code, msg));
+        }
+
+        [Fact]
+        public void OrString()
+        {
+            Assert.Equal("", DtmImp.Utils.OrString());
+            Assert.Equal("A", DtmImp.Utils.OrString("", "A"));
+            Assert.Equal("A", DtmImp.Utils.OrString("", "A", "B"));
+            Assert.Equal("A", DtmImp.Utils.OrString("A", "B"));
+        }
+
+        [Fact]
+        public void String2DtmError()
+        {
+            Assert.IsType<Exception>(DtmImp.Utils.String2DtmError(null));
+            Assert.Null(DtmImp.Utils.String2DtmError(string.Empty));
+            Assert.Null(DtmImp.Utils.String2DtmError("SUCCESS"));
+            Assert.IsType<DtmFailureException>(DtmImp.Utils.String2DtmError("FAILURE"));
+            Assert.IsType<DtmOngingException>(DtmImp.Utils.String2DtmError("ONGOING"));
+            Assert.IsType<Exception>(DtmImp.Utils.String2DtmError("Object ..."));
+        }
+        
+        [Fact]
+        public void Result2HttpJson()
+        {
+            Assert.Equal(200, DtmImp.Utils.Result2HttpJson(null).httpStatusCode);
+            Assert.Equal(409, DtmImp.Utils.Result2HttpJson(new DtmFailureException()).httpStatusCode);
+            Assert.Equal(425, DtmImp.Utils.Result2HttpJson(new DtmOngingException()).httpStatusCode);
+            Assert.Equal(500, DtmImp.Utils.Result2HttpJson(new DtmDuplicatedException()).httpStatusCode);
+            
+            Assert.Equal(500, DtmImp.Utils.Result2HttpJson(new Exception("message context A")).httpStatusCode);
+            Assert.Contains("message context A", JsonConvert.SerializeObject(DtmImp.Utils.Result2HttpJson(new Exception("message context A")).res));
+            
+            Assert.Equal(200, DtmImp.Utils.Result2HttpJson("normal text").httpStatusCode);
+            Assert.Equal("normal text", DtmImp.Utils.Result2HttpJson("normal text").res);
+
+            var obj = new { A = "hello", B = "world" };
+            Assert.Equal(200, DtmImp.Utils.Result2HttpJson(obj).httpStatusCode);
+            Assert.Equal(obj, DtmImp.Utils.Result2HttpJson(obj).res);
         }
     }
 }
