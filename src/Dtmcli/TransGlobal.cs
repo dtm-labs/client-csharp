@@ -17,7 +17,7 @@ internal class TransGlobalForStatus
     }
 }
 
-// convert from json(a prepared TCC global trans sample) to c# code
+// convert from json to c# code, json sample: saga succeed http (dtm-labs/dtm/qs/main.go) 
 public class TransGlobal
 {
     [JsonPropertyName("branches")] public List<DtmBranch> Branches { get; set; }
@@ -42,9 +42,11 @@ public class TransGlobal
 
         [JsonPropertyName("status")] public string Status { get; set; }
 
-        [JsonPropertyName("query_prepared")] public string QueryPrepared { get; set; }
+        // [JsonPropertyName("query_prepared")] public string QueryPrepared { get; set; }
 
         [JsonPropertyName("protocol")] public string Protocol { get; set; }
+        
+        [JsonPropertyName("finish_time")] public DateTimeOffset FinishTime { get; set; }
 
         [JsonPropertyName("options")] public string Options { get; set; }
 
@@ -53,7 +55,7 @@ public class TransGlobal
 
         [JsonPropertyName("next_cron_time")] public DateTimeOffset NextCronTime { get; set; }
 
-        [JsonPropertyName("wait_result")] public bool WaitResult { get; set; }
+        // [JsonPropertyName("wait_result")] public bool WaitResult { get; set; }
 
         [JsonPropertyName("concurrent")] public bool Concurrent { get; set; }
     }
@@ -82,5 +84,6 @@ public class TransGlobal
     public class TransactionStep
     {
         [JsonPropertyName("action")] public string Action { get; set; }
+        [JsonPropertyName("Compensate")] public string Compensate { get; set; }
     }
 }
