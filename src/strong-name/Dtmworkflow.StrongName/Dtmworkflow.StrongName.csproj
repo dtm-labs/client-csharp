@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Description>a c# client for distributed transaction framework dtm. 分布式事务管理器dtm的c#客户端</Description>
+        <PackageTags>dtm,csharp,distributed transaction,tcc,saga,msg</PackageTags>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\..\build\DtmClient.snk</AssemblyOriginatorKeyFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Dtmcli.StrongName\Dtmcli.StrongName.csproj"/>
+        <ProjectReference Include="..\Dtmgrpc.StrongName\Dtmgrpc.StrongName.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\..\Dtmworkflow\**\*.cs" Exclude="..\..\Dtmworkflow\obj\**\*.cs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\..\build\DtmClient.snk">
+            <Link>DtmClient.snk</Link>
+        </None>
+    </ItemGroup>
+
+</Project>
