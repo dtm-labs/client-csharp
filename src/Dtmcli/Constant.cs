@@ -56,6 +56,11 @@
             internal const string BRANCH_COMPENSATE = "compensate";
 
             internal const string URL_NewGid = "/api/dtmsvr/newGid";
+            
+            /// <summary>
+            /// query single
+            /// </summary>
+            internal const string URL_Query = "/api/dtmsvr/query";
         }       
     }
 }

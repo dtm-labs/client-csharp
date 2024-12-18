@@ -1,4 +1,5 @@
-﻿using DtmCommon;
+﻿using System;
+using DtmCommon;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -46,7 +47,7 @@ namespace Dtmcli
         {
             return _httpClientFactory.CreateClient(name);
         }
-
+        
         public async Task<HttpResponseMessage> PrepareWorkflow(TransBase tb, CancellationToken cancellationToken)
         {
             var url = string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URLBASE_PREFIX, "prepareWorkflow");
@@ -132,6 +133,46 @@ namespace Dtmcli
             return tb;
         }
 #endif
+
+        /// <summary>
+        /// Query single global transaction
+        /// </summary>
+        /// <param name="gid">global id</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<TransGlobal> Query(string gid, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(gid)) throw new ArgumentNullException(nameof(gid));
+
+            var url = string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URL_Query, $"?gid={gid}");
+            var client = _httpClientFactory.CreateClient(Constant.DtmClientHttpName);
+            var response = await client.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            var dtmContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            DtmImp.Utils.CheckStatus(response.StatusCode, dtmContent);
+            return JsonSerializer.Deserialize<TransGlobal>(dtmContent, _jsonOptions);
+        }
+
+        /// <summary>
+        /// Query single global transaction status
+        /// </summary>
+        /// <param name="gid"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<string> QueryStatus(string gid, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(gid)) throw new ArgumentNullException(nameof(gid));
+
+            var url = string.Concat(_dtmOptions.DtmUrl.TrimEnd(Slash), Constant.Request.URL_Query, $"?gid={gid}");
+            var client = _httpClientFactory.CreateClient(Constant.DtmClientHttpName);
+            var response = await client.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            var dtmContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            DtmImp.Utils.CheckStatus(response.StatusCode, dtmContent);
+            var graph = JsonSerializer.Deserialize<TransGlobalForStatus>(dtmContent, _jsonOptions);
+            return graph.Transaction == null
+                ? string.Empty
+                : graph.Transaction.Status;
+        }
 
         public class DtmGid
         {
