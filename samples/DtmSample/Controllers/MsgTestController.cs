@@ -1,4 +1,5 @@
-﻿using Dtmcli;
+﻿using System;
+using Dtmcli;
 using DtmMongoBarrier;
 using DtmSample.Dtos;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +37,9 @@ namespace DtmSample.Controllers
         private MySqlConnection GetMysqlConn() => new(_settings.SqlBarrierConn);
 
         private SqlConnection GetMssqlConn() => new(_settings.SqlBarrierConn);
+        
+        private SqlConnection GetBadMssqlConn() => new(_settings.SqlBarrierErrorConn);
+
 
         private MySqlConnection GetErrConn() => new("");
 
@@ -115,6 +119,40 @@ namespace DtmSample.Controllers
             return Ok(TransResponse.BuildSucceedResponse());
         }
 
+
+        /// <summary>
+        /// MSG DoAndSubmitDB (mssql). db connection error, DTM server Status should be prepared. 
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpPost("msg-db-mssql-db-connection-error")]
+        public async Task<IActionResult> MsgDbMsSql_DbConnectionError(CancellationToken cancellationToken)
+        {
+            var gid = await _dtmClient.GenGid(cancellationToken);
+
+            var msg = _transFactory.NewMsg(gid)
+                .Add(_settings.BusiUrl + "/TransOut", new TransRequest("1", -30))
+                .Add(_settings.BusiUrl + "/TransIn", new TransRequest("2", 30));
+
+            try
+            {
+                using (SqlConnection conn = GetBadMssqlConn())
+                {
+                    await msg.DoAndSubmitDB(_settings.BusiUrl + "/msg-mssqlqueryprepared", conn, async tx => { await Task.CompletedTask; });
+                }
+            }
+            catch (SqlException)
+            {
+                Thread.Sleep(5 * 1000);
+                _logger.LogInformation("{}/admin/global-transactions/detail/{}, status should be prepared", _settings.DtmUrl, gid);
+                throw;
+            }
+
+            _logger.LogInformation("result gid is {0}", gid);
+            return Ok(TransResponse.BuildSucceedResponse());
+        }
+
+
         /// <summary>
         /// MSG DoAndSubmit (mongo)
         /// </summary>
@@ -184,7 +222,22 @@ namespace DtmSample.Controllers
             }
         }
 
+        /// <summary>
+        /// MSG QueryPrepared(mongo)
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpGet("msg-mongoqueryprepared")]
+        public async Task<IActionResult> MsgMongoQueryPrepared(CancellationToken cancellationToken)
+        {
+            var bb = _factory.CreateBranchBarrier(Request.Query);
+            _logger.LogInformation("bb {0}", bb);
 
+            MongoDB.Driver.IMongoClient cli = new MongoDB.Driver.MongoClient(_settings.MongoBarrierConn);
+            var res = await bb.MongoQueryPrepared(cli);
+            return Ok(new { dtm_result = res });
+        }
+        
         /// <summary>
         /// MSG QueryPrepared(mssql)
         /// 
@@ -211,28 +264,23 @@ namespace DtmSample.Controllers
         {
             var bb = _factory.CreateBranchBarrier(Request.Query);
             _logger.LogInformation("bb {0}", bb);
-            using (SqlConnection conn = GetMssqlConn())
-            {
-                var res = await bb.QueryPrepared(conn);
 
-                return Ok(new { dtm_result = res });
+            string ret;
+            await using (SqlConnection conn = GetMssqlConn())
+            {
+                ret = await bb.QueryPrepared(conn);
             }
+
+            ret = Dtmcli.DtmImp.Utils.OrString(ret, DtmCommon.Constant.ResultSuccess);
+            Exception error = Dtmcli.DtmImp.Utils.String2DtmError(ret);
+
+            return WrapHandler(error);
         }
 
-        /// <summary>
-        /// MSG QueryPrepared(mongo)
-        /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        [HttpGet("msg-mongoqueryprepared")]
-        public async Task<IActionResult> MsgMongoQueryPrepared(CancellationToken cancellationToken)
+        private IActionResult WrapHandler(Exception error)
         {
-            var bb = _factory.CreateBranchBarrier(Request.Query);
-            _logger.LogInformation("bb {0}", bb);
-
-            MongoDB.Driver.IMongoClient cli = new MongoDB.Driver.MongoClient(_settings.MongoBarrierConn);
-            var res = await bb.MongoQueryPrepared(cli);
-            return Ok(new { dtm_result = res });
+            (int status, object res) = Dtmcli.DtmImp.Utils.Result2HttpJson(error);
+            return StatusCode(status, res);
         }
 
         /// <summary>
