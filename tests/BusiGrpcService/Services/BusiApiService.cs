@@ -5,6 +5,7 @@ using MySqlConnector;
 using System.Text.Json;
 using Dapper;
 using System.Data.Common;
+using DtmCommon;
 using DtmSERedisBarrier;
 
 namespace BusiGrpcService.Services
@@ -138,6 +139,18 @@ namespace BusiGrpcService.Services
             }
 
             throw Dtmgrpc.DtmGImp.Utils.DtmError2GrpcError(ex);
+        }
+
+        // real mysql query prepared demo, just copy it!
+        public override async Task<Empty> QueryPreparedMySqlReal(BusiReq request, ServerCallContext context)
+        {
+            BranchBarrier barrier = _barrierFactory.CreateBranchBarrier(context);
+            string result = await barrier.QueryPrepared(this.GetBarrierConn());
+
+            Exception ex = Dtmgrpc.DtmGImp.Utils.String2DtmError(result);
+            if (ex != null)
+                throw Dtmgrpc.DtmGImp.Utils.DtmError2GrpcError(ex);
+            return new Empty();
         }
 
         public override async Task<Empty> TransInRedis(BusiReq request, ServerCallContext context)
