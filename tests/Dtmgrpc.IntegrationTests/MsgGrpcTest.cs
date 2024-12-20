@@ -48,12 +48,18 @@ namespace Dtmgrpc.IntegrationTests
             // do TransOut local, then TransIn with DTM.
             await Assert.ThrowsAsync<System.InvalidOperationException>(async () =>
             {
+                // System.InvalidOperationException: A TransactionScope must be disposed on the same thread that it was created.
+                // 
+                // System.InvalidOperationException
+                // A TransactionScope must be disposed on the same thread that it was created.
+                //    at Dtmgrpc.MsgGrpc.DoAndSubmit(String queryPrepared, Func`2 busiCall, CancellationToken cancellationToken) in /home/yunjin/Data/projects/github/dtm-labs/client-csharp/src/Dtmgrpc/Msg/MsgGrpc.cs:line 110
+
                 await msg.DoAndSubmit(busiGrpc + "/busi.Busi/QueryPreparedMySqlReal", async branchBarrier =>
                 {
                     MySqlConnection conn = getBarrierMySqlConnection();
                     await branchBarrier.Call(conn, () =>
                         {
-                            Task task = this.LocalAdjustBalance(conn, TransOutUID, req.Amount, "SUCCESS");
+                            Task task = this.LocalAdjustBalance(conn, TransOutUID, -req.Amount, "SUCCESS");
                             return task;
                         },
                         TransactionScopeOption.Required,
@@ -62,6 +68,11 @@ namespace Dtmgrpc.IntegrationTests
                     );
                 });
             });
+
+            await Task.Delay(4000);
+            var status = await ITTestHelper.GetTranStatus(gid);
+            // The exception did not affect the local transaction commit
+            Assert.Equal("succeed", status);
         }
 
         [Fact]
@@ -83,7 +94,7 @@ namespace Dtmgrpc.IntegrationTests
                 MySqlConnection conn = getBarrierMySqlConnection();
                 await branchBarrier.Call(conn, () =>
                     {
-                        Task task = this.LocalAdjustBalance(conn, TransOutUID, req.Amount, "SUCCESS");
+                        Task task = this.LocalAdjustBalance(conn, TransOutUID, -req.Amount, "SUCCESS");
                         return task;
                     },
                     TransactionScopeOption.Required,
