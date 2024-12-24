@@ -279,7 +279,7 @@ namespace BusiGrpcService.Services
             return new Empty();
         }
 
-        private MySqlConnection GetBarrierConn() => new("Server=localhost;port=3306;User ID=root;Password=123456;Database=dtm_barrier");
+        private MySqlConnection GetBarrierConn() => new("Server=localhost;port=3306;User ID=root;Password=;Database=dtm_barrier");
 
         private async Task<StackExchange.Redis.IDatabase> GetRedis()
         {

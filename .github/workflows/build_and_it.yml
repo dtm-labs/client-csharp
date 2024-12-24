@@ -24,7 +24,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3 
-          -e MYSQL_ROOT_PASSWORD=123456
+          -e MYSQL_ALLOW_EMPTY_PASSWORD=1
           --entrypoint sh mysql:8.0 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
     strategy:
       matrix:
@@ -43,8 +43,8 @@ jobs:
           dotnet --list-runtimes
       - name: Create database
         run: |
-          mysql -h127.0.0.1 -uroot -p123456 < /home/runner/work/client-csharp/client-csharp/sqls/barrier.mysql.sql
-          mysql -h127.0.0.1 -uroot -p123456 < /home/runner/work/client-csharp/client-csharp/sqls/busi.mysql.sql
+          mysql -h127.0.0.1 -uroot < /home/runner/work/client-csharp/client-csharp/sqls/barrier.mysql.sql
+          mysql -h127.0.0.1 -uroot < /home/runner/work/client-csharp/client-csharp/sqls/busi.mysql.sql
       - name: Setup DTM server
         run: |
           wget https://github.com/dtm-labs/dtm/releases/download/v1.18.0/dtm_1.18.0_linux_amd64.tar.gz
