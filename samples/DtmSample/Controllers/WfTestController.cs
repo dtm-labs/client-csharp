@@ -23,10 +23,10 @@ namespace DtmSample.Controllers
     {
 
         private readonly ILogger<WfTestController> _logger;
-        private readonly WorlflowGlobalTransaction _globalTransaction;
+        private readonly WorkflowGlobalTransaction _globalTransaction;
         private readonly AppSettings _settings;
 
-        public WfTestController(ILogger<WfTestController> logger, IOptions<AppSettings> optionsAccs, WorlflowGlobalTransaction transaction)
+        public WfTestController(ILogger<WfTestController> logger, IOptions<AppSettings> optionsAccs, WorkflowGlobalTransaction transaction)
         {
             _logger = logger;
             _settings = optionsAccs.Value;

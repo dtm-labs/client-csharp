@@ -27,7 +27,7 @@ namespace Dtmworkflow.Tests
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
-            var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
 
             var wfName = nameof(Execute_Should_Succeed_When_PWF_Succeed);
             var gid = Guid.NewGuid().ToString("N");
@@ -56,7 +56,7 @@ namespace Dtmworkflow.Tests
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
-            var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
 
             var wfName = nameof(Execute_Should_Throw_DtmFailureException_When_PWF_Failed);
             var gid = Guid.NewGuid().ToString("N");
@@ -90,7 +90,7 @@ namespace Dtmworkflow.Tests
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
-            var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
 
             var wfName = nameof(Execute_Should_Succeed_When_PWF_Submitted_And_Progress_Not_Failed);
             var gid = Guid.NewGuid().ToString("N");
@@ -125,7 +125,7 @@ namespace Dtmworkflow.Tests
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
-            var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
 
             var wfName = nameof(Execute_Should_ThrowException_When_WfFunc2_ThrowException);
             var gid = Guid.NewGuid().ToString("N");
@@ -159,7 +159,7 @@ namespace Dtmworkflow.Tests
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
-            var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
 
             var wfName = nameof(Execute_Should_Return_Null_When_WfFunc2_ThrowDtmFailureException);
             var gid = Guid.NewGuid().ToString("N");
@@ -192,7 +192,7 @@ namespace Dtmworkflow.Tests
            
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
-            var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
 
             var wfName = nameof(Rollback_Should_Be_Executed);
             var gid = Guid.NewGuid().ToString("N");
@@ -232,7 +232,7 @@ namespace Dtmworkflow.Tests
 
             factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
 
-            var wfgt = new WorlflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
 
             var wfName = nameof(Commit_Should_Be_Executed);
             var gid = Guid.NewGuid().ToString("N");

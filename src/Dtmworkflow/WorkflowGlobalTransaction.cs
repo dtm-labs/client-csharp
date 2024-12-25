@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace Dtmworkflow
 {
-    public class WorlflowGlobalTransaction
+    public class WorkflowGlobalTransaction
     {
         private readonly Dictionary<string, WfItem> _handlers;
         private readonly IWorkflowFactory _workflowFactory;
         private readonly ILogger _logger;
 
-        public WorlflowGlobalTransaction(IWorkflowFactory workflowFactory, ILoggerFactory loggerFactory)
+        public WorkflowGlobalTransaction(IWorkflowFactory workflowFactory, ILoggerFactory loggerFactory)
         {
             this._handlers = new Dictionary<string, WfItem>();
             this._workflowFactory = workflowFactory;
-            this._logger = loggerFactory.CreateLogger<WorlflowGlobalTransaction>();
+            this._logger = loggerFactory.CreateLogger<WorkflowGlobalTransaction>();
         }
 
         public async Task<byte[]> Execute(string name, string gid, byte[] data, bool isHttp = true)
