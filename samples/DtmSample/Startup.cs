@@ -29,7 +29,7 @@ namespace DtmSample
                 dtm.SqlDbType = Configuration.GetValue<string>("AppSettings:SqlDbType");
                 dtm.BarrierSqlTableName = Configuration.GetValue<string>("AppSettings:BarrierSqlTableName");
                 dtm.DtmGrpcUrl = Configuration.GetValue<string>("AppSettings:DtmGrpcUrl");
-                dtm.HttpCallback = "";
+                dtm.HttpCallback = $"{Configuration.GetValue<string>("AppSettings:BusiUrl")}/wf-resume";
                 dtm.GrpcCallback = "";
             });
 

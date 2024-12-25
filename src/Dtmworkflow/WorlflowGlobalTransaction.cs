@@ -51,7 +51,7 @@ namespace Dtmworkflow
                 Custom = custom.ToList()
             });
         }
-
+        
 #if NET5_0_OR_GREATER
         public async Task ExecuteByQS(Microsoft.AspNetCore.Http.IQueryCollection query, byte[] body)
         {
@@ -61,5 +61,12 @@ namespace Dtmworkflow
             await Execute(op, gid, body, true);
         }
 #endif
+        
+        #if DEBUG // for sample only
+        public bool Exists(string name)
+        {
+            return this._handlers.ContainsKey(name);
+        }
+        #endif
     }
 }
