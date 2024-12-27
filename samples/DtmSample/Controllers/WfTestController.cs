@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,10 +23,10 @@ namespace DtmSample.Controllers
     {
 
         private readonly ILogger<WfTestController> _logger;
-        private readonly WorlflowGlobalTransaction _globalTransaction;
+        private readonly WorkflowGlobalTransaction _globalTransaction;
         private readonly AppSettings _settings;
 
-        public WfTestController(ILogger<WfTestController> logger, IOptions<AppSettings> optionsAccs, WorlflowGlobalTransaction transaction)
+        public WfTestController(ILogger<WfTestController> logger, IOptions<AppSettings> optionsAccs, WorkflowGlobalTransaction transaction)
         {
             _logger = logger;
             _settings = optionsAccs.Value;
@@ -250,6 +252,85 @@ namespace DtmSample.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Workflow Tcc Error");
+                return Ok(TransResponse.BuildFailureResponse());
+            }
+        }
+
+
+        private static readonly string wfNameForResume = "wfNameForResume";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpPost("wf-crash")]
+        public async Task<IActionResult> Crash(CancellationToken cancellationToken)
+        {
+            if (!_globalTransaction.Exists(wfNameForResume))
+            {
+                _globalTransaction.Register(wfNameForResume, async (wf, data) =>
+                {
+                    var content = new ByteArrayContent(data);
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                    var outClient = wf.NewBranch().NewRequest();
+                    await outClient.PostAsync(_settings.BusiUrl + "/TransOut", content);
+
+                    // the first branch succeed, then crashed, the dtm server will call back the flowing wf-call-back
+                    // manual stop application
+                    Environment.Exit(0);
+
+                    var inClient = wf.NewBranch().NewRequest();
+                    await inClient.PostAsync(_settings.BusiUrl + "/TransIn", content);
+
+                    return null;
+                });
+            }
+            
+            var req = JsonSerializer.Serialize(new TransRequest("1", -30));
+            await _globalTransaction.Execute(wfNameForResume, Guid.NewGuid().ToString("N"), Encoding.UTF8.GetBytes(req), true);
+
+            return Ok(TransResponse.BuildSucceedResponse());
+        }
+
+        [HttpPost("wf-resume")]
+        public async Task<IActionResult> WfResume(CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (!_globalTransaction.Exists(wfNameForResume))
+                {
+                    // register again after manual crash by Environment.Exit(0);
+                    _globalTransaction.Register(wfNameForResume, async (wf, data) =>
+                    {
+                        var content = new ByteArrayContent(data);
+                        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                        var outClient = wf.NewBranch().NewRequest();
+                        await outClient.PostAsync(_settings.BusiUrl + "/TransOut", content);
+
+                        var inClient = wf.NewBranch().NewRequest();
+                        await inClient.PostAsync(_settings.BusiUrl + "/TransIn", content);
+
+                        return null;
+                    });
+                }
+
+                // prepared call ExecuteByQS
+                using var bodyMemoryStream = new MemoryStream();
+                await Request.Body.CopyToAsync(bodyMemoryStream, cancellationToken);
+                byte[] bytes = bodyMemoryStream.ToArray();
+                string body = Encoding.UTF8.GetString(bytes);
+                _logger.LogDebug($"body: {body}");
+
+                await _globalTransaction.ExecuteByQS(Request.Query, bodyMemoryStream.ToArray());
+
+                return Ok(TransResponse.BuildSucceedResponse());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Workflow Error");
                 return Ok(TransResponse.BuildFailureResponse());
             }
         }

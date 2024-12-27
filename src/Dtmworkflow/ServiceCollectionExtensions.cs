@@ -21,7 +21,7 @@ namespace Dtmworkflow
             services.AddDtmGrpc(setupAction);
 
             services.TryAddSingleton<IWorkflowFactory, WorkflowFactory>();
-            services.TryAddSingleton<WorlflowGlobalTransaction>();
+            services.TryAddSingleton<WorkflowGlobalTransaction>();
 
             return services;
         }
@@ -32,7 +32,7 @@ namespace Dtmworkflow
             services.AddDtmGrpc(configuration, sectionName);
 
             services.TryAddSingleton<IWorkflowFactory, WorkflowFactory>();
-            services.TryAddSingleton<WorlflowGlobalTransaction>();
+            services.TryAddSingleton<WorkflowGlobalTransaction>();
 
             return services;
         }
