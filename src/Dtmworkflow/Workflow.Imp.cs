@@ -39,7 +39,9 @@ namespace Dtmworkflow
             var status = reply.Transaction.Status;
             if (status == DtmCommon.Constant.StatusSucceed)
             {
-                var sRes = Convert.FromBase64String(reply.Transaction.Result);
+                var sRes = reply.Transaction.Result != null
+                    ? Convert.FromBase64String(reply.Transaction.Result)
+                    : null;
                 return sRes;
             }
             else if (status == DtmCommon.Constant.StatusFailed)

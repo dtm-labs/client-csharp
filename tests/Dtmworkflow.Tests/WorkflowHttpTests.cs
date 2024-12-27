@@ -255,8 +255,114 @@ namespace Dtmworkflow.Tests
             rollBackFunc.Verify(x => x.Invoke(It.IsAny<BranchBarrier>()), Times.Never);
             commitFunc.Verify(x => x.Invoke(It.IsAny<BranchBarrier>()), Times.Once);
         }
+        
+        [Fact]
+        public async Task Execute_Result_Should_Be_WfFunc2()
+        {
+            var factory = new Mock<IWorkflowFactory>();
+            var httpClient = new Mock<IDtmClient>();
+            var grpcClient = new Mock<IDtmgRPCClient>();
+            var httpBb = new Mock<Dtmcli.IBranchBarrierFactory>();
 
-        private void SetupPrepareWorkflow(Mock<IDtmClient> httpClient, string status, string result, List<DtmProgressDto> progressDtos = null)
+            SetupPrepareWorkflow(httpClient, DtmCommon.Constant.StatusPrepared, null);
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
+
+            factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
+
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+
+            var wfName = nameof(Execute_Result_Should_Be_WfFunc2);
+            var gid = Guid.NewGuid().ToString("N");
+
+            wfgt.Register(wfName, (workflow, data) => Task.FromResult(Encoding.UTF8.GetBytes("return value from WfFunc2")));
+
+            var req = JsonSerializer.Serialize(new { userId = "1", amount = 30 });
+            var res = await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true);
+
+            Assert.Equal("return value from WfFunc2", Encoding.UTF8.GetString(res));
+        }
+        
+        [Fact]
+        public async Task Execute_Result_Should_Be_Previous()
+        {
+            var factory = new Mock<IWorkflowFactory>();
+            var httpClient = new Mock<IDtmClient>();
+            var grpcClient = new Mock<IDtmgRPCClient>();
+            var httpBb = new Mock<Dtmcli.IBranchBarrierFactory>();
+
+            SetupPrepareWorkflow(httpClient, DtmCommon.Constant.StatusSucceed, "return value from previous");
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
+
+            factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
+
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+
+            var wfName = nameof(Execute_Result_Should_Be_Previous);
+            var gid = Guid.NewGuid().ToString("N");
+
+            wfgt.Register(wfName, (workflow, data) => Task.FromResult(Encoding.UTF8.GetBytes("return value from WfFunc2")));
+
+            var req = JsonSerializer.Serialize(new { userId = "1", amount = 30 });
+            var res = await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true);
+
+            Assert.Equal("return value from previous", Encoding.UTF8.GetString(res));
+        }
+        
+        [Fact]
+        public async Task Execute_Again_Result_Should_Be_Previous()
+        {
+            var factory = new Mock<IWorkflowFactory>();
+            var httpClient1 = new Mock<IDtmClient>();
+            var httpClient2 = new Mock<IDtmClient>();
+            var grpcClient = new Mock<IDtmgRPCClient>();
+            var httpBb = new Mock<Dtmcli.IBranchBarrierFactory>();
+            
+            // first
+            SetupPrepareWorkflow(httpClient1, DtmCommon.Constant.StatusPrepared, null);
+            var wf = SetupWorkFlow(httpClient1, grpcClient, httpBb);
+            factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            var wfName = nameof(Execute_Again_Result_Should_Be_Previous);
+            var gid = Guid.NewGuid().ToString("N");
+            wfgt.Register(wfName, (workflow, data) => Task.FromResult(Encoding.UTF8.GetBytes("return value from WfFunc2")));
+            var req = JsonSerializer.Serialize(new { userId = "1", amount = 30 });
+            var res = await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true);
+            Assert.Equal("return value from WfFunc2", Encoding.UTF8.GetString(res));
+            
+            // again
+            SetupPrepareWorkflow(httpClient2, DtmCommon.Constant.StatusSucceed, "return value from previous");
+            wf = SetupWorkFlow(httpClient2, grpcClient, httpBb);
+            factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
+            wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            gid = Guid.NewGuid().ToString("N");
+            wfgt.Register(wfName, (workflow, data) => Task.FromResult(Encoding.UTF8.GetBytes("return value from WfFunc2")));
+            req = JsonSerializer.Serialize(new { userId = "1", amount = 30 });
+            res = await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true);
+            Assert.Equal("return value from previous", Encoding.UTF8.GetString(res));
+        }
+        
+        [Fact]
+        public async Task Execute_Again_Result_StringEmpty()
+        {
+            var factory = new Mock<IWorkflowFactory>();
+            var httpClient = new Mock<IDtmClient>();
+            var grpcClient = new Mock<IDtmgRPCClient>();
+            var httpBb = new Mock<Dtmcli.IBranchBarrierFactory>();
+            
+            // again
+            SetupPrepareWorkflow(httpClient, DtmCommon.Constant.StatusSucceed, null); 
+            var wf = SetupWorkFlow(httpClient, grpcClient, httpBb);
+            factory.Setup(x => x.NewWorkflow(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<bool>())).Returns(wf.Object);
+            var wfgt = new WorkflowGlobalTransaction(factory.Object, NullLoggerFactory.Instance);
+            var wfName = nameof(Execute_Again_Result_StringEmpty);
+            var gid = Guid.NewGuid().ToString("N");
+            wfgt.Register(wfName, (workflow, data) => Task.FromResult(Encoding.UTF8.GetBytes("return value from WfFunc2")));
+            var req = JsonSerializer.Serialize(new { userId = "1", amount = 30 });
+            var res = await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true);
+            Assert.Null(res);
+        }
+
+        private void SetupPrepareWorkflow(Mock<IDtmClient> httpClient, string status, string? result, List<DtmProgressDto> progressDtos = null)
         {
             var httpResp = new HttpResponseMessage(HttpStatusCode.OK);
             httpResp.Content = new StringContent(JsonSerializer.Serialize(
@@ -265,9 +371,9 @@ namespace Dtmworkflow.Tests
                     Transaction = new DtmTransactionDto 
                     { 
                         Status = status, 
-                        Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(result)) 
+                        Result = result == null ? null : Convert.ToBase64String(Encoding.UTF8.GetBytes(result)) 
                     },
-                    Progresses = progressDtos
+                    Progresses = progressDtos ?? []
                 }));
             httpClient.Setup(x => x.PrepareWorkflow(It.IsAny<DtmCommon.TransBase>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(httpResp));
         }
