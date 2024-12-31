@@ -307,7 +307,7 @@ public class MyBusi
 ## Complete example
 
 
-Refer to [https://github.com/dtm-labs/dtmcli-csharp-sample](https://github.com/dtm-labs/dtmcli-csharp-sample)
+Refer to ~~[https://github.com/dtm-labs/dtmcli-csharp-sample](https://github.com/dtm-labs/dtmcli-csharp-sample)~~ [client-csharp/samples · dtm-labs/client-csharp](https://github.com/dtm-labs/client-csharp/tree/main/samples)
 
 ## Contact us
 

@@ -298,7 +298,7 @@ public class MyBusi
 
 ## 可运行的使用示例
 
-见[https://github.com/dtm-labs/dtmcli-csharp-sample](https://github.com/dtm-labs/dtmcli-csharp-sample)
+见 ~~[https://github.com/dtm-labs/dtmcli-csharp-sample](https://github.com/dtm-labs/dtmcli-csharp-sample)~~ [client-csharp/samples · dtm-labs/client-csharp](https://github.com/dtm-labs/client-csharp/tree/main/samples)
 
 ## 联系我们
 ### 公众号
