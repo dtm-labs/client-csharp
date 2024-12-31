@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Dtmworkflow;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -13,6 +14,7 @@ namespace Dtmgrpc.IntegrationTests
         public static string DTMHttpUrl = "http://localhost:36789";
         public static string DTMgRPCUrl = "http://localhost:36790";
         public static string BuisgRPCUrl = "localhost:5005";
+        public static string BuisgRPCUrlWithProtocol = "http://localhost:5005";
         private static System.Net.Http.HttpClient _client = new System.Net.Http.HttpClient();
 
         public static async Task<string> GetTranStatus(string gid)
@@ -67,6 +69,13 @@ namespace Dtmgrpc.IntegrationTests
             services.AddLogging();
             services.AddDtmGrpc(x =>
             {
+                x.DtmUrl = DTMHttpUrl;
+                x.DtmGrpcUrl = DTMgRPCUrl;
+                x.DtmTimeout = dtmTimout;
+            });
+            services.AddDtmWorkflow(x =>
+            {
+                x.DtmUrl = DTMHttpUrl;
                 x.DtmGrpcUrl = DTMgRPCUrl;
                 x.DtmTimeout = dtmTimout;
             });
