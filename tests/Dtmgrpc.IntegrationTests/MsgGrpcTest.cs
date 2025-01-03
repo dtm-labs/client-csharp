@@ -111,7 +111,7 @@ namespace Dtmgrpc.IntegrationTests
 
         private static readonly int TransInUID = 2;
 
-        private MySqlConnection getBarrierMySqlConnection() => new("Server=localhost;port=3306;User ID=root;Password=123456;Database=dtm_barrier");
+        private MySqlConnection getBarrierMySqlConnection() => new("Server=localhost;port=3306;User ID=root;Password=;Database=dtm_barrier");
 
         private async Task LocalAdjustBalance(DbConnection conn, int uid, long amount, string result)
         {
