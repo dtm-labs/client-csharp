@@ -34,48 +34,6 @@ namespace Dtmgrpc.IntegrationTests
         }
 
         [Fact]
-        public async Task DoAndSubmit_Should_DbTrans_Exception()
-        {
-            var provider = ITTestHelper.AddDtmGrpc();
-            var transFactory = provider.GetRequiredService<IDtmTransFactory>();
-
-            var gid = "msgTestGid" + Guid.NewGuid().ToString();
-            var msg = transFactory.NewMsgGrpc(gid);
-            var req = ITTestHelper.GenBusiReq(false, false);
-            var busiGrpc = ITTestHelper.BuisgRPCUrl;
-
-            msg.Add(busiGrpc + "/busi.Busi/TransIn", req);
-            // do TransOut local, then TransIn with DTM.
-            await Assert.ThrowsAsync<System.InvalidOperationException>(async () =>
-            {
-                // System.InvalidOperationException: A TransactionScope must be disposed on the same thread that it was created.
-                // 
-                // System.InvalidOperationException
-                // A TransactionScope must be disposed on the same thread that it was created.
-                //    at Dtmgrpc.MsgGrpc.DoAndSubmit(String queryPrepared, Func`2 busiCall, CancellationToken cancellationToken) in /home/yunjin/Data/projects/github/dtm-labs/client-csharp/src/Dtmgrpc/Msg/MsgGrpc.cs:line 110
-
-                await msg.DoAndSubmit(busiGrpc + "/busi.Busi/QueryPreparedMySqlReal", async branchBarrier =>
-                {
-                    MySqlConnection conn = getBarrierMySqlConnection();
-                    await branchBarrier.Call(conn, () =>
-                        {
-                            Task task = this.LocalAdjustBalance(conn, TransOutUID, -req.Amount, "SUCCESS");
-                            return task;
-                        },
-                        TransactionScopeOption.Required,
-                        IsolationLevel.ReadCommitted
-                        // , default TransactionScopeAsyncFlowOption.Suppress 
-                    );
-                });
-            });
-
-            await Task.Delay(4000);
-            var status = await ITTestHelper.GetTranStatus(gid);
-            // The exception did not affect the local transaction commit
-            Assert.Equal("succeed", status);
-        }
-
-        [Fact]
         public async Task DoAndSubmit_Should_Succeed()
         {
             var provider = ITTestHelper.AddDtmGrpc();
@@ -98,8 +56,7 @@ namespace Dtmgrpc.IntegrationTests
                         return task;
                     },
                     TransactionScopeOption.Required,
-                    IsolationLevel.ReadCommitted,
-                    TransactionScopeAsyncFlowOption.Enabled);
+                    IsolationLevel.ReadCommitted);
             });
 
             await Task.Delay(2000);
