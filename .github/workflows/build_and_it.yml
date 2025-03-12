@@ -51,7 +51,8 @@ jobs:
           tar -xvf dtm_1.18.0_linux_amd64.tar.gz
           pwd
           mkdir /home/runner/work/client-csharp/client-csharp/logs
-          nohup ./dtm > /home/runner/work/client-csharp/client-csharp/logs/dtm.log 2>&1 &
+          echo "UpdateBranchSync: 1" > ./config.yml
+          nohup ./dtm -c ./config.yml > /home/runner/work/client-csharp/client-csharp/logs/dtm.log 2>&1 &
           sleep 5
           curl "127.0.0.1:36789/api/dtmsvr/newGid"
       - name: Setup Busi Service
