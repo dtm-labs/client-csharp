@@ -40,6 +40,14 @@ namespace Dtmcli.DtmImp
             }
         }
 
+        public static void CheckStatusCode(HttpStatusCode status)
+        {
+            if (status != HttpStatusCode.OK)
+            {
+                throw new DtmException(string.Format(CheckStatusMsgFormat, status.ToString(), string.Empty));
+            }
+        }
+
         /// <summary>
         /// OrString return the first not null or not empty string
         /// </summary>
