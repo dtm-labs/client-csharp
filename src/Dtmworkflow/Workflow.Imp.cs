@@ -64,7 +64,7 @@ namespace Dtmworkflow
             }
 
             err = Utils.GrpcError2DtmError(err);
-
+            
             if (err != null && err is not DtmCommon.DtmFailureException) throw err;
 
             try
@@ -193,7 +193,7 @@ namespace Dtmworkflow
             return sr;
         }
 
-        private HttpResponseMessage StepResultToHttp(StepResult r)
+        public HttpResponseMessage StepResultToHttp(StepResult r)
         {
             if (r.Error != null)
             {
@@ -203,7 +203,7 @@ namespace Dtmworkflow
             return Utils.NewJSONResponse(HttpStatusCode.OK, r.Data);
         }
 
-        private StepResult StepResultFromHTTP(HttpResponseMessage resp, Exception err)
+        public StepResult StepResultFromHTTP(HttpResponseMessage resp, Exception err)
         {
             var sr = new StepResult
             {
@@ -212,7 +212,7 @@ namespace Dtmworkflow
 
             if (err == null)
             {
-                // HTTPResp2DtmError
+                (sr.Data, sr.Error) = Utils.HTTPResp2DtmError(resp); // TODO go 使用了 this.Options.HTTPResp2DtmError(resp), 方便定制
                 sr.Status = WfErrorToStatus(sr.Error);
             }
 
@@ -234,9 +234,9 @@ namespace Dtmworkflow
         }
 
 
-        private async Task<StepResult> RecordedDo(Func<DtmCommon.BranchBarrier, Task<StepResult>> fn)
+        public async Task<StepResult> RecordedDo(Func<DtmCommon.BranchBarrier, Task<StepResult>> fn)
         {
-            var sr = await this.RecordedDoInner(fn);
+            StepResult sr = await this.RecordedDoInner(fn);
 
             // do not compensate the failed branch if !CompensateErrorBranch
             if (this.Options.CompensateErrorBranch && sr.Status == DtmCommon.Constant.StatusFailed)
