@@ -9,6 +9,7 @@ using busi;
 using Dtmcli;
 using DtmCommon;
 using Dtmworkflow;
+using Grpc.Core.Interceptors;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -241,8 +242,6 @@ namespace Dtmgrpc.IntegrationTests
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
             WorkflowGlobalTransaction workflowGlobalTransaction = new WorkflowGlobalTransaction(workflowFactory, loggerFactory);
 
-            Busi.BusiClient busiClient = new Busi.BusiClient(GrpcChannel.ForAddress(ITTestHelper.BuisgRPCUrlWithProtocol));
-
             string wfName1 = $"{nameof(this.Execute_DoAndGrpc_Should_Success)}-{Guid.NewGuid().ToString("D")[..8]}";
             workflowGlobalTransaction.Register(wfName1, async (workflow, data) =>
             {
@@ -256,13 +255,15 @@ namespace Dtmgrpc.IntegrationTests
                 {
                     return ("my result"u8.ToArray(), null);
                 });
-                
+
                 // 2. grpc1
+                Busi.BusiClient busiClient = null;
                 var wf = workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     await busiClient.TransInRevertAsync(request);
                     _testOutputHelper.WriteLine("2. grpc1 rollback");
                 });
+                busiClient = GetBusiClientWithWf(wf, provider);
                 await busiClient.TransInAsync(request);
 
                 // 3. grpc2
@@ -301,6 +302,17 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("succeed", trans.Branches[0].Status);
             Assert.Equal("succeed", trans.Branches[1].Status);
             Assert.Equal("succeed", trans.Branches[2].Status);
+        }
+
+        private static Busi.BusiClient GetBusiClientWithWf(Workflow wf, ServiceProvider provider)
+        {
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            var channel = GrpcChannel.ForAddress(ITTestHelper.BuisgRPCUrlWithProtocol);
+            var logger = loggerFactory.CreateLogger<WorkflowGrpcInterceptor>();
+            var interceptor = new WorkflowGrpcInterceptor(wf, logger); // inject client interceptor, and workflow instance
+            var callInvoker = channel.Intercept(interceptor);
+            Busi.BusiClient busiClient = new Busi.BusiClient(callInvoker);
+            return busiClient;
         }
     }
 }
