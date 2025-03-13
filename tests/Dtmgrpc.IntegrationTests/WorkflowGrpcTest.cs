@@ -67,7 +67,7 @@ namespace Dtmgrpc.IntegrationTests
         }
 
         [Fact]
-        public async Task Execute_DoAndHttpSuccess()
+        public async Task Execute_DoAndHttp_ShouldSuccess()
         {
             var provider = ITTestHelper.AddDtmGrpc();
             var workflowFactory = provider.GetRequiredService<IWorkflowFactory>();
@@ -90,17 +90,25 @@ namespace Dtmgrpc.IntegrationTests
                     return ("my result"u8.ToArray(), null);
                 });
                 
-                // 2. http1
+                // 2. http1, SAGA
                 HttpResponseMessage httpResult1 =  await workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("4. http1 rollback");
+                    await workflow.NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
                 }).NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
                 
-                // 3. http2
+                // 3. http2, TCC
                 HttpResponseMessage httpResult2 =  await workflow.NewBranch().OnRollback(async (barrier) =>
                 {
-                    _testOutputHelper.WriteLine("4. http2 rollback");
-                }).NewRequest().GetAsync("http://localhost:5006/test-http-ok2");
+                    _testOutputHelper.WriteLine("4. http2 cancel");
+                   
+                    await workflow.NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
+                }).OnCommit(async (barrier) =>
+                {
+                    _testOutputHelper.WriteLine("4. http2 commit");
+                    // NOT must use workflow.NewRequest()
+                    await workflow.NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
+                }).NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
                 
                 await busiClient.TransOutAsync(request);
                 
@@ -113,25 +121,40 @@ namespace Dtmgrpc.IntegrationTests
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
             
+            // BranchID	Op	Status
+            // 01	action	succeed			
+            // 02	action	succeed			
+            // 03	action	succeed			
+            // 03	commit	succeed
             // first
             byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             Assert.Equal("my result", Encoding.UTF8.GetString(result));
             trans = await dtmClient.Query(gid, CancellationToken.None);
             Assert.Equal("succeed", trans.Transaction.Status);
-            Assert.Equal(3, trans.Branches.Count); // 1.Do 2.Http 3.Http
+            Assert.Equal(4, trans.Branches.Count); // 1.Do x1, 2.http, saga x1, 3.Http tcc x2
+            Assert.Equal("action", trans.Branches[0].Op);
             Assert.Equal("succeed", trans.Branches[0].Status);
+            Assert.Equal("action", trans.Branches[1].Op);
             Assert.Equal("succeed", trans.Branches[1].Status);
+            Assert.Equal("action", trans.Branches[2].Op);
             Assert.Equal("succeed", trans.Branches[2].Status);
+            Assert.Equal("commit", trans.Branches[3].Op);
+            Assert.Equal("succeed", trans.Branches[3].Status);
             
             // same gid again
             result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             Assert.Equal("my result", Encoding.UTF8.GetString(result));
             trans = await dtmClient.Query(gid, CancellationToken.None);
             Assert.Equal("succeed", trans.Transaction.Status);
-            Assert.Equal(3, trans.Branches.Count); // 1.Do 2.Http 3.Http
+            Assert.Equal(4, trans.Branches.Count); // 1.Do x1, 2.http, saga x1, 3.Http tcc x2
+            Assert.Equal("action", trans.Branches[0].Op);
             Assert.Equal("succeed", trans.Branches[0].Status);
+            Assert.Equal("action", trans.Branches[1].Op);
             Assert.Equal("succeed", trans.Branches[1].Status);
+            Assert.Equal("action", trans.Branches[2].Op);
             Assert.Equal("succeed", trans.Branches[2].Status);
+            Assert.Equal("commit", trans.Branches[3].Op);
+            Assert.Equal("succeed", trans.Branches[3].Status);
         }
         
         [Fact]
