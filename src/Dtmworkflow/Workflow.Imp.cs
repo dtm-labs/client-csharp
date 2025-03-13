@@ -164,23 +164,23 @@ namespace Dtmworkflow
             };
         }
 
-        private Exception StepResultToGrpc(StepResult r, IMessage reply)
+        internal Exception StepResultToGrpc(StepResult r, IMessage reply)
         {
             if (r.Error == null && r.Status == DtmCommon.Constant.StatusSucceed)
             {
-                // Check 
-
+                // TODO Check 
+                // dtmgimp.MustProtoUnmarshal(s.Data, reply.(protoreflect.ProtoMessage));
             }
 
             return r.Error;
         }
 
-        private StepResult StepResultFromGrpc(IMessage reply, Exception err)
+        internal StepResult StepResultFromGrpc(IMessage reply, Exception err)
         {
             var sr = new StepResult
             {
-                // GRPCError2DtmError
-                Error = null,
+                // TODO GRPCError2DtmError
+                Error = Utils.GrpcError2DtmError(err),
             };
 
             sr.Status = WfErrorToStatus(sr.Error);
