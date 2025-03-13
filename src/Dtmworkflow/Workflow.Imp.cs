@@ -196,7 +196,7 @@ namespace Dtmworkflow
             return sr;
         }
 
-        public HttpResponseMessage StepResultToHttp(StepResult r)
+        internal HttpResponseMessage StepResultToHttp(StepResult r)
         {
             if (r.Error != null)
             {
@@ -206,7 +206,7 @@ namespace Dtmworkflow
             return Utils.NewJSONResponse(HttpStatusCode.OK, r.Data);
         }
 
-        public StepResult StepResultFromHTTP(HttpResponseMessage resp, Exception err)
+        internal StepResult StepResultFromHTTP(HttpResponseMessage resp, Exception err)
         {
             var sr = new StepResult
             {
@@ -237,7 +237,7 @@ namespace Dtmworkflow
         }
 
 
-        public async Task<StepResult> RecordedDo(Func<DtmCommon.BranchBarrier, Task<StepResult>> fn)
+        internal async Task<StepResult> RecordedDo(Func<DtmCommon.BranchBarrier, Task<StepResult>> fn)
         {
             StepResult sr = await this.RecordedDoInner(fn);
 

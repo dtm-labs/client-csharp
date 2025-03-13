@@ -34,13 +34,8 @@ namespace Dtmworkflow
 
         public System.Net.Http.HttpClient NewRequest()
         {
-            if(true)
-                return new HttpClient(new WorkflowHttpInterceptor(this));
-            else
-            {
-                var client =  _httpClient.GetHttpClient("WF");
-                return client;
-            }
+            // return _httpClient.GetHttpClient("WF");
+            return new HttpClient(new WorkflowHttpInterceptor(this));
         }
 
         /// <summary>

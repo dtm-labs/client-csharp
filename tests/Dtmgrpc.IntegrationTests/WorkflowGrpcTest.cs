@@ -85,9 +85,10 @@ namespace Dtmgrpc.IntegrationTests
                 workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("1. local rollback");
+                    await Task.CompletedTask;
                 }).Do(async (barrier) =>
                 {
-                    return ("my result"u8.ToArray(), null);
+                    return await Task.FromResult<(byte[], Exception)>(("my result"u8.ToArray(), null));
                 });
                 
                 // 2. http1, SAGA
@@ -101,7 +102,6 @@ namespace Dtmgrpc.IntegrationTests
                 HttpResponseMessage httpResult2 =  await workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("4. http2 cancel");
-                   
                     await workflow.NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
                 }).OnCommit(async (barrier) =>
                 {
@@ -176,21 +176,24 @@ namespace Dtmgrpc.IntegrationTests
                 workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("1. local rollback");
+                    await Task.CompletedTask;
                 }).Do(async (barrier) =>
                 {
-                    return ("my result"u8.ToArray(), null);
+                    return await Task.FromResult<(byte[], Exception)>(("my result"u8.ToArray(), null));
                 });
                 
                 // 2. http1
                 HttpResponseMessage httpResult1 =  await workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("4. http1 rollback");
+                    await Task.CompletedTask;
                 }).NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
                 
                 // 3. http2
                 HttpResponseMessage httpResult2 =  await workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("4. http2 rollback");
+                    await Task.CompletedTask;
                 }).NewRequest().GetAsync("http://localhost:5006/409"); // 409
               
                 return await Task.FromResult("my result"u8.ToArray());
