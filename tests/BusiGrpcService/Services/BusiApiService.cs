@@ -26,7 +26,8 @@ namespace BusiGrpcService.Services
 
         public override async Task<Empty> TransIn(BusiReq request, ServerCallContext context)
         {
-            _logger.LogInformation("TransIn req={req}", JsonSerializer.Serialize(request));
+            string gid = context.RequestHeaders.Get("dtm-gid")?.Value;
+            _logger.LogInformation("TransIn gid={gid} req={req}", gid, JsonSerializer.Serialize(request));
 
             if (string.IsNullOrWhiteSpace(request.TransInResult) || request.TransInResult.Equals("SUCCESS"))
             {
@@ -86,7 +87,8 @@ namespace BusiGrpcService.Services
 
         public override async Task<Empty> TransOut(BusiReq request, ServerCallContext context)
         {
-            _logger.LogInformation("TransOut req={req}", JsonSerializer.Serialize(request));
+            string gid = context.RequestHeaders.Get("dtm-gid")?.Value;
+            _logger.LogInformation("TransOut gid={gid} req={req}", gid, JsonSerializer.Serialize(request));
             await Task.CompletedTask;
             return new Empty();
         }

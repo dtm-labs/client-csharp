@@ -28,7 +28,7 @@ public class TransGlobal
     {
         [JsonPropertyName("id")] public int Id { get; set; }
 
-        [JsonPropertyName("create_time")] public DateTimeOffset CreateTime { get; set; }
+        [JsonPropertyName("create_time")] public DateTimeOffset? CreateTime { get; set; }
 
         [JsonPropertyName("update_time")] public DateTimeOffset UpdateTime { get; set; }
 
@@ -64,9 +64,9 @@ public class TransGlobal
     {
         [JsonPropertyName("id")] public int Id { get; set; }
 
-        [JsonPropertyName("create_time")] public DateTimeOffset CreateTime { get; set; }
+        [JsonPropertyName("create_time")] public DateTimeOffset? CreateTime { get; set; }
 
-        [JsonPropertyName("update_time")] public DateTimeOffset UpdateTime { get; set; }
+        [JsonPropertyName("update_time")] public DateTimeOffset? UpdateTime { get; set; }
 
         [JsonPropertyName("gid")] public string Gid { get; set; }
 

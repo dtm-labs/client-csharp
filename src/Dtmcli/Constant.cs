@@ -4,7 +4,8 @@
     {
         internal const string DtmClientHttpName = "dtmClient";
         internal const string BranchClientHttpName = "branchClient";
-       
+        internal const string WorkflowBranchClientHttpName = "WF";
+
         internal static class Request
         {
             internal const string CONTENT_TYPE = "application/json";

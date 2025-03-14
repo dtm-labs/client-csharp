@@ -148,7 +148,7 @@ namespace Dtmcli
             var client = _httpClientFactory.CreateClient(Constant.DtmClientHttpName);
             var response = await client.GetAsync(url, cancellationToken).ConfigureAwait(false);
             var dtmContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            DtmImp.Utils.CheckStatus(response.StatusCode, dtmContent);
+            DtmImp.Utils.CheckStatusCode(response.StatusCode);
             return JsonSerializer.Deserialize<TransGlobal>(dtmContent, _jsonOptions);
         }
 
@@ -167,7 +167,7 @@ namespace Dtmcli
             var client = _httpClientFactory.CreateClient(Constant.DtmClientHttpName);
             var response = await client.GetAsync(url, cancellationToken).ConfigureAwait(false);
             var dtmContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            DtmImp.Utils.CheckStatus(response.StatusCode, dtmContent);
+            DtmImp.Utils.CheckStatusCode(response.StatusCode);
             var graph = JsonSerializer.Deserialize<TransGlobalForStatus>(dtmContent, _jsonOptions);
             return graph.Transaction == null
                 ? string.Empty
