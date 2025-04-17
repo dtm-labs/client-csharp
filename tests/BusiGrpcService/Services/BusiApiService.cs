@@ -95,9 +95,23 @@ namespace BusiGrpcService.Services
 
         public override async Task<Empty> TransOutTcc(BusiReq request, ServerCallContext context)
         {
-            _logger.LogInformation("TransOut req={req}", JsonSerializer.Serialize(request));
-            await Task.CompletedTask;
-            return new Empty();
+            _logger.LogInformation("TransOutTry req={req}", JsonSerializer.Serialize(request));
+
+            if (string.IsNullOrWhiteSpace(request.TransOutResult) || request.TransOutResult.Equals("SUCCESS"))
+            {
+                await Task.CompletedTask;
+                return new Empty();
+            }
+            else if (request.TransOutResult.Equals("FAILURE"))
+            {
+                throw new Grpc.Core.RpcException(new Status(StatusCode.Aborted, "FAILURE"));
+            }
+            else if (request.TransOutResult.Equals("ONGOING"))
+            {
+                throw new Grpc.Core.RpcException(new Status(StatusCode.FailedPrecondition, "ONGOING"));
+            }
+
+            throw new Grpc.Core.RpcException(new Status(StatusCode.Internal, $"unknow result {request.TransOutResult}"));
         }
 
         public override async Task<Empty> TransOutConfirm(BusiReq request, ServerCallContext context)
