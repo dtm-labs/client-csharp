@@ -13,6 +13,7 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 builder.Services.AddGrpc();
+builder.Services.AddGrpcReflection();
 builder.Services.AddDtmGrpc(x =>
 {
     x.DtmGrpcUrl = "http://localhost:36790";
@@ -22,6 +23,10 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.MapGrpcService<BusiApiService>();
+
+IWebHostEnvironment env = app.Environment;
+if (env.IsDevelopment())
+    app.MapGrpcReflectionService();
 
 // test for workflow http branch
 app.MapGet("/test-http-ok1", () => "SUCCESS");

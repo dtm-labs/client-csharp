@@ -16,6 +16,25 @@ message BusiReq {
 message BusiReply {
   string message = 1;
 }
+
+enum OperateType {
+  Try = 0;
+  Confirm = 1;
+  Cancel = 2;
+}
+enum OperateResult {
+  Success = 0;
+  Fail = 1;
+}
+message StreamRequest {
+  OperateType OperateType = 1;
+  BusiReq busiRequest = 3;
+}
+message StreamReply {
+  OperateType OperateType = 1;
+  string Message = 3;
+}
+
 // The dtm service definition.
 service Busi {
   rpc TransIn(BusiReq) returns (google.protobuf.Empty) {}
@@ -47,4 +66,8 @@ service Busi {
   rpc QueryPrepared(BusiReq) returns (BusiReply) {}
   rpc QueryPreparedMySqlReal(BusiReq) returns (google.protobuf.Empty) {}
   rpc QueryPreparedRedis(BusiReq) returns (google.protobuf.Empty) {}
+  
+  // stream TCC
+  rpc StreamTransInTcc(stream StreamRequest) returns (stream StreamReply) {}
+  rpc StreamTransOutTcc(stream StreamRequest) returns (stream StreamReply) {}
 }

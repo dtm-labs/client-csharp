@@ -10,7 +10,7 @@ using DtmSERedisBarrier;
 
 namespace BusiGrpcService.Services
 {
-    public class BusiApiService : Busi.BusiBase
+    public partial class BusiApiService : Busi.BusiBase
     {
 
         private readonly ILogger<BusiApiService> _logger;
@@ -28,27 +28,6 @@ namespace BusiGrpcService.Services
         {
             string gid = context.RequestHeaders.Get("dtm-gid")?.Value;
             _logger.LogInformation("TransIn gid={gid} req={req}", gid, JsonSerializer.Serialize(request));
-
-            if (string.IsNullOrWhiteSpace(request.TransInResult) || request.TransInResult.Equals("SUCCESS"))
-            {
-                await Task.CompletedTask;
-                return new Empty();
-            }
-            else if (request.TransInResult.Equals("FAILURE"))
-            {
-                throw new Grpc.Core.RpcException(new Status(StatusCode.Aborted, "FAILURE"));
-            }
-            else if (request.TransInResult.Equals("ONGOING"))
-            {
-                throw new Grpc.Core.RpcException(new Status(StatusCode.FailedPrecondition, "ONGOING"));
-            }
-
-            throw new Grpc.Core.RpcException(new Status(StatusCode.Internal, $"unknow result {request.TransInResult}"));
-        }
-
-        public override async Task<Empty> TransInTcc(BusiReq request, ServerCallContext context)
-        {
-            _logger.LogInformation("TransIn req={req}", JsonSerializer.Serialize(request));
 
             if (string.IsNullOrWhiteSpace(request.TransInResult) || request.TransInResult.Equals("SUCCESS"))
             {
