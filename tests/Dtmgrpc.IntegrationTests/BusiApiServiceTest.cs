@@ -26,10 +26,11 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
         var provider = ITTestHelper.AddDtmGrpc();
         Busi.BusiClient busiClient = GetBusiClientWithWf(null, provider);
 
-        ConcurrentDictionary<OperateType, Grpc.Core.Status> progess = new ConcurrentDictionary<OperateType, Grpc.Core.Status>();
+        ConcurrentDictionary<OperateType, Grpc.Core.Status> progress = new ConcurrentDictionary<OperateType, Grpc.Core.Status>();
 
         using var call = busiClient.StreamTransOutTcc();
         testOutputHelper.WriteLine("Starting background task to receive messages");
+        bool callDisposed = false;
         Task readTask = Task.Run(async () =>
         {
             try
@@ -37,16 +38,18 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
                 await foreach (var response in call.ResponseStream.ReadAllAsync())
                 {
                     testOutputHelper.WriteLine($"{response.OperateType}: {response.Message}");
-                    progess[response.OperateType] = new Status(StatusCode.OK, "");
+                    progress[response.OperateType] = new Status(StatusCode.OK, "");
                 }
             }
             catch (RpcException ex)
             {
                 testOutputHelper.WriteLine($"Exception caught: {ex.Status.StatusCode} - {ex.Status.Detail}");
-                progess[OperateType.Try] = ex.Status; // how assess response.OperateType
+                progress[OperateType.Try] = ex.Status; // how assess response.OperateType
+                callDisposed = true;
             }
             catch (Exception ex)
             {
+                callDisposed = true;
                 throw;
             }
         });
@@ -61,9 +64,9 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
             BusiRequest = busiRequest,
         });
         // wait try
-        while (!progess.ContainsKey(OperateType.Try))
+        while (callDisposed || !progress.ContainsKey(OperateType.Try))
             Thread.Sleep(1000);
-        Assert.Equal(StatusCode.OK, progess[OperateType.Try].StatusCode);
+        Assert.Equal(StatusCode.OK, progress[OperateType.Try].StatusCode);
 
         // confirm
         await call.RequestStream.WriteAsync(new StreamRequest()
@@ -72,9 +75,9 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
             BusiRequest = busiRequest,
         });
         // wait Confirm
-        while (!progess.ContainsKey(OperateType.Confirm))
+        while (callDisposed || !progress.ContainsKey(OperateType.Confirm))
             Thread.Sleep(1000);
-        Assert.Equal(StatusCode.OK, progess[OperateType.Try].StatusCode);
+        Assert.Equal(StatusCode.OK, progress[OperateType.Try].StatusCode);
 
         await call.RequestStream.CompleteAsync();
         await readTask;
@@ -90,6 +93,7 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
 
         using AsyncDuplexStreamingCall<StreamRequest, StreamReply> call = busiClient.StreamTransOutTcc();
         testOutputHelper.WriteLine("Starting background task to receive messages");
+        bool callDisposed = false;
         Task readTask = Task.Run(async () =>
         {
             try
@@ -98,12 +102,14 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
                 {
                     testOutputHelper.WriteLine($"{response.OperateType}: {response.Message}");
                     progess[response.OperateType] = new Status(StatusCode.OK, "");
+                    callDisposed = true;
                 }
             }
             catch (RpcException ex)
             {
                 testOutputHelper.WriteLine($"Exception caught: {ex.Status.StatusCode} - {ex.Status.Detail}");
                 progess[OperateType.Try] = ex.Status; // how assess response.OperateType
+                callDisposed = true;
             }
         });
 
@@ -117,7 +123,7 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
             BusiRequest = busiRequest,
         });
         // wait try
-        while (!progess.ContainsKey(OperateType.Try))
+        while (callDisposed || !progess.ContainsKey(OperateType.Try))
             Thread.Sleep(1000);
         Assert.Equal(StatusCode.Aborted, progess[OperateType.Try].StatusCode);
         Assert.Equal("FAILURE", progess[OperateType.Try].Detail);
@@ -138,6 +144,7 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
 
         using AsyncDuplexStreamingCall<StreamRequest, StreamReply> call = busiClient.StreamTransOutTcc();
         testOutputHelper.WriteLine("Starting background task to receive messages");
+        bool callDisposed = false;
         Task readTask = Task.Run(async () =>
         {
             try
@@ -146,12 +153,14 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
                 {
                     testOutputHelper.WriteLine($"{response.OperateType}: {response.Message}");
                     progess[response.OperateType] = new Status(StatusCode.OK, "");
+                    callDisposed = true;
                 }
             }
             catch (RpcException ex)
             {
                 testOutputHelper.WriteLine($"Exception caught: {ex.Status.StatusCode} - {ex.Status.Detail}");
                 progess[OperateType.Try] = ex.Status; // how assess response.OperateType
+                callDisposed = true;
             }
         });
 
@@ -165,7 +174,7 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
             BusiRequest = busiRequest,
         });
         // wait try
-        while (!progess.ContainsKey(OperateType.Try))
+        while (callDisposed || !progess.ContainsKey(OperateType.Try))
             Thread.Sleep(1000);
         Assert.Equal(StatusCode.OK, progess[OperateType.Try].StatusCode);
 
@@ -176,7 +185,7 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
             BusiRequest = busiRequest,
         });
         // wait cancel
-        while (!progess.ContainsKey(OperateType.Cancel))
+        while (callDisposed || !progess.ContainsKey(OperateType.Cancel))
             Thread.Sleep(1000);
         Assert.Equal(StatusCode.OK, progess[OperateType.Cancel].StatusCode);
 

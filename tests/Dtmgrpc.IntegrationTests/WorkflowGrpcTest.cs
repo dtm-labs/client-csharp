@@ -518,7 +518,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("action", trans.Branches[0].Op);
 
             // same gid again
-            Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
             {
                 var result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
                 // DtmCommon.DtmFailureException: Status(StatusCode="Aborted", Detail="FAILURE")
@@ -610,7 +610,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("rollback", trans.Branches[2].Op);
 
             // same gid again
-            Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
             {
                 var result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
                 // DtmCommon.DtmFailureException
