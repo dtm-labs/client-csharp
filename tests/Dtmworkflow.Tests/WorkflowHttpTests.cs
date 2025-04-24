@@ -208,7 +208,7 @@ namespace Dtmworkflow.Tests
             wfgt.Register(wfName, handler);
             var req = JsonSerializer.Serialize(new { userId = "1", amount = 30 });
 
-            var res = await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true);
+            var res = await Assert.ThrowsAsync<DtmFailureException>(async () => await wfgt.Execute(wfName, gid, Encoding.UTF8.GetBytes(req), true));
 
             func.Verify(x => x.Invoke(It.IsAny<BranchBarrier>()), Times.Once);
         }
