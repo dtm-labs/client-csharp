@@ -81,6 +81,9 @@ namespace Dtmworkflow
                 await this.Submit(res, err, default);
             }
 
+            if (err != null)
+                throw err;
+
             return res;
         }
 
