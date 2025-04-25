@@ -10,11 +10,10 @@ public partial class BusiApiService
     public override async Task StreamTransOutTcc(IAsyncStreamReader<StreamRequest> requestStream, IServerStreamWriter<StreamReply> responseStream, ServerCallContext context)
     {
         // stream try -> confirm/cancel
-
         await foreach (var request in requestStream.ReadAllAsync())
         {
-            string gid = context.RequestHeaders.Get("dtm-gid")?.Value;
-            // _logger.LogInformation($"{nameof(StreamTransOutTcc)} gid={gid} req={request}", gid, JsonSerializer.Serialize(request));
+            var tb = _client.TransBaseFromGrpc(context);
+            _logger.LogInformation($"{nameof(StreamTransOutTcc)} tb={JsonSerializer.Serialize(tb)}, req={JsonSerializer.Serialize(request)}");
 
             switch (request.OperateType)
             {
@@ -42,15 +41,11 @@ public partial class BusiApiService
                 }
                 case OperateType.Confirm:
                 {
-                    var tb = _client.TransBaseFromGrpc(context);
-                    // _logger.LogInformation($"{nameof(StreamTransOutTcc)} tb={tb}, req={request}", JsonSerializer.Serialize(tb), JsonSerializer.Serialize(request));
                     await responseStream.WriteAsync(new StreamReply { OperateType = request.OperateType, Message = "Confirmed" });
                     break;
                 }
                 case OperateType.Cancel:
                 {
-                    var tb = _client.TransBaseFromGrpc(context);
-                    // _logger.LogInformation($"{nameof(StreamTransOutTcc)} tb={tb}, req={request}", JsonSerializer.Serialize(tb), JsonSerializer.Serialize(request));
                     await responseStream.WriteAsync(new StreamReply { OperateType = request.OperateType, Message = "Canceled" });
                     break;
                 }
@@ -65,11 +60,10 @@ public partial class BusiApiService
     public override async Task StreamTransInTcc(IAsyncStreamReader<StreamRequest> requestStream, IServerStreamWriter<StreamReply> responseStream, ServerCallContext context)
     {
         // stream try -> confirm/cancel
-
         await foreach (var request in requestStream.ReadAllAsync())
         {
-            // string gid = context.RequestHeaders.Get("dtm-gid")?.Value;
-            // _logger.LogInformation($"{nameof(StreamTransInTcc)} gid={gid} req={request}", gid, JsonSerializer.Serialize(request));
+            var tb = _client.TransBaseFromGrpc(context);
+            _logger.LogInformation($"{nameof(StreamTransOutTcc)} tb={JsonSerializer.Serialize(tb)}, req={JsonSerializer.Serialize(request)}");
 
             switch (request.OperateType)
             {
@@ -100,8 +94,6 @@ public partial class BusiApiService
                 }
                 case OperateType.Confirm:
                 {
-                    var tb = _client.TransBaseFromGrpc(context);
-                    // _logger.LogInformation($"{nameof(StreamTransInTcc)} tb={tb}, req={request}", JsonSerializer.Serialize(tb), JsonSerializer.Serialize(request));
                     await responseStream.WriteAsync(new StreamReply
                     {
                         OperateType = request.OperateType,
@@ -111,8 +103,6 @@ public partial class BusiApiService
                 }
                 case OperateType.Cancel:
                 {
-                    var tb = _client.TransBaseFromGrpc(context);
-                    // _logger.LogInformation($"{nameof(StreamTransInTcc)} tb={tb}, req={request}", JsonSerializer.Serialize(tb), JsonSerializer.Serialize(request));
                     await responseStream.WriteAsync(new StreamReply
                     {
                         OperateType = request.OperateType,

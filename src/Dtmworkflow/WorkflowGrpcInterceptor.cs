@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Grpc.Core;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dtmworkflow;
 
+// [gRPC interceptors on .NET | Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/grpc/interceptors?view=aspnetcore-9.0)
 public class WorkflowGrpcInterceptor(Workflow wf, ILogger<WorkflowGrpcInterceptor> logger) : Interceptor
 {
     public WorkflowGrpcInterceptor(Workflow wf) : this(wf, null)
@@ -72,6 +74,95 @@ public class WorkflowGrpcInterceptor(Workflow wf, ILogger<WorkflowGrpcIntercepto
         return call;
     }
 
+    public override AsyncDuplexStreamingCall<TRequest, TResponse> AsyncDuplexStreamingCall<TRequest, TResponse>(
+        ClientInterceptorContext<TRequest, TResponse> context,
+        AsyncDuplexStreamingCallContinuation<TRequest, TResponse> continuation)
+    {
+        logger?.LogDebug($"grpc client calling: {context.Host}{context.Method.FullName}");
+
+        if (wf == null)
+        {
+            return base.AsyncDuplexStreamingCall(context, continuation);
+        }
+
+        var newContext = Dtmgimp.TransInfo2Ctx(context, wf.TransBase.Gid, wf.TransBase.TransType, wf.WorkflowImp.CurrentBranch, wf.WorkflowImp.CurrentOp, wf.TransBase.Dtm);
+
+        var call = continuation(newContext);
+
+        return new AsyncDuplexStreamingCall<TRequest, TResponse>(
+            new InterceptingClientStreamWriter<TRequest>(call.RequestStream, async (request) =>
+            {
+                logger?.LogDebug($"grpc client sending: {context.Host}{context.Method.FullName}");
+                await call.RequestStream.WriteAsync(request);
+            }),
+            new InterceptingClientStreamReader<TResponse>(call.ResponseStream, async () =>
+            {
+                try
+                {
+                    var response = await call.ResponseStream.MoveNext();
+                    logger?.LogDebug($"grpc client received: {context.Host}{context.Method.FullName}");
+                    return response;
+                }
+                catch (Exception e)
+                {
+                    logger?.LogError($"grpc client: {context.Host}{context.Method.FullName} ex: {e}");
+                    throw;
+                }
+            }),
+            call.ResponseHeadersAsync,
+            call.GetStatus,
+            call.GetTrailers,
+            call.Dispose
+        );
+    }
+
+    private class InterceptingClientStreamWriter<T> : IClientStreamWriter<T>
+    {
+        private readonly IClientStreamWriter<T> _innerWriter;
+        private readonly Func<T, Task> _onWrite;
+
+        public InterceptingClientStreamWriter(IClientStreamWriter<T> innerWriter, Func<T, Task> onWrite)
+        {
+            _innerWriter = innerWriter;
+            _onWrite = onWrite;
+        }
+
+        public WriteOptions WriteOptions
+        {
+            get => _innerWriter.WriteOptions;
+            set => _innerWriter.WriteOptions = value;
+        }
+
+        public Task WriteAsync(T message)
+        {
+            return _onWrite(message).ContinueWith(_ => _innerWriter.WriteAsync(message)).Unwrap();
+        }
+
+        public Task CompleteAsync()
+        {
+            return _innerWriter.CompleteAsync();
+        }
+    }
+
+    private class InterceptingClientStreamReader<T> : IAsyncStreamReader<T>
+    {
+        private readonly IAsyncStreamReader<T> _innerReader;
+        private readonly Func<Task<bool>> _onMoveNext;
+
+        public InterceptingClientStreamReader(IAsyncStreamReader<T> innerReader, Func<Task<bool>> onMoveNext)
+        {
+            _innerReader = innerReader;
+            _onMoveNext = onMoveNext;
+        }
+
+        public T Current => _innerReader.Current;
+
+        public Task<bool> MoveNext(CancellationToken cancellationToken)
+        {
+            return _onMoveNext();
+        }
+    }
+
     private class Dtmgimp
     {
         public static ClientInterceptorContext<TRequest, TResponse> TransInfo2Ctx<TRequest, TResponse>(
@@ -84,6 +175,15 @@ public class WorkflowGrpcInterceptor(Workflow wf, ILogger<WorkflowGrpcIntercepto
         {
             // 创建一个新的元数据对象
             var headers = new Metadata();
+            // 包含原始的元数据
+            if (ctx.Options.Headers != null)
+            {
+                foreach (Metadata.Entry entity in ctx.Options.Headers)
+                {
+                    headers.Add(entity.Key, entity.Value);
+                }
+            }
+
             // 添加自定义元数据
             const string dtmpre = "dtm-";
             headers.Add(dtmpre + "gid", gid);
@@ -91,6 +191,7 @@ public class WorkflowGrpcInterceptor(Workflow wf, ILogger<WorkflowGrpcIntercepto
             headers.Add(dtmpre + "branch_id", branchID);
             headers.Add(dtmpre + "op", op);
             headers.Add(dtmpre + "dtm", dtm);
+
             // 修改上下文的元数据
             var nctx = new ClientInterceptorContext<TRequest, TResponse>(
                 ctx.Method,
