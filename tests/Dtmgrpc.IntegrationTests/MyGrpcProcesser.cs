@@ -29,6 +29,7 @@ public class MyGrpcProcesser(AsyncDuplexStreamingCall<StreamRequest, StreamReply
                     }
                     else
                     {
+                        // 这个位置被人问了， 会覆盖刚才问的。
                         progress[response.OperateType] = new TaskCompletionSource<Status>(new Status(StatusCode.OK, ""));
                     }
                 }

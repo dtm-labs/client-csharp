@@ -13,7 +13,8 @@ public partial class BusiApiService
         await foreach (var request in requestStream.ReadAllAsync())
         {
             var tb = _client.TransBaseFromGrpc(context);
-            _logger.LogInformation($"{nameof(StreamTransOutTcc)} tb={JsonSerializer.Serialize(tb)}, req={JsonSerializer.Serialize(request)}");
+            string subCallId = context.RequestHeaders.GetValue("sub-call-id");
+            _logger.LogInformation($"{nameof(StreamTransOutTcc)} subCallId: {subCallId} gid={tb.Gid} op={tb.Op}, req={JsonSerializer.Serialize(request)}");
 
             switch (request.OperateType)
             {
@@ -21,7 +22,6 @@ public partial class BusiApiService
                 {
                     if (string.IsNullOrWhiteSpace(request.BusiRequest.TransOutResult) || request.BusiRequest.TransOutResult.Equals("SUCCESS"))
                     {
-                        await Task.CompletedTask;
                         await responseStream.WriteAsync(new StreamReply { OperateType = request.OperateType, Message = "Tried, waiting your confirm..." });
                     }
                     else if (request.BusiRequest.TransOutResult.Equals("FAILURE"))
@@ -63,7 +63,8 @@ public partial class BusiApiService
         await foreach (var request in requestStream.ReadAllAsync())
         {
             var tb = _client.TransBaseFromGrpc(context);
-            _logger.LogInformation($"{nameof(StreamTransOutTcc)} tb={JsonSerializer.Serialize(tb)}, req={JsonSerializer.Serialize(request)}");
+            string subCallId = context.RequestHeaders.GetValue("sub-call-id");
+            _logger.LogInformation($"{nameof(StreamTransOutTcc)} subCallId: {subCallId} tb={JsonSerializer.Serialize(tb)}, req={JsonSerializer.Serialize(request)}");
 
             switch (request.OperateType)
             {
