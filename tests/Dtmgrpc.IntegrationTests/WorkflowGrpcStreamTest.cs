@@ -52,6 +52,7 @@ namespace Dtmgrpc.IntegrationTests
                         await call.RequestStream.WriteAsync(new StreamRequest()
                         {
                             OperateType = OperateType.Confirm,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                             BusiRequest = busiRequest,
                         });
                         // wait Confirm
@@ -63,6 +64,7 @@ namespace Dtmgrpc.IntegrationTests
                         await call.RequestStream.WriteAsync(new StreamRequest()
                         {
                             OperateType = OperateType.Confirm,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                             BusiRequest = busiRequest,
                         });
                         // wait Confirm
@@ -79,6 +81,7 @@ namespace Dtmgrpc.IntegrationTests
                     await call.RequestStream.WriteAsync(new StreamRequest()
                     {
                         OperateType = OperateType.Try,
+                        DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                         BusiRequest = busiRequest,
                     });
                     // wait try
@@ -147,6 +150,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("commit", trans.Branches[2].Op);
         }
 
+
         [Fact]
         public async Task Execute_StreamGrpcTccAndDo_TryCancel()
         {
@@ -170,6 +174,7 @@ namespace Dtmgrpc.IntegrationTests
                         await call.RequestStream.WriteAsync(new StreamRequest()
                         {
                             OperateType = OperateType.Confirm,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                             BusiRequest = busiRequest,
                         });
                         // wait Confirm
@@ -181,6 +186,7 @@ namespace Dtmgrpc.IntegrationTests
                         await call.RequestStream.WriteAsync(new StreamRequest()
                         {
                             OperateType = OperateType.Cancel,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                             BusiRequest = busiRequest,
                         });
                         // wait Confirm
@@ -197,6 +203,7 @@ namespace Dtmgrpc.IntegrationTests
                     await call.RequestStream.WriteAsync(new StreamRequest()
                     {
                         OperateType = OperateType.Try,
+                        DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                         BusiRequest = busiRequest,
                     });
                     // wait try
@@ -302,6 +309,7 @@ namespace Dtmgrpc.IntegrationTests
                         await call.RequestStream.WriteAsync(new StreamRequest()
                         {
                             OperateType = OperateType.Confirm,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                             BusiRequest = busiRequest,
                         });
                         // wait Confirm
@@ -314,6 +322,7 @@ namespace Dtmgrpc.IntegrationTests
                         await call.RequestStream.WriteAsync(new StreamRequest()
                         {
                             OperateType = OperateType.Confirm,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                             BusiRequest = busiRequest,
                         });
                         // wait Confirm
@@ -330,6 +339,7 @@ namespace Dtmgrpc.IntegrationTests
                     await call.RequestStream.WriteAsync(new StreamRequest()
                     {
                         OperateType = OperateType.Try,
+                        DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                         BusiRequest = busiRequest,
                     });
                     // wait try
@@ -529,6 +539,18 @@ namespace Dtmgrpc.IntegrationTests
             // var callInvoker = channel.Intercept();
             Busi.BusiClient busiClient = new Busi.BusiClient(callInvoker);
             return busiClient;
+        }
+        
+        private DtmBranchTransInfo CurrentBranchTransInfo(Workflow wf)
+        {
+            return new DtmBranchTransInfo()
+            {
+                Gid = wf.TransBase.Gid,
+                TransType = wf.TransBase.TransType,
+                BranchId = wf.WorkflowImp.CurrentBranch,
+                Op = wf.WorkflowImp.CurrentOp,
+                Dtm = wf.TransBase.Dtm,
+            };
         }
     }
 }

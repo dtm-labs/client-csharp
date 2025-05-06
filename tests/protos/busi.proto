@@ -22,12 +22,22 @@ enum OperateType {
   Confirm = 1;
   Cancel = 2;
 }
+
+message DtmBranchTransInfo  {
+  string Gid = 1;
+  string TransType = 2;
+  string BranchId = 3;
+  string Op = 4;
+  string Dtm = 5;
+}
+
 enum OperateResult {
   Success = 0;
   Fail = 1;
 }
 message StreamRequest {
   OperateType OperateType = 1;
+  DtmBranchTransInfo DtmBranchTransInfo = 2;
   BusiReq busiRequest = 3;
 }
 message StreamReply {
@@ -66,7 +76,7 @@ service Busi {
   rpc QueryPrepared(BusiReq) returns (BusiReply) {}
   rpc QueryPreparedMySqlReal(BusiReq) returns (google.protobuf.Empty) {}
   rpc QueryPreparedRedis(BusiReq) returns (google.protobuf.Empty) {}
-  
+
   // stream TCC
   rpc StreamTransInTcc(stream StreamRequest) returns (stream StreamReply) {}
   rpc StreamTransOutTcc(stream StreamRequest) returns (stream StreamReply) {}

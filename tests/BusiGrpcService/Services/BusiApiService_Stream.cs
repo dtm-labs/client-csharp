@@ -1,5 +1,6 @@
 using System.Text.Json;
 using busi;
+using DtmCommon;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 
@@ -12,9 +13,17 @@ public partial class BusiApiService
         // stream try -> confirm/cancel
         await foreach (var request in requestStream.ReadAllAsync())
         {
-            var tb = _client.TransBaseFromGrpc(context);
-            string subCallId = context.RequestHeaders.GetValue("sub-call-id");
-            _logger.LogInformation($"{nameof(StreamTransOutTcc)} subCallId: {subCallId} gid={tb.Gid} op={tb.Op}, req={JsonSerializer.Serialize(request)}");
+            BranchBarrier barrier = _barrierFactory.CreateBranchBarrier(
+                request.DtmBranchTransInfo.TransType,
+                request.DtmBranchTransInfo.Gid,
+                request.DtmBranchTransInfo.BranchId,
+                request.DtmBranchTransInfo.Op, _logger);
+            _logger.LogInformation(
+                $"{nameof(StreamTransOutTcc)} gid={barrier.Gid} branch_id={barrier.BranchID} op={barrier.Op}, req={JsonSerializer.Serialize(request)}");
+            // barrier.Call(db, transaction =>
+            // {
+            //
+            // });
 
             switch (request.OperateType)
             {
@@ -62,9 +71,17 @@ public partial class BusiApiService
         // stream try -> confirm/cancel
         await foreach (var request in requestStream.ReadAllAsync())
         {
-            var tb = _client.TransBaseFromGrpc(context);
-            string subCallId = context.RequestHeaders.GetValue("sub-call-id");
-            _logger.LogInformation($"{nameof(StreamTransOutTcc)} subCallId: {subCallId} tb={JsonSerializer.Serialize(tb)}, req={JsonSerializer.Serialize(request)}");
+            BranchBarrier barrier = _barrierFactory.CreateBranchBarrier(
+                request.DtmBranchTransInfo.TransType,
+                request.DtmBranchTransInfo.Gid,
+                request.DtmBranchTransInfo.BranchId,
+                request.DtmBranchTransInfo.Op, _logger);
+            _logger.LogInformation(
+                $"{nameof(StreamTransOutTcc)} trans_type={barrier.TransType} gid={barrier.Gid} branch_id={barrier.BranchID} op={barrier.Op}, req={JsonSerializer.Serialize(request)}");
+            // barrier.Call(db, transaction =>
+            // {
+            //
+            // });
 
             switch (request.OperateType)
             {
