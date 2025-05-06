@@ -23,26 +23,17 @@ public class MyGrpcProcesser(AsyncDuplexStreamingCall<StreamRequest, StreamReply
                 await foreach (var response in asyncEnumerable)
                 {
                     testOutputHelper.WriteLine($"{response.OperateType}: {response.Message}");
-                    if (progress.TryGetValue(response.OperateType, out var tcs))
-                    {
-                        tcs.TrySetResult(new Status(StatusCode.OK, ""));
-                    }
-                    else
-                    {
-                        // 这个位置被人问了， 会覆盖刚才问的。
-                        progress[response.OperateType] = new TaskCompletionSource<Status>(new Status(StatusCode.OK, ""));
-                    }
+                    TaskCompletionSource<Status> tcs = progress.GetOrAdd(response.OperateType, type => new TaskCompletionSource<Status>());
+                    tcs.SetResult(new Status(StatusCode.OK, ""));
                 }
             }
             catch (RpcException ex)
             {
                 testOutputHelper.WriteLine($"Exception caught: {ex.Status.StatusCode} - {ex.Status.Detail}");
-                if (progress.TryGetValue(OperateType.Try, out var tcs))
-                {
-                    bool _ = tcs.TrySetResult(ex.Status);
-                }
-                else
-                    progress[OperateType.Try] = new TaskCompletionSource<Status>(ex.Status); // TODO 应答对应的哪个请求
+
+                // TODO 应答对应的哪个请求
+                var tcs = progress.GetOrAdd(OperateType.Try, type => new TaskCompletionSource<Status>());
+                tcs.SetResult(ex.Status);
 
                 _callDisposed.SetResult();
                 throw;
@@ -58,11 +49,7 @@ public class MyGrpcProcesser(AsyncDuplexStreamingCall<StreamRequest, StreamReply
 
     public async Task<Status> GetResult(OperateType operateType)
     {
-        if (!progress.TryGetValue(operateType, out var tcs))
-        {
-            tcs = new TaskCompletionSource<Status>();
-            progress[operateType] = tcs;
-        }
+        TaskCompletionSource<Status> tcs = progress.GetOrAdd(operateType, type => new TaskCompletionSource<Status>());
 
         Task.WaitAny(_callDisposed.Task, tcs.Task);
         return await tcs.Task;
