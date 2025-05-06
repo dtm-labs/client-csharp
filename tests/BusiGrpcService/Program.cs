@@ -29,10 +29,22 @@ if (env.IsDevelopment())
     app.MapGrpcReflectionService();
 
 // test for workflow http branch
-app.MapGet("/test-http-ok1", () => "SUCCESS");
-app.MapGet("/test-http-ok2", () => "SUCCESS");
+app.MapGet("/test-http-ok1", context =>
+{
+    Console.Out.WriteLine($"QueryString: {context.Request.QueryString}");
+    context.Response.StatusCode = 200;
+    return context.Response.WriteAsync("SUCCESS"); // FAILURE
+});
+
+app.MapGet("/test-http-ok2", context =>
+{
+    Console.Out.WriteLine($"QueryString: {context.Request.QueryString}");
+    context.Response.StatusCode = 200;
+    return context.Response.WriteAsync("SUCCESS"); // FAILURE
+});
 app.MapGet("/409", context =>
-{    
+{
+    Console.Out.WriteLine($"QueryString: {context.Request.QueryString}");
     context.Response.StatusCode = 409;
     return context.Response.WriteAsync("i am body, the http branch is 409"); // FAILURE
 });

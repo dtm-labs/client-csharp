@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Dtmworkflow;
 
@@ -19,6 +20,16 @@ internal class WorkflowHttpInterceptor : DelegatingHandler
     {
         Func<DtmCommon.BranchBarrier, Task<StepResult>> origin = async (barrier) =>
         {
+            var uriBuilder = new UriBuilder(request.RequestUri);
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            query["branch_id"] = _wf.WorkflowImp.CurrentBranch;
+            query["gid"] = _wf.TransBase.Gid;
+            query["op"] = _wf.WorkflowImp.CurrentOp;
+            query["trans_type"] = _wf.TransBase.TransType;
+            query["dtm"] = _wf.TransBase.Dtm;
+            uriBuilder.Query = query.ToString();
+            request.RequestUri = uriBuilder.Uri;            
+
             var response = await base.SendAsync(request, cancellationToken);
             return _wf.StepResultFromHTTP(response, null);
         };
