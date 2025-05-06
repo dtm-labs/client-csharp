@@ -198,9 +198,12 @@ namespace Dtmgrpc.IntegrationTests
             
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
-            
-            byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
-            Assert.Null(result);
+
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
+            {
+                byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
+            });
+          
             // same gid again
             await Assert.ThrowsAsync<DtmCommon.DtmFailureException>( async () =>
             {
@@ -345,10 +348,13 @@ namespace Dtmgrpc.IntegrationTests
             
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
-            
+
             // first
-            byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
-            // Assert.Null(result);
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
+            {
+                byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
+            });
+            
             trans = await dtmClient.Query(gid, CancellationToken.None);
             Assert.Equal("failed", trans.Transaction.Status);
             // BranchID	Op	Status	CreateTime	UpdateTime	Url
@@ -368,11 +374,11 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("succeed", trans.Branches[3].Status);
             Assert.Equal("rollback", trans.Branches[4].Op);
             Assert.Equal("succeed", trans.Branches[4].Status);
-            
+
             // same gid again
-            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>( async () =>
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
             {
-                result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
+                byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             });
         }
         
@@ -505,10 +511,12 @@ namespace Dtmgrpc.IntegrationTests
             
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
-            
+
             // first
-            byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
-            Assert.Null(result);
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
+            {
+                byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
+            });
             trans = await dtmClient.Query(gid, CancellationToken.None);
             // BranchID	Op	Status
             // 01	action	failed
@@ -520,7 +528,7 @@ namespace Dtmgrpc.IntegrationTests
             // same gid again
             await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
             {
-                var result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
+                byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
                 // DtmCommon.DtmFailureException: Status(StatusCode="Aborted", Detail="FAILURE")
                 //
                 // DtmCommon.DtmFailureException
@@ -537,7 +545,6 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("failed", trans.Branches[0].Status);
             Assert.Equal("action", trans.Branches[0].Op);
         }
-        
         
         [Fact]
         public async Task Execute_GrpcTccAndDo_Should_DoFailed()
@@ -593,8 +600,11 @@ namespace Dtmgrpc.IntegrationTests
             TransGlobal trans;
             
             // first
-            byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
-            Assert.Null(result);
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
+            {
+                byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
+            });
+           
             trans = await dtmClient.Query(gid, CancellationToken.None);
             // BranchID	Op	Status
             // 01	action	succeed			
