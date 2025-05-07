@@ -14,10 +14,10 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
-builder.Services.AddDtmGrpc(x =>
-{
-    x.DtmGrpcUrl = "http://localhost:36790";
-});
+builder.Services.AddDtmGrpc(x => { x.DtmGrpcUrl = "http://localhost:36790"; });
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -26,28 +26,16 @@ app.MapGrpcService<BusiApiService>();
 
 IWebHostEnvironment env = app.Environment;
 if (env.IsDevelopment())
+{
     app.MapGrpcReflectionService();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-// test for workflow http branch
-app.MapGet("/test-http-ok1", context =>
-{
-    Console.Out.WriteLine($"QueryString: {context.Request.QueryString}");
-    context.Response.StatusCode = 200;
-    return context.Response.WriteAsync("SUCCESS"); // FAILURE
-});
 
-app.MapGet("/test-http-ok2", context =>
-{
-    Console.Out.WriteLine($"QueryString: {context.Request.QueryString}");
-    context.Response.StatusCode = 200;
-    return context.Response.WriteAsync("SUCCESS"); // FAILURE
-});
-app.MapGet("/409", context =>
-{
-    Console.Out.WriteLine($"QueryString: {context.Request.QueryString}");
-    context.Response.StatusCode = 409;
-    return context.Response.WriteAsync("i am body, the http branch is 409"); // FAILURE
-});
+app.MapSwagger();
+app.MapDefaultControllerRoute();
+app.MapControllers();
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 app.Run();
