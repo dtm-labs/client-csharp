@@ -71,7 +71,7 @@ namespace Dtmgrpc.IntegrationTests
                         var result = await myGrpcProcesser.GetResult(OperateType.Cancel);
                         Assert.Equal(StatusCode.OK, result.StatusCode);
                     });
-                Busi.BusiClient busiClient = GetBusiClientWithWf(workflow, provider);
+                Busi.BusiClient busiClient = GetBusiClient();
                 call = busiClient.StreamTransOutTcc();
                 myGrpcProcesser = new MyGrpcProcesser(call, _testOutputHelper);
                 readTask = myGrpcProcesser.HandleResponse();
@@ -193,7 +193,7 @@ namespace Dtmgrpc.IntegrationTests
                         var result = await myGrpcProcesser.GetResult(OperateType.Cancel);
                         Assert.Equal(StatusCode.OK, result.StatusCode);
                     });
-                Busi.BusiClient busiClient = GetBusiClientWithWf(workflow, provider);
+                Busi.BusiClient busiClient = GetBusiClient();
                 call = busiClient.StreamTransOutTcc();
                 myGrpcProcesser = new MyGrpcProcesser(call, _testOutputHelper);
                 readTask = myGrpcProcesser.HandleResponse();
@@ -329,7 +329,7 @@ namespace Dtmgrpc.IntegrationTests
                         var result = await myGrpcProcesser.GetResult(OperateType.Cancel);
                         Assert.Equal(StatusCode.OK, result.StatusCode);
                     });
-                Busi.BusiClient busiClient = GetBusiClientWithWf(workflow, provider);
+                Busi.BusiClient busiClient = GetBusiClient();
                 call = busiClient.StreamTransOutTcc();
                 myGrpcProcesser = new MyGrpcProcesser(call, _testOutputHelper);
                 readTask = myGrpcProcesser.HandleResponse();
@@ -412,133 +412,10 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("action", trans.Branches[0].Op);
         }
 
-        //
-        // [Fact]
-        // public async Task Execute_StreamGrpcTccAndDo_TryFailed()
-        // {
-        //     var provider = ITTestHelper.AddDtmGrpc();
-        //     var workflowFactory = provider.GetRequiredService<IWorkflowFactory>();
-        //     var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-        //     WorkflowGlobalTransaction workflowGlobalTransaction = new WorkflowGlobalTransaction(workflowFactory, loggerFactory);
-        //
-        //     string wfName1 = $"{nameof(this.Execute_StreamGrpcTccAndDo_TryFailed)}-{Guid.NewGuid().ToString("D")[..8]}";
-        //     Task readTask = null;
-        //     AsyncDuplexStreamingCall<StreamRequest, StreamReply> call = null;
-        //     workflowGlobalTransaction.Register(wfName1, async (workflow, data) =>
-        //     {
-        //         BusiReq busiRequest = JsonConvert.DeserializeObject<BusiReq>(Encoding.UTF8.GetString(data));
-        //
-        //         Busi.BusiClient busiClient = null;
-        //
-        //         ConcurrentDictionary<OperateType, Grpc.Core.Status> progress = new ConcurrentDictionary<OperateType, Grpc.Core.Status>();
-        //
-        //         // 1. grpc1 TCC
-        //         Workflow wf = workflow.NewBranch()
-        //             .OnCommit(async (barrier) => // confirm
-        //             {
-        //                 await call.RequestStream.WriteAsync(new StreamRequest()
-        //                 {
-        //                     OperateType = OperateType.Confirm,
-        //                     BusiRequest = busiRequest,
-        //                 });
-        //                 // wait Confirm
-        //                 while (!progress.ContainsKey(OperateType.Confirm))
-        //                     Thread.Sleep(1000);
-        //                 Assert.Equal(StatusCode.OK, progress[OperateType.Try].StatusCode);
-        //             })
-        //             .OnRollback(async (barrier) => // cancel
-        //             {
-        //                 await call.RequestStream.WriteAsync(new StreamRequest()
-        //                 {
-        //                     OperateType = OperateType.Confirm,
-        //                     BusiRequest = busiRequest,
-        //                 });
-        //                 // wait Confirm
-        //                 while (!progress.ContainsKey(OperateType.Confirm))
-        //                     Thread.Sleep(1000);
-        //                 Assert.Equal(StatusCode.OK, progress[OperateType.Try].StatusCode);
-        //             });
-        //         busiClient = GetBusiClientWithWf(wf, provider);
-        //         call = busiClient.StreamTransOutTcc();
-        //         using var call2 = call;
-        //         readTask = Task.Run(async () =>
-        //         {
-        //             try
-        //             {
-        //                 await foreach (var response in call.ResponseStream.ReadAllAsync())
-        //                 {
-        //                     _testOutputHelper.WriteLine($"{response.OperateType}: {response.Message}");
-        //                     progress[response.OperateType] = new Status(StatusCode.OK, "");
-        //                 }
-        //             }
-        //             catch (RpcException ex)
-        //             {
-        //                 _testOutputHelper.WriteLine($"Exception caught: {ex.Status.StatusCode} - {ex.Status.Detail}");
-        //                 progress[OperateType.Try] = ex.Status; // how assess response.OperateType
-        //             }
-        //             catch (Exception ex)
-        //             {
-        //                 _testOutputHelper.WriteLine($"Exception caught: {ex}");
-        //                 throw;
-        //             }
-        //         });
-        //
-        //         // try failed
-        //         await call.RequestStream.WriteAsync(new StreamRequest()
-        //         {
-        //             OperateType = OperateType.Try,
-        //             BusiRequest = busiRequest,
-        //         });
-        //         // wait try
-        //         while (!progress.ContainsKey(OperateType.Try))
-        //             Thread.Sleep(1000);
-        //         Assert.Equal(StatusCode.Aborted, progress[OperateType.Try].StatusCode);
-        //         Assert.Equal("FAILURE", progress[OperateType.Try].Detail);
-        //         throw new DtmFailureException($"sub trans1 try failed(grpc): {progress[OperateType.Try].Detail}");
-        //         // throw new Exception($"sub trans1 try failed(grpc): {progress[OperateType.Try].Detail}");
-        //     });
-        //
-        //     string gid = wfName1 + Guid.NewGuid().ToString()[..8];
-        //     var req = ITTestHelper.GenBusiReq(outFailed: true, false);
-        //
-        //     DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
-        //     TransGlobal trans;
-        //
-        //     // first
-        //     // await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
-        //     {
-        //         byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
-        //     }
-        //     // );
-        //     await readTask;
-        //     trans = await dtmClient.Query(gid, CancellationToken.None);
-        //     Assert.Equal("failed", trans.Transaction.Status);
-        //     Assert.Equal(0, trans.Branches.Count);
-        //
-        //
-        //     // same gid again
-        //     await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
-        //         {
-        //             var result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
-        //             // DtmCommon.DtmFailureException
-        //             //     sub trans1 try failed(grpc): FAILURE
-        //             //     at Dtmworkflow.Workflow.Process(WfFunc2 handler, Byte[] data) in src/Dtmworkflow/Workflow.Imp.cs
-        //             // at Dtmworkflow.WorkflowGlobalTransaction.Execute(String name, String gid, Byte[] data, Boolean isHttp) in src/Dtmworkflow/WorkflowGlobalTransaction.cs
-        //             // at Dtmgrpc.IntegrationTests.WorkflowGrpcTest.Execute_GrpcTccAndDo_Should_DoFailed() in tests/Dtmgrpc.IntegrationTests/WorkflowGrpcTest.cs
-        //         }
-        //     );
-        // }
-
-        private static Busi.BusiClient GetBusiClientWithWf(Workflow wf, ServiceProvider provider)
+        private static Busi.BusiClient GetBusiClient()
         {
-            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
             var channel = GrpcChannel.ForAddress(ITTestHelper.BuisgRPCUrlWithProtocol);
-            var logger = loggerFactory.CreateLogger<WorkflowGrpcInterceptor>();
-            var interceptor = new WorkflowGrpcInterceptor(wf, logger); // inject client interceptor, and workflow instance
-            var callInvoker = channel.Intercept(interceptor);
-            // var callInvoker = channel.Intercept();
-            Busi.BusiClient busiClient = new Busi.BusiClient(callInvoker);
-            return busiClient;
+            return new Busi.BusiClient(channel);
         }
 
         private DtmBranchTransInfo CurrentBranchTransInfo(Workflow wf)
