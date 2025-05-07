@@ -85,9 +85,7 @@ public class WorkflowGrpcInterceptor(Workflow wf, ILogger<WorkflowGrpcIntercepto
             string op,
             string dtm) where TRequest : class where TResponse : class
         {
-            // 创建一个新的元数据对象
             var headers = new Metadata();
-            // 包含原始的元数据
             if (ctx.Options.Headers != null)
             {
                 foreach (Metadata.Entry entity in ctx.Options.Headers)
@@ -96,7 +94,6 @@ public class WorkflowGrpcInterceptor(Workflow wf, ILogger<WorkflowGrpcIntercepto
                 }
             }
 
-            // 添加自定义元数据
             const string dtmpre = "dtm-";
             headers.Add(dtmpre + "gid", gid);
             headers.Add(dtmpre + "trans_type", transType);
@@ -104,10 +101,8 @@ public class WorkflowGrpcInterceptor(Workflow wf, ILogger<WorkflowGrpcIntercepto
             headers.Add(dtmpre + "op", op);
             headers.Add(dtmpre + "dtm", dtm);
 
-            // 增加唯一标识, 用于Response的配对
             headers.Add("sub-call-id", $"{op}-{Guid.NewGuid()}");
 
-            // 修改上下文的元数据
             var nctx = new ClientInterceptorContext<TRequest, TResponse>(
                 ctx.Method,
                 ctx.Host,

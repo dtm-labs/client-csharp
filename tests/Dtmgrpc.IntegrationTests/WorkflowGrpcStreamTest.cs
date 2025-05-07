@@ -88,13 +88,13 @@ namespace Dtmgrpc.IntegrationTests
                     var result = await myGrpcProcesser.GetResult(OperateType.Try);
                     Assert.Equal(StatusCode.OK, result.StatusCode);
                     return (""u8.ToArray(), null);
-                }); // 正向
+                });
                 if (stepEx != null)
                     throw stepEx;
 
-                // 2. local， 可以是SAG, 因为排在最后，不必写反向的回滚
+                // 2. local， maybe SAG, at the end, no need to write the reverse rollback.
                 (_, stepEx) = await workflow.NewBranch()
-                    // .OnRollback(async (barrier) => // 反向 rollback
+                    // .OnRollback(async (barrier) =>
                     // {
                     //     _testOutputHelper.WriteLine("1. local rollback");
                     // })
@@ -102,7 +102,7 @@ namespace Dtmgrpc.IntegrationTests
                     {
                         _testOutputHelper.WriteLine("2. local do");
                         return ("my result"u8.ToArray(), null);
-                    }); // 正向
+                    });
                 if (stepEx != null)
                     throw stepEx;
 
@@ -210,13 +210,13 @@ namespace Dtmgrpc.IntegrationTests
                     var result = await myGrpcProcesser.GetResult(OperateType.Try);
                     Assert.Equal(StatusCode.OK, result.StatusCode);
                     return (""u8.ToArray(), null);
-                }); // 正向
+                });
                 if (stepEx != null)
                     throw stepEx;
 
-                // 2. local， 可以是SAG, 因为排在最后，不必写反向的回滚
+                // 2. local， maybe SAG, at the end, no need to write the reverse rollback.
                 (_, stepEx) = await workflow.NewBranch()
-                    // .OnRollback(async (barrier) => // 反向 rollback
+                    // .OnRollback(async (barrier) =>
                     // {
                     //     _testOutputHelper.WriteLine("1. local rollback");
                     // })
@@ -226,7 +226,7 @@ namespace Dtmgrpc.IntegrationTests
                         // throw new DtmFailureException("db do failed"); // can't throw 
                         var ex = new DtmFailureException("db do failed");
                         return ("my result"u8.ToArray(), ex);
-                    }); // 正向
+                    });
                 if (stepEx != null)
                     throw stepEx;
 
@@ -348,13 +348,13 @@ namespace Dtmgrpc.IntegrationTests
                     Assert.Equal("FAILURE", result.Detail);
 
                     return (""u8.ToArray(), new DtmFailureException("Try grpc error"));
-                }); // 正向
+                });
                 if (stepEx != null)
                     throw stepEx;
 
-                // 2. local， 可以是SAG, 因为排在最后，不必写反向的回滚
+                // 2. local， maybe SAG, at the end, no need to write the reverse rollback.
                 (_, stepEx) = await workflow.NewBranch()
-                    // .OnRollback(async (barrier) => // 反向 rollback
+                    // .OnRollback(async (barrier) =>
                     // {
                     //     _testOutputHelper.WriteLine("1. local rollback");
                     // })
@@ -362,7 +362,7 @@ namespace Dtmgrpc.IntegrationTests
                     {
                         _testOutputHelper.WriteLine("2. local do");
                         return ("my result"u8.ToArray(), null);
-                    }); // 正向
+                    });
                 if (stepEx != null)
                     throw stepEx;
 
@@ -540,7 +540,7 @@ namespace Dtmgrpc.IntegrationTests
             Busi.BusiClient busiClient = new Busi.BusiClient(callInvoker);
             return busiClient;
         }
-        
+
         private DtmBranchTransInfo CurrentBranchTransInfo(Workflow wf)
         {
             return new DtmBranchTransInfo()

@@ -86,20 +86,17 @@ namespace Dtmgrpc.IntegrationTests
                 {
                     _testOutputHelper.WriteLine("1. local rollback");
                     await Task.CompletedTask;
-                }).Do(async (barrier) =>
-                {
-                    return await Task.FromResult<(byte[], Exception)>(("my result"u8.ToArray(), null));
-                });
-                
+                }).Do(async (barrier) => { return await Task.FromResult<(byte[], Exception)>(("my result"u8.ToArray(), null)); });
+
                 // 2. http1, SAGA
-                HttpResponseMessage httpResult1 =  await workflow.NewBranch().OnRollback(async (barrier) =>
+                HttpResponseMessage httpResult1 = await workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("4. http1 rollback");
                     await workflow.NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
                 }).NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
-                
+
                 // 3. http2, TCC
-                HttpResponseMessage httpResult2 =  await workflow.NewBranch().OnRollback(async (barrier) =>
+                HttpResponseMessage httpResult2 = await workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("4. http2 cancel");
                     await workflow.NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
@@ -109,16 +106,16 @@ namespace Dtmgrpc.IntegrationTests
                     // NOT must use workflow.NewRequest()
                     await workflow.NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
                 }).NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
-                
+
                 return await Task.FromResult("my result"u8.ToArray());
             });
 
             string gid = wfName1 + Guid.NewGuid().ToString()[..8];
             var req = ITTestHelper.GenBusiReq(false, false);
-            
+
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
-            
+
             // BranchID	Op	Status
             // 01	action	succeed			
             // 02	action	succeed			
@@ -138,7 +135,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("succeed", trans.Branches[2].Status);
             Assert.Equal("commit", trans.Branches[3].Op);
             Assert.Equal("succeed", trans.Branches[3].Status);
-            
+
             // same gid again
             result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             Assert.Equal("my result", Encoding.UTF8.GetString(result));
@@ -154,7 +151,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("commit", trans.Branches[3].Op);
             Assert.Equal("succeed", trans.Branches[3].Status);
         }
-        
+
         [Fact]
         public async Task Execute_DoAndHttp_Failed()
         {
@@ -162,7 +159,7 @@ namespace Dtmgrpc.IntegrationTests
             var workflowFactory = provider.GetRequiredService<IWorkflowFactory>();
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
             WorkflowGlobalTransaction workflowGlobalTransaction = new WorkflowGlobalTransaction(workflowFactory, loggerFactory);
-            
+
             string wfName1 = $"wf-simple-{Guid.NewGuid().ToString("D")[..8]}";
             workflowGlobalTransaction.Register(wfName1, async (workflow, data) =>
             {
@@ -171,31 +168,28 @@ namespace Dtmgrpc.IntegrationTests
                 {
                     _testOutputHelper.WriteLine("1. local rollback");
                     await Task.CompletedTask;
-                }).Do(async (barrier) =>
-                {
-                    return await Task.FromResult<(byte[], Exception)>(("my result"u8.ToArray(), null));
-                });
-                
+                }).Do(async (barrier) => { return await Task.FromResult<(byte[], Exception)>(("my result"u8.ToArray(), null)); });
+
                 // 2. http1
-                HttpResponseMessage httpResult1 =  await workflow.NewBranch().OnRollback(async (barrier) =>
+                HttpResponseMessage httpResult1 = await workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("4. http1 rollback");
                     await Task.CompletedTask;
                 }).NewRequest().GetAsync("http://localhost:5006/test-http-ok1");
-                
+
                 // 3. http2
-                HttpResponseMessage httpResult2 =  await workflow.NewBranch().OnRollback(async (barrier) =>
+                HttpResponseMessage httpResult2 = await workflow.NewBranch().OnRollback(async (barrier) =>
                 {
                     _testOutputHelper.WriteLine("4. http2 rollback");
                     await Task.CompletedTask;
                 }).NewRequest().GetAsync("http://localhost:5006/409"); // 409
-              
+
                 return await Task.FromResult("my result"u8.ToArray());
             });
 
             string gid = wfName1 + Guid.NewGuid().ToString()[..8];
             var req = ITTestHelper.GenBusiReq(false, false);
-            
+
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
 
@@ -203,12 +197,9 @@ namespace Dtmgrpc.IntegrationTests
             {
                 byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             });
-          
+
             // same gid again
-            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>( async () =>
-            {
-                await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
-            });
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () => { await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req))); });
             trans = await dtmClient.Query(gid, CancellationToken.None);
             Assert.Equal("failed", trans.Transaction.Status);
             // BranchID	Op	Status	CreateTime	UpdateTime	Url
@@ -229,7 +220,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("rollback", trans.Branches[4].Op);
             Assert.Equal("succeed", trans.Branches[4].Status);
         }
-        
+
         [Fact]
         public async Task Execute_DoAndGrpcSAGA_Should_Success()
         {
@@ -244,13 +235,7 @@ namespace Dtmgrpc.IntegrationTests
                 BusiReq request = JsonConvert.DeserializeObject<BusiReq>(Encoding.UTF8.GetString(data));
 
                 // 1. local
-                workflow.NewBranch().OnRollback(async (barrier) =>
-                {
-                    _testOutputHelper.WriteLine("1. local rollback");
-                }).Do(async (barrier) =>
-                {
-                    return ("my result"u8.ToArray(), null);
-                });
+                workflow.NewBranch().OnRollback(async (barrier) => { _testOutputHelper.WriteLine("1. local rollback"); }).Do(async (barrier) => { return ("my result"u8.ToArray(), null); });
 
                 // 2. grpc1
                 Busi.BusiClient busiClient = null;
@@ -269,16 +254,16 @@ namespace Dtmgrpc.IntegrationTests
                     _testOutputHelper.WriteLine("3. grpc2 rollback");
                 });
                 await busiClient.TransInAsync(request);
-                
+
                 return await Task.FromResult("my result"u8.ToArray());
             });
 
             string gid = wfName1 + Guid.NewGuid().ToString()[..8];
             var req = ITTestHelper.GenBusiReq(false, false);
-            
+
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
-            
+
             // first
             byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             Assert.Equal("my result", Encoding.UTF8.GetString(result));
@@ -288,7 +273,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("succeed", trans.Branches[0].Status);
             Assert.Equal("succeed", trans.Branches[1].Status);
             Assert.Equal("succeed", trans.Branches[2].Status);
-            
+
             // same gid again
             result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             Assert.Equal("my result", Encoding.UTF8.GetString(result));
@@ -299,7 +284,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("succeed", trans.Branches[1].Status);
             Assert.Equal("succeed", trans.Branches[2].Status);
         }
-        
+
         [Fact]
         public async Task Execute_DoAndGrpcSAGA_Should_Failed()
         {
@@ -314,10 +299,7 @@ namespace Dtmgrpc.IntegrationTests
                 BusiReq request = JsonConvert.DeserializeObject<BusiReq>(Encoding.UTF8.GetString(data));
 
                 // 1. local
-                workflow.NewBranch().OnRollback(async (barrier) =>
-                {
-                    _testOutputHelper.WriteLine("1. local rollback");
-                }).Do(async (barrier) =>
+                workflow.NewBranch().OnRollback(async (barrier) => { _testOutputHelper.WriteLine("1. local rollback"); }).Do(async (barrier) =>
                 {
                     return await Task.FromResult<(byte[], Exception)>(("my result"u8.ToArray(), null));
                 });
@@ -339,13 +321,13 @@ namespace Dtmgrpc.IntegrationTests
                     _testOutputHelper.WriteLine("3. grpc2 rollback");
                 });
                 Empty response2 = await busiClient.TransInAsync(request);
-                
+
                 return await Task.FromResult("my result"u8.ToArray());
             });
 
             string gid = wfName1 + Guid.NewGuid().ToString()[..8];
             var req = ITTestHelper.GenBusiReq(outFailed: false, inFailed: true);
-            
+
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
 
@@ -354,7 +336,7 @@ namespace Dtmgrpc.IntegrationTests
             {
                 byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             });
-            
+
             trans = await dtmClient.Query(gid, CancellationToken.None);
             Assert.Equal("failed", trans.Transaction.Status);
             // BranchID	Op	Status	CreateTime	UpdateTime	Url
@@ -381,8 +363,8 @@ namespace Dtmgrpc.IntegrationTests
                 byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             });
         }
-        
-        
+
+
         [Fact]
         public async Task Execute_GrpcTccAndDo_Should_Success()
         {
@@ -408,30 +390,27 @@ namespace Dtmgrpc.IntegrationTests
                         await busiClient.TransOutRevertAsync(request);
                         _testOutputHelper.WriteLine("1. grpc1 cancel");
                     });
-                busiClient = GetBusiClientWithWf(wf, provider); // busiClient的构建依赖Workflow实例，只能这么写
+                busiClient = GetBusiClientWithWf(wf, provider); // The construction of busiClient dependence on the Workflow instance, must ugly code
                 // try
                 await busiClient.TransOutTccAsync(request);
 
-                // 2. local， 可以是SAG, 因为排在最后，不必写反向的回滚
+                // 2. local， maybe SAG, at the end, no need to write the reverse rollback.
                 workflow.NewBranch()
-                    // .OnRollback(async (barrier) => // 反向 rollback
+                    // .OnRollback(async (barrier) =>
                     // {
                     //     _testOutputHelper.WriteLine("1. local rollback");
                     // })
-                    .Do(async (barrier) =>
-                    {
-                        return ("my result"u8.ToArray(), null);
-                    }); // 正向
-                
+                    .Do(async (barrier) => { return ("my result"u8.ToArray(), null); });
+
                 return await Task.FromResult("my result"u8.ToArray());
             });
 
             string gid = wfName1 + Guid.NewGuid().ToString()[..8];
             var req = ITTestHelper.GenBusiReq(false, false);
-            
+
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
-            
+
             // first
             byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             Assert.Equal("my result", Encoding.UTF8.GetString(result));
@@ -448,7 +427,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("action", trans.Branches[1].Op);
             Assert.Equal("succeed", trans.Branches[2].Status);
             Assert.Equal("commit", trans.Branches[2].Op);
-            
+
             // same gid again
             result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             Assert.Equal("my result", Encoding.UTF8.GetString(result));
@@ -462,7 +441,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("succeed", trans.Branches[2].Status);
             Assert.Equal("commit", trans.Branches[2].Op);
         }
-        
+
         [Fact]
         public async Task Execute_GrpcTccAndDo_Should_TryFailed()
         {
@@ -498,17 +477,14 @@ namespace Dtmgrpc.IntegrationTests
                     // {
                     //     _testOutputHelper.WriteLine("1. local rollback");
                     // })
-                    .Do(async (barrier) =>
-                    {
-                        return ("my result"u8.ToArray(), null);
-                    });
-                
+                    .Do(async (barrier) => { return ("my result"u8.ToArray(), null); });
+
                 return await Task.FromResult("my result"u8.ToArray());
             });
 
             string gid = wfName1 + Guid.NewGuid().ToString()[..8];
             var req = ITTestHelper.GenBusiReq(outFailed: true, inFailed: false); // 1. trans out try failed
-            
+
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
 
@@ -536,7 +512,7 @@ namespace Dtmgrpc.IntegrationTests
                 // at Dtmworkflow.Workflow.Process(WfFunc2 handler, Byte[] data) in src/Dtmworkflow/Workflow.Imp.cs
                 // at Dtmworkflow.WorkflowGlobalTransaction.Execute(String name, String gid, Byte[] data, Boolean isHttp) in src/Dtmworkflow/WorkflowGlobalTransaction.cs
             });
-            
+
             trans = await dtmClient.Query(gid, CancellationToken.None);
             // BranchID	Op	Status
             // 01	action	failed
@@ -545,7 +521,7 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("failed", trans.Branches[0].Status);
             Assert.Equal("action", trans.Branches[0].Op);
         }
-        
+
         [Fact]
         public async Task Execute_GrpcTccAndDo_Should_DoFailed()
         {
@@ -589,22 +565,22 @@ namespace Dtmgrpc.IntegrationTests
                     });
                 if (ex != null)
                     throw ex;
-                
+
                 return await Task.FromResult("my result"u8.ToArray());
             });
 
             string gid = wfName1 + Guid.NewGuid().ToString()[..8];
             var req = ITTestHelper.GenBusiReq(outFailed: false, inFailed: false);
-            
+
             DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
             TransGlobal trans;
-            
+
             // first
             await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
             {
                 byte[] _ = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
             });
-           
+
             trans = await dtmClient.Query(gid, CancellationToken.None);
             // BranchID	Op	Status
             // 01	action	succeed			
@@ -630,7 +606,7 @@ namespace Dtmgrpc.IntegrationTests
                 // at Dtmgrpc.IntegrationTests.WorkflowGrpcTest.Execute_GrpcTccAndDo_Should_DoFailed() in tests/Dtmgrpc.IntegrationTests/WorkflowGrpcTest.cs
             });
         }
-        
+
         private static Busi.BusiClient GetBusiClientWithWf(Workflow wf, ServiceProvider provider)
         {
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();

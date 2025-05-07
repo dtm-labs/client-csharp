@@ -24,10 +24,7 @@ public class BusiApiServiceTest(ITestOutputHelper testOutputHelper)
         var provider = ITTestHelper.AddDtmGrpc();
         Busi.BusiClient busiClient = GetBusiClientWithWf(null, provider);
 
-        var headers = new Metadata();
-        headers.Add("sub-call-id", "init id"); // 主调用里放上, 用于跟后续response的配对
-        
-        using AsyncDuplexStreamingCall<StreamRequest, StreamReply> call = busiClient.StreamTransOutTcc(headers);
+        using AsyncDuplexStreamingCall<StreamRequest, StreamReply> call = busiClient.StreamTransOutTcc();
         testOutputHelper.WriteLine("Starting background task to receive messages");
         var myGrpcProcesser = new MyGrpcProcesser(call, testOutputHelper);
         var readTask = myGrpcProcesser.HandleResponse();

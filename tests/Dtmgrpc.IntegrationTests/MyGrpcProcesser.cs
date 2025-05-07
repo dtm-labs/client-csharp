@@ -31,7 +31,7 @@ public class MyGrpcProcesser(AsyncDuplexStreamingCall<StreamRequest, StreamReply
             {
                 testOutputHelper.WriteLine($"Exception caught: {ex.Status.StatusCode} - {ex.Status.Detail}");
 
-                // TODO 应答对应的哪个请求
+                // TODO which request does the response correspond to?
                 var tcs = progress.GetOrAdd(OperateType.Try, type => new TaskCompletionSource<Status>());
                 tcs.SetResult(ex.Status);
 

@@ -215,7 +215,7 @@ namespace Dtmworkflow
 
             if (err == null)
             {
-                (sr.Data, sr.Error) = Utils.HTTPResp2DtmError(resp); // TODO go 使用了 this.Options.HTTPResp2DtmError(resp), 方便定制
+                (sr.Data, sr.Error) = Utils.HTTPResp2DtmError(resp); // TODO go used this.Options.HTTPResp2DtmError(resp), for custom
                 sr.Status = WfErrorToStatus(sr.Error);
             }
 
