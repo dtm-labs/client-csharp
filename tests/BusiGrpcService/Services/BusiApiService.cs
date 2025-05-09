@@ -10,7 +10,7 @@ using DtmSERedisBarrier;
 
 namespace BusiGrpcService.Services
 {
-    public class BusiApiService : Busi.BusiBase
+    public partial class BusiApiService : Busi.BusiBase
     {
 
         private readonly ILogger<BusiApiService> _logger;
@@ -26,28 +26,8 @@ namespace BusiGrpcService.Services
 
         public override async Task<Empty> TransIn(BusiReq request, ServerCallContext context)
         {
-            _logger.LogInformation("TransIn req={req}", JsonSerializer.Serialize(request));
-
-            if (string.IsNullOrWhiteSpace(request.TransInResult) || request.TransInResult.Equals("SUCCESS"))
-            {
-                await Task.CompletedTask;
-                return new Empty();
-            }
-            else if (request.TransInResult.Equals("FAILURE"))
-            {
-                throw new Grpc.Core.RpcException(new Status(StatusCode.Aborted, "FAILURE"));
-            }
-            else if (request.TransInResult.Equals("ONGOING"))
-            {
-                throw new Grpc.Core.RpcException(new Status(StatusCode.FailedPrecondition, "ONGOING"));
-            }
-
-            throw new Grpc.Core.RpcException(new Status(StatusCode.Internal, $"unknow result {request.TransInResult}"));
-        }
-
-        public override async Task<Empty> TransInTcc(BusiReq request, ServerCallContext context)
-        {
-            _logger.LogInformation("TransIn req={req}", JsonSerializer.Serialize(request));
+            string gid = context.RequestHeaders.Get("dtm-gid")?.Value;
+            _logger.LogInformation("TransIn gid={gid} req={req}", gid, JsonSerializer.Serialize(request));
 
             if (string.IsNullOrWhiteSpace(request.TransInResult) || request.TransInResult.Equals("SUCCESS"))
             {
@@ -86,16 +66,31 @@ namespace BusiGrpcService.Services
 
         public override async Task<Empty> TransOut(BusiReq request, ServerCallContext context)
         {
-            _logger.LogInformation("TransOut req={req}", JsonSerializer.Serialize(request));
+            string gid = context.RequestHeaders.Get("dtm-gid")?.Value;
+            _logger.LogInformation("TransOut gid={gid} req={req}", gid, JsonSerializer.Serialize(request));
             await Task.CompletedTask;
             return new Empty();
         }
 
         public override async Task<Empty> TransOutTcc(BusiReq request, ServerCallContext context)
         {
-            _logger.LogInformation("TransOut req={req}", JsonSerializer.Serialize(request));
-            await Task.CompletedTask;
-            return new Empty();
+            _logger.LogInformation("TransOutTry req={req}", JsonSerializer.Serialize(request));
+
+            if (string.IsNullOrWhiteSpace(request.TransOutResult) || request.TransOutResult.Equals("SUCCESS"))
+            {
+                await Task.CompletedTask;
+                return new Empty();
+            }
+            else if (request.TransOutResult.Equals("FAILURE"))
+            {
+                throw new Grpc.Core.RpcException(new Status(StatusCode.Aborted, "FAILURE"));
+            }
+            else if (request.TransOutResult.Equals("ONGOING"))
+            {
+                throw new Grpc.Core.RpcException(new Status(StatusCode.FailedPrecondition, "ONGOING"));
+            }
+
+            throw new Grpc.Core.RpcException(new Status(StatusCode.Internal, $"unknow result {request.TransOutResult}"));
         }
 
         public override async Task<Empty> TransOutConfirm(BusiReq request, ServerCallContext context)

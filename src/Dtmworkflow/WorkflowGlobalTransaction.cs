@@ -52,7 +52,6 @@ namespace Dtmworkflow
             });
         }
         
-#if NET5_0_OR_GREATER
         public async Task ExecuteByQS(Microsoft.AspNetCore.Http.IQueryCollection query, byte[] body)
         {
             _ = query.TryGetValue("gid", out var gid);
@@ -60,7 +59,6 @@ namespace Dtmworkflow
 
             await Execute(op, gid, body, true);
         }
-#endif
         
         #if DEBUG // for sample only
         public bool Exists(string name)

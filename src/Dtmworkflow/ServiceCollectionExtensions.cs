@@ -23,6 +23,8 @@ namespace Dtmworkflow
             services.TryAddSingleton<IWorkflowFactory, WorkflowFactory>();
             services.TryAddSingleton<WorkflowGlobalTransaction>();
 
+            // AddHttpClient(services);
+
             return services;
         }
 
@@ -33,8 +35,22 @@ namespace Dtmworkflow
 
             services.TryAddSingleton<IWorkflowFactory, WorkflowFactory>();
             services.TryAddSingleton<WorkflowGlobalTransaction>();
+                       
+            // AddHttpClient(services);
 
             return services;
         }
+
+        // private static void AddHttpClient(IServiceCollection services /*, DtmOptions options*/)
+        // {
+        //     services.AddHttpClient(Dtmcli.Constant.WorkflowBranchClientHttpName, client =>
+        //     {
+        //         // TODO DtmOptions
+        //         // client.Timeout = TimeSpan.FromMilliseconds(options.BranchTimeout);                
+        //     }).AddHttpMessageHandler<WorkflowHttpInterceptor>();
+        //
+        //     // TODO how to inject workflow instance?
+        //     services.AddTransient<WorkflowHttpInterceptor>();
+        // }
     }
 }
