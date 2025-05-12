@@ -42,7 +42,7 @@ namespace DtmCommon
 
         public int BarrierID { get; set; }
 
-        public async Task Call(DbConnection db, Func<DbTransaction, Task> busiCall)
+        public async Task<(bool done, string reason)> Call(DbConnection db, Func<DbTransaction, Task> busiCall)
         {
             this.BarrierID = this.BarrierID + 1;
             var bid = this.BarrierID.ToString().PadLeft(2, '0');
@@ -91,7 +91,7 @@ namespace DtmCommon
 #else
                     await tx.CommitAsync();
 #endif
-                    return;
+                    return (false, isNullCompensation ? "isNullCompensation" : "isDuplicateOrPend");
                 }
 
                 await busiCall.Invoke(tx);
@@ -118,9 +118,10 @@ namespace DtmCommon
 
                 throw;
             }
+            return (true, string.Empty);
         }
 
-        public async Task Call(DbConnection db, Func<Task> busiCall, TransactionScopeOption transactionScope = TransactionScopeOption.Required, IsolationLevel isolationLevel = IsolationLevel.Serializable)
+        public async Task<(bool done, string reason)> Call(DbConnection db, Func<Task> busiCall, TransactionScopeOption transactionScope = TransactionScopeOption.Required, IsolationLevel isolationLevel = IsolationLevel.Serializable)
         {
             this.BarrierID = this.BarrierID + 1;
             var bid = this.BarrierID.ToString().PadLeft(2, '0');
@@ -158,7 +159,7 @@ namespace DtmCommon
                     if (isNullCompensation || isDuplicateOrPend)
                     {
                         Logger?.LogInformation("Will not exec busiCall, isNullCompensation={isNullCompensation}, isDuplicateOrPend={isDuplicateOrPend}", isNullCompensation, isDuplicateOrPend);
-                        return;
+                        return (false, isNullCompensation ? "isNullCompensation" : "isDuplicateOrPend");
                     }
                     await busiCall.Invoke();
                     scope.Complete();
@@ -174,7 +175,7 @@ namespace DtmCommon
                     throw;
                 }
             }
-           
+            return (true, string.Empty);
         }
 
         public async Task<string> QueryPrepared(DbConnection db)

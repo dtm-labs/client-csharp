@@ -67,8 +67,9 @@ namespace DtmCommon
 
             public static readonly Dictionary<string, string> OpDict = new Dictionary<string, string>()
             {
-                { "cancel", "try" },
-                { "compensate", "action" },
+                { "cancel", "try" }, // tcc
+                { "compensate", "action" }, // saga
+                { "rollback", "action" }, // workflow
             };
             public static readonly string REDIS_LUA_CheckAdjustAmount = @" -- RedisCheckAdjustAmount
 local v = redis.call('GET', KEYS[1])
