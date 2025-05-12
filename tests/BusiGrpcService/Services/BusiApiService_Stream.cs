@@ -27,11 +27,16 @@ public partial class BusiApiService
                     $"{nameof(StreamTransOutTcc)} gid={branchBarrier.Gid} branch_id={branchBarrier.BranchID} op={branchBarrier.Op}, req={JsonSerializer.Serialize(request)}");
 
                 await using MySqlConnection conn = GetBarrierConn();
-                await branchBarrier.Call(conn, async () =>
+                (bool done, string reason) = await branchBarrier.Call(conn, async () =>
                 {
                     // business logic
                     await TransOutFn(responseStream, request);
                 });
+                if (!done)
+                {
+                    _logger.LogInformation($"NOT done, reason:{reason} {nameof(StreamTransOutTcc)} gid={branchBarrier.Gid} branch_id={branchBarrier.BranchID} op={branchBarrier.Op}");
+                    await responseStream.WriteAsync(new StreamReply { OperateType = request.OperateType, Message = reason });
+                }
             }
             else
             {
@@ -98,11 +103,16 @@ public partial class BusiApiService
                     $"{nameof(StreamTransInTcc)} gid={branchBarrier.Gid} branch_id={branchBarrier.BranchID} op={branchBarrier.Op}, req={JsonSerializer.Serialize(request)}");
 
                 await using MySqlConnection conn = GetBarrierConn();
-                await branchBarrier.Call(conn, async () =>
+                (bool done, string reason) = await branchBarrier.Call(conn, async () =>
                 {
                     // business logic
                     await TransInFn(responseStream, request);
                 });
+                if (!done)
+                {
+                    _logger.LogInformation($"NOT done, reason:{reason} {nameof(StreamTransInTcc)} gid={branchBarrier.Gid} branch_id={branchBarrier.BranchID} op={branchBarrier.Op}");
+                    await responseStream.WriteAsync(new StreamReply { OperateType = request.OperateType, Message = reason });
+                }
             }
             else
             {

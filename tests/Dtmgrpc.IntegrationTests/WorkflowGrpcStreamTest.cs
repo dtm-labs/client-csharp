@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -10,7 +9,6 @@ using Dtmcli;
 using DtmCommon;
 using Dtmworkflow;
 using Grpc.Core;
-using Grpc.Core.Interceptors;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -61,15 +59,7 @@ namespace Dtmgrpc.IntegrationTests
                     })
                     .OnRollback(async (barrier) => // cancel
                     {
-                        await call.RequestStream.WriteAsync(new StreamRequest()
-                        {
-                            OperateType = OperateType.Confirm,
-                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
-                            BusiRequest = busiRequest,
-                        });
-                        // wait Confirm
-                        var result = await myGrpcProcesser.GetResult(OperateType.Cancel);
-                        Assert.Equal(StatusCode.OK, result.StatusCode);
+                        Assert.Fail("should not run OnRollback");
                     });
                 Busi.BusiClient busiClient = GetBusiClient();
                 call = busiClient.StreamTransOutTcc();
@@ -171,15 +161,7 @@ namespace Dtmgrpc.IntegrationTests
                 workflow.NewBranch()
                     .OnCommit(async (barrier) => // confirm
                     {
-                        await call.RequestStream.WriteAsync(new StreamRequest()
-                        {
-                            OperateType = OperateType.Confirm,
-                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
-                            BusiRequest = busiRequest,
-                        });
-                        // wait Confirm
-                        var result = await myGrpcProcesser.GetResult(OperateType.Confirm);
-                        Assert.Equal(StatusCode.OK, result.StatusCode);
+                        Assert.Fail("should not run OnCommit");
                     })
                     .OnRollback(async (barrier) => // cancel
                     {
@@ -287,7 +269,7 @@ namespace Dtmgrpc.IntegrationTests
         }
 
         [Fact]
-        public async Task Execute_StreamGrpcTccAndDo_TryFailed()
+        public async Task Execute_StreamGrpcTccAndDo_TryServerFailed()
         {
             var provider = ITTestHelper.AddDtmGrpc();
             var workflowFactory = provider.GetRequiredService<IWorkflowFactory>();
@@ -306,22 +288,13 @@ namespace Dtmgrpc.IntegrationTests
                 workflow.NewBranch()
                     .OnCommit(async (barrier) => // confirm
                     {
-                        await call.RequestStream.WriteAsync(new StreamRequest()
-                        {
-                            OperateType = OperateType.Confirm,
-                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
-                            BusiRequest = busiRequest,
-                        });
-                        // wait Confirm
-                        var result = await myGrpcProcesser.GetResult(OperateType.Confirm);
-                        Assert.Equal(StatusCode.Aborted, result.StatusCode);
-                        Assert.Equal("FAILURE", result.Detail);
+                        Assert.Fail("should not run OnCommit");
                     })
                     .OnRollback(async (barrier) => // cancel
                     {
                         await call.RequestStream.WriteAsync(new StreamRequest()
                         {
-                            OperateType = OperateType.Confirm,
+                            OperateType = OperateType.Cancel,
                             DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
                             BusiRequest = busiRequest,
                         });
@@ -381,7 +354,6 @@ namespace Dtmgrpc.IntegrationTests
                     byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
                 }
             );
-            await call.RequestStream.CompleteAsync();
             await Assert.ThrowsAsync<Grpc.Core.RpcException>(async () => { await readTask; }); // grpc aborted by server try method
 
             var trans = await dtmClient.Query(gid, CancellationToken.None);
@@ -410,6 +382,383 @@ namespace Dtmgrpc.IntegrationTests
             Assert.Equal("01", trans.Branches[0].BranchId);
             Assert.Equal("failed", trans.Branches[0].Status);
             Assert.Equal("action", trans.Branches[0].Op);
+        }
+
+
+        [Fact]
+        public async Task Execute_StreamGrpcTccAndDo_TryClientThrowFailed()
+        {
+            var provider = ITTestHelper.AddDtmGrpc();
+            var workflowFactory = provider.GetRequiredService<IWorkflowFactory>();
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            WorkflowGlobalTransaction workflowGlobalTransaction = new WorkflowGlobalTransaction(workflowFactory, loggerFactory);
+
+            string wfName1 = $"{nameof(this.Execute_StreamGrpcTccAndDo_TryConfirm)}-{Guid.NewGuid().ToString("D")[..8]}";
+            AsyncDuplexStreamingCall<StreamRequest, StreamReply> call = null;
+            MyGrpcProcesser myGrpcProcesser = null;
+            Task readTask = null;
+            workflowGlobalTransaction.Register(wfName1, async (workflow, data) =>
+            {
+                BusiReq busiRequest = JsonConvert.DeserializeObject<BusiReq>(Encoding.UTF8.GetString(data));
+
+                // 1. grpc1 TCC
+                workflow.NewBranch()
+                    .OnCommit(async (barrier) => // confirm
+                    {
+                        Assert.Fail("should not run OnCommit");
+                    })
+                    .OnRollback(async (barrier) => // cancel
+                    {
+                        await call.RequestStream.WriteAsync(new StreamRequest()
+                        {
+                            OperateType = OperateType.Cancel,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
+                            BusiRequest = busiRequest,
+                        });
+                        // wait Confirm
+                        var result = await myGrpcProcesser.GetResult(OperateType.Cancel);
+                        Assert.Equal(StatusCode.OK, result.StatusCode);
+                    });
+                Busi.BusiClient busiClient = GetBusiClient();
+                call = busiClient.StreamTransOutTcc();
+                myGrpcProcesser = new MyGrpcProcesser(call, _testOutputHelper);
+                readTask = myGrpcProcesser.HandleResponse();
+                // try
+                var (_, stepEx) = await workflow.Do((barrier) =>
+                {
+                    // throw 
+                    throw new DtmFailureException("try do manual client error");
+                });
+                if (stepEx != null)
+                    throw stepEx;
+
+                // 2. local， maybe SAG, at the end, no need to write the reverse rollback.
+                (_, stepEx) = await workflow.NewBranch()
+                    // .OnRollback(async (barrier) =>
+                    // {
+                    //     _testOutputHelper.WriteLine("1. local rollback");
+                    // })
+                    .Do(async (barrier) =>
+                    {
+                        _testOutputHelper.WriteLine("2. local do");
+                        return ("my result"u8.ToArray(), null);
+                    });
+                if (stepEx != null)
+                    throw stepEx;
+
+                return await Task.FromResult("my result"u8.ToArray());
+            });
+
+            string gid = wfName1 + Guid.NewGuid().ToString()[..8];
+            var req = ITTestHelper.GenBusiReq(true, false);
+
+            DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
+
+            using var call2 = call;
+            // first
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
+                {
+                    byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
+                }
+            );
+            await call.RequestStream.CompleteAsync();
+            await readTask;
+
+            var trans = await dtmClient.Query(gid, CancellationToken.None);
+            Assert.Equal("failed", trans.Transaction.Status);
+            // BranchID	Op	Status	CreateTime	UpdateTime	Url
+            // 01	rollback	succeed
+            Assert.Equal(1, trans.Branches.Count);
+            Assert.Equal("01", trans.Branches[0].BranchId);
+            Assert.Equal("rollback", trans.Branches[0].Op);
+            Assert.Equal("succeed", trans.Branches[0].Status);
+
+            // same gid again
+            await Assert.ThrowsAsync<DtmCommon.DtmFailureException>(async () =>
+            {
+                var result = await workflowGlobalTransaction.Execute(wfName1, gid, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)));
+            });
+
+            await call.RequestStream.CompleteAsync();
+            await readTask;
+
+            trans = await dtmClient.Query(gid, CancellationToken.None);
+            Assert.Equal("failed", trans.Transaction.Status);
+            // BranchID	Op	Status	CreateTime	UpdateTime	Url
+            // 01	rollback	succeed
+            Assert.Equal(1, trans.Branches.Count);
+            Assert.Equal("01", trans.Branches[0].BranchId);
+            Assert.Equal("rollback", trans.Branches[0].Op);
+            Assert.Equal("succeed", trans.Branches[0].Status);
+        }
+
+        [Fact]
+        public async Task Execute_StreamGrpcTccAndDo_TrySucceed_RegisterBranch_ThenCrash_ThenExecuteByQs_Continue()
+        {
+            var provider = ITTestHelper.AddDtmGrpc();
+            var workflowFactory = provider.GetRequiredService<IWorkflowFactory>();
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            WorkflowGlobalTransaction workflowGlobalTransaction = new WorkflowGlobalTransaction(workflowFactory, loggerFactory);
+
+            string wfName1 = $"{nameof(this.Execute_StreamGrpcTccAndDo_TryConfirm)}-{Guid.NewGuid().ToString("D")[..8]}";
+            AsyncDuplexStreamingCall<StreamRequest, StreamReply> call = null;
+            MyGrpcProcesser myGrpcProcesser = null;
+            Task readTask = null;
+            workflowGlobalTransaction.Register(wfName1, async (workflow, data) =>
+            {
+                BusiReq busiRequest = JsonConvert.DeserializeObject<BusiReq>(Encoding.UTF8.GetString(data));
+
+                // 1. grpc1 TCC
+                workflow.NewBranch()
+                    .OnCommit(async (barrier) => // confirm
+                    {
+                        await call.RequestStream.WriteAsync(new StreamRequest()
+                        {
+                            OperateType = OperateType.Confirm,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
+                            BusiRequest = busiRequest,
+                        });
+                        // wait Confirm
+                        var result = await myGrpcProcesser.GetResult(OperateType.Confirm);
+                        Assert.Equal(StatusCode.Aborted, result.StatusCode);
+                        Assert.Equal("FAILURE", result.Detail);
+                    })
+                    .OnRollback(async (barrier) => // cancel
+                    {
+                        await call.RequestStream.WriteAsync(new StreamRequest()
+                        {
+                            OperateType = OperateType.Cancel,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
+                            BusiRequest = busiRequest,
+                        });
+                        // wait Confirm
+                        var result = await myGrpcProcesser.GetResult(OperateType.Cancel);
+                        Assert.Equal(StatusCode.OK, result.StatusCode);
+                    });
+                Busi.BusiClient busiClient = GetBusiClient();
+                call = busiClient.StreamTransOutTcc();
+                myGrpcProcesser = new MyGrpcProcesser(call, _testOutputHelper);
+                readTask = myGrpcProcesser.HandleResponse();
+                // try
+                var (_, stepEx) = await workflow.Do((barrier) =>
+                {
+                    // Assert should skip
+                    return Task.FromResult<(byte[], Exception)>(([], new DtmFailureException("should skip branch 01 try")));
+                });
+                if (stepEx != null)
+                    throw stepEx;
+
+                // 2. local， maybe SAG, at the end, no need to write the reverse rollback.
+                (_, stepEx) = await workflow.NewBranch()
+                    // .OnRollback(async (barrier) =>
+                    // {
+                    //     _testOutputHelper.WriteLine("1. local rollback");
+                    // })
+                    .Do(async (barrier) =>
+                    {
+                        _testOutputHelper.WriteLine("2. local do");
+                        return ("my result"u8.ToArray(), null);
+                    });
+                if (stepEx != null)
+                    throw stepEx;
+
+                return await Task.FromResult("my result"u8.ToArray());
+            });
+
+            DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
+            string gid = wfName1 + Guid.NewGuid().ToString()[..8];
+            var req = ITTestHelper.GenBusiReq(true, false);
+            var data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req));
+
+            // init: try failed, then crash
+            var tb = TransBase.NewTransBase(gid, "workflow", "i am dtm", "1");
+            // 1. Prepare
+            await dtmClient.PrepareWorkflow(tb, CancellationToken.None);
+            // 2. branch 1 action
+            await dtmClient.TransRegisterBranch(tb, new()
+            {
+                { "data", Encoding.UTF8.GetString(data) },
+                { "branch_id", "01" },
+                { "op", "action" },
+                { "status", "succeed" },
+            }, "registerBranch", CancellationToken.None);
+
+            // Asserts
+            var trans = await dtmClient.Query(gid, CancellationToken.None);
+            Assert.Equal("prepared", trans.Transaction.Status);
+            // BranchID	Op	Status	CreateTime	UpdateTime	Url
+            // 01	action	succeed
+            Assert.Equal(1, trans.Branches.Count);
+            Assert.Equal("01", trans.Branches[0].BranchId);
+            Assert.Equal("action", trans.Branches[0].Op);
+            Assert.Equal("succeed", trans.Branches[0].Status);
+
+            using var call2 = call;
+
+            // dtm callback executeByQs
+            byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, data);
+            Assert.Equal("my result", Encoding.UTF8.GetString(result));
+            await call.RequestStream.CompleteAsync();
+            await readTask;
+
+            trans = await dtmClient.Query(gid, CancellationToken.None);
+            Assert.Equal("succeed", trans.Transaction.Status);
+            // BranchID	Op	Status	CreateTime	UpdateTime	Url
+            // 01	action	succeed			
+            // 02	action	succeed
+            Assert.Equal(2, trans.Branches.Count);
+            Assert.Equal("01", trans.Branches[0].BranchId);
+            Assert.Equal("action", trans.Branches[0].Op);
+            Assert.Equal("succeed", trans.Branches[0].Status);
+            Assert.Equal("02", trans.Branches[1].BranchId);
+            Assert.Equal("action", trans.Branches[1].Op);
+            Assert.Equal("succeed", trans.Branches[1].Status);
+
+            // same gid again
+            result = await workflowGlobalTransaction.Execute(wfName1, gid, data);
+            Assert.Equal("my result", Encoding.UTF8.GetString(result));
+            await call.RequestStream.CompleteAsync();
+            await readTask;
+            trans = await dtmClient.Query(gid, CancellationToken.None);
+            Assert.Equal("succeed", trans.Transaction.Status);
+            // BranchID	Op	Status	CreateTime	UpdateTime	Url
+            // 01	action	succeed			
+            // 02	action	succeed
+            Assert.Equal(2, trans.Branches.Count);
+            Assert.Equal("01", trans.Branches[0].BranchId);
+            Assert.Equal("action", trans.Branches[0].Op);
+            Assert.Equal("succeed", trans.Branches[0].Status);
+            Assert.Equal("02", trans.Branches[1].BranchId);
+            Assert.Equal("action", trans.Branches[1].Op);
+            Assert.Equal("succeed", trans.Branches[1].Status);
+        }
+
+        [Fact]
+        public async Task Execute_StreamGrpcTccAndDo_TrySucceedButMissed_ThenCrash_ThenExecuteByQs_Continue()
+        {
+            var provider = ITTestHelper.AddDtmGrpc();
+            var workflowFactory = provider.GetRequiredService<IWorkflowFactory>();
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            WorkflowGlobalTransaction workflowGlobalTransaction = new WorkflowGlobalTransaction(workflowFactory, loggerFactory);
+
+            string wfName1 = $"{nameof(this.Execute_StreamGrpcTccAndDo_TryConfirm)}-{Guid.NewGuid().ToString("D")[..8]}";
+            AsyncDuplexStreamingCall<StreamRequest, StreamReply> call = null;
+            MyGrpcProcesser myGrpcProcesser = null;
+            Task readTask = null;
+            workflowGlobalTransaction.Register(wfName1, async (workflow, data) =>
+            {
+                BusiReq busiRequest = JsonConvert.DeserializeObject<BusiReq>(Encoding.UTF8.GetString(data));
+
+                // 1. grpc1 TCC
+                workflow.NewBranch()
+                    .OnCommit(async (barrier) => // confirm
+                    {
+                        await call.RequestStream.WriteAsync(new StreamRequest()
+                        {
+                            OperateType = OperateType.Confirm,
+                            DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
+                            BusiRequest = busiRequest,
+                        });
+                        // wait Confirm
+                        var result = await myGrpcProcesser.GetResult(OperateType.Confirm);
+                        Assert.Equal(StatusCode.Aborted, result.StatusCode);
+                        Assert.Equal("FAILURE", result.Detail);
+                    })
+                    .OnRollback(async (barrier) => // cancel
+                    {
+                        Assert.Fail("should not run OnRollback");
+                    });
+                Busi.BusiClient busiClient = GetBusiClient();
+                call = busiClient.StreamTransOutTcc();
+                myGrpcProcesser = new MyGrpcProcesser(call, _testOutputHelper);
+                readTask = myGrpcProcesser.HandleResponse();
+                // try
+                var (_, stepEx) = await workflow.Do(async (barrier) =>
+                {
+                    await call.RequestStream.WriteAsync(new StreamRequest()
+                    {
+                        OperateType = OperateType.Try,
+                        DtmBranchTransInfo = this.CurrentBranchTransInfo(workflow),
+                        BusiRequest = busiRequest,
+                    });
+                    // wait try
+                    var result = await myGrpcProcesser.GetResult(OperateType.Try);
+                    Assert.Equal(StatusCode.OK, result.StatusCode);
+                    return (""u8.ToArray(), null);
+                });
+                if (stepEx != null)
+                    throw stepEx;
+
+                // 2. local， maybe SAG, at the end, no need to write the reverse rollback.
+                (_, stepEx) = await workflow.NewBranch()
+                    // .OnRollback(async (barrier) =>
+                    // {
+                    //     _testOutputHelper.WriteLine("1. local rollback");
+                    // })
+                    .Do(async (barrier) =>
+                    {
+                        _testOutputHelper.WriteLine("2. local do");
+                        return ("my result"u8.ToArray(), null);
+                    });
+                if (stepEx != null)
+                    throw stepEx;
+
+                return await Task.FromResult("my result"u8.ToArray());
+            });
+
+            DtmClient dtmClient = new DtmClient(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<IOptions<DtmOptions>>());
+            string gid = wfName1 + Guid.NewGuid().ToString()[..8];
+            var req = ITTestHelper.GenBusiReq(false, false);
+            var data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req));
+
+            // init: try failed, then crash
+            var tb = TransBase.NewTransBase(gid, "workflow", "i am dtm", "1");
+            // Prepare
+            await dtmClient.PrepareWorkflow(tb, CancellationToken.None);
+
+            // Asserts
+            var trans = await dtmClient.Query(gid, CancellationToken.None);
+            Assert.Equal("prepared", trans.Transaction.Status);
+            Assert.Empty(trans.Branches);
+
+            using var call2 = call;
+
+            // dtm callback executeByQs
+            byte[] result = await workflowGlobalTransaction.Execute(wfName1, gid, data);
+            Assert.Equal("my result", Encoding.UTF8.GetString(result));
+            await call.RequestStream.CompleteAsync();
+            await readTask;
+
+            trans = await dtmClient.Query(gid, CancellationToken.None);
+            Assert.Equal("succeed", trans.Transaction.Status);
+            // BranchID	Op	Status	CreateTime	UpdateTime	Url
+            // 01	action	succeed			
+            // 02	action	succeed
+            Assert.Equal(2, trans.Branches.Count);
+            Assert.Equal("01", trans.Branches[0].BranchId);
+            Assert.Equal("action", trans.Branches[0].Op);
+            Assert.Equal("succeed", trans.Branches[0].Status);
+            Assert.Equal("02", trans.Branches[1].BranchId);
+            Assert.Equal("action", trans.Branches[1].Op);
+            Assert.Equal("succeed", trans.Branches[1].Status);
+
+            // same gid again
+            result = await workflowGlobalTransaction.Execute(wfName1, gid, data);
+            Assert.Equal("my result", Encoding.UTF8.GetString(result));
+            await call.RequestStream.CompleteAsync();
+            await readTask;
+            trans = await dtmClient.Query(gid, CancellationToken.None);
+            Assert.Equal("succeed", trans.Transaction.Status);
+            // BranchID	Op	Status	CreateTime	UpdateTime	Url
+            // 01	action	succeed			
+            // 02	action	succeed
+            Assert.Equal(2, trans.Branches.Count);
+            Assert.Equal("01", trans.Branches[0].BranchId);
+            Assert.Equal("action", trans.Branches[0].Op);
+            Assert.Equal("succeed", trans.Branches[0].Status);
+            Assert.Equal("02", trans.Branches[1].BranchId);
+            Assert.Equal("action", trans.Branches[1].Op);
+            Assert.Equal("succeed", trans.Branches[1].Status);
         }
 
         private static Busi.BusiClient GetBusiClient()
