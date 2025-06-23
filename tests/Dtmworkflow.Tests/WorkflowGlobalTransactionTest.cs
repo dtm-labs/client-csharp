@@ -7,7 +7,6 @@ namespace Dtmworkflow.Tests;
 
 public class WorkflowGlobalTransactionTest
 {
-    #if DEBUG
     [Fact]
     public void Exists()
     {
@@ -34,5 +33,4 @@ public class WorkflowGlobalTransactionTest
         Assert.False(wf2.Exists("my-wf2"));
         Assert.False(wf2.Exists("my-wf3"));
     }
-    #endif
 }

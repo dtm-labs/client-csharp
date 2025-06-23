@@ -62,11 +62,9 @@ namespace Dtmworkflow
         }
 #endif
         
-        #if DEBUG // for sample only
         public bool Exists(string name)
         {
             return this._handlers.ContainsKey(name);
         }
-        #endif
     }
 }
