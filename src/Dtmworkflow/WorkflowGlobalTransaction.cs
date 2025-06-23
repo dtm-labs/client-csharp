@@ -21,12 +21,19 @@ namespace Dtmworkflow
 
         public async Task<byte[]> Execute(string name, string gid, byte[] data, bool isHttp = true)
         {
+            return await this.Execute(name, gid, data, null, isHttp);
+        }
+
+        public async Task<byte[]> Execute(string name, string gid, byte[] data, Action<Workflow> wfAction, bool isHttp = true)
+        {
             if (!this._handlers.TryGetValue(name, out var handler))
             {
                 throw new DtmCommon.DtmException($"workflow '{name}' not registered. please register at startup");
             }
 
             var wf = _workflowFactory.NewWorkflow(name, gid, data, isHttp);
+            if (wfAction != null)
+                wfAction(wf);
 
             foreach (var fn in handler.Custom)
             {
