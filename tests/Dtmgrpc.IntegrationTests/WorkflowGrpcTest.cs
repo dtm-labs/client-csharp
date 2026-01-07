@@ -94,5 +94,32 @@ namespace Dtmgrpc.IntegrationTests
             status = await ITTestHelper.GetTranStatus(gid);
             Assert.Equal("succeed", status);
         }
+        
+        
+        [Fact]
+        public async Task ExecuteWithWfAction()
+        {
+            var provider = ITTestHelper.AddDtmGrpc();
+            var workflowFactory = provider.GetRequiredService<IWorkflowFactory>();
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            WorkflowGlobalTransaction workflowGlobalTransaction = new WorkflowGlobalTransaction(workflowFactory, loggerFactory);
+            string wfName = Guid.NewGuid().ToString();
+            workflowGlobalTransaction.Register(wfName, (workflow, data) =>
+            {
+                Assert.NotNull(workflow.Context);
+                Assert.Equal(2, workflow.Context.Count);
+                Assert.Equal("value1", workflow.Context["key1-string"]);
+                Assert.Equal(7, workflow.Context["key2-int"]);
+
+                Assert.Equal("input", Encoding.UTF8.GetString(data));
+
+                return Task.FromResult("output"u8.ToArray());
+            });
+            await workflowGlobalTransaction.Execute(wfName, Guid.NewGuid().ToString(), "input"u8.ToArray(), workflow =>
+            {
+                workflow.Context.Add("key1-string", "value1");
+                workflow.Context.Add("key2-int", 7);
+            });
+        }
     }
 }

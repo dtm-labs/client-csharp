@@ -17,10 +17,13 @@ namespace Dtmworkflow
 
         public virtual WorkflowImp WorkflowImp { get; set; } = new WorkflowImp();
 
+        public Dictionary<string, object> Context => _context ??= new();
+
         private readonly IDtmClient _httpClient;
         private readonly IDtmgRPCClient _grpcClient;
         private readonly Dtmcli.IBranchBarrierFactory _bbFactory;
         private readonly ILogger _logger;
+        private Dictionary<string, object> _context;
 
         public Workflow(IDtmClient httpClient, IDtmgRPCClient grpcClient, Dtmcli.IBranchBarrierFactory bbFactory, ILogger logger)
         {
