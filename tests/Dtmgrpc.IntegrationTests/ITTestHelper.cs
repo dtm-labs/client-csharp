@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Dtmcli;
 using Dtmworkflow;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -14,6 +15,7 @@ namespace Dtmgrpc.IntegrationTests
         public static string DTMHttpUrl = "http://localhost:36789";
         public static string DTMgRPCUrl = "http://localhost:36790";
         public static string BuisgRPCUrl = "localhost:5005";
+        public static string BuisHttpUrl = "http://localhost:5006/http";
         public static string BuisgRPCUrlWithProtocol = "http://localhost:5005";
         private static System.Net.Http.HttpClient _client = new System.Net.Http.HttpClient();
 
@@ -80,6 +82,19 @@ namespace Dtmgrpc.IntegrationTests
                 x.DtmTimeout = dtmTimout;
             });
 
+            var provider = services.BuildServiceProvider();
+            return provider;
+        }
+        
+        public static ServiceProvider AddDtmHttp(int dtmTimout = 10000)
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddHttpClient();
+            services.AddDtmcli(option =>
+            {
+                option.DtmUrl = DTMHttpUrl;
+            });
             var provider = services.BuildServiceProvider();
             return provider;
         }

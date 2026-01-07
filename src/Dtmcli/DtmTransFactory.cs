@@ -1,4 +1,6 @@
-﻿namespace Dtmcli
+﻿using System;
+
+namespace Dtmcli
 {
     public class DtmTransFactory : IDtmTransFactory
     {
@@ -16,7 +18,13 @@
             var msg = new Msg(_cient, _branchBarrierFactory, gid);
             return msg;
         }
-
+        
+        public Msg NewMsg(string gid, DateTime nextCronTime)
+        {
+            var msg = new Msg(_cient, _branchBarrierFactory, gid, nextCronTime);
+            return msg;
+        }
+        
         public Saga NewSaga(string gid)
         {
             var saga = new Saga(_cient, gid);

@@ -20,6 +20,7 @@ namespace Dtmgrpc.IntegrationTests
 
             var gid = "msgTestGid" + Guid.NewGuid().ToString();
             var msg = transFactory.NewMsgGrpc(gid);
+            msg.EnableWaitResult();
             var req = ITTestHelper.GenBusiReq(false, false);
             var busiGrpc = ITTestHelper.BuisgRPCUrl;
             msg.Add(busiGrpc + "/busi.Busi/TransOut", req)
@@ -27,8 +28,7 @@ namespace Dtmgrpc.IntegrationTests
 
             await msg.Prepare(busiGrpc + "/busi.Busi/QueryPrepared");
             await msg.Submit();
-
-            await Task.Delay(2000);
+            
             var status = await ITTestHelper.GetTranStatus(gid);
             Assert.Equal("succeed", status);
         }
@@ -63,6 +63,38 @@ namespace Dtmgrpc.IntegrationTests
             var status = await ITTestHelper.GetTranStatus(gid);
             Assert.Equal("succeed", status);
         }
+        
+        [Fact]
+        public async Task Submit_With_NextCronTime_Should_Succeed_Later()
+        {
+            var provider = ITTestHelper.AddDtmGrpc();
+            var transFactory = provider.GetRequiredService<IDtmTransFactory>();
+
+            var gid = "msgTestGid" + Guid.NewGuid().ToString();
+            var msg = transFactory.NewMsgGrpc(gid, DateTime.Now.AddSeconds(10));
+            var req = ITTestHelper.GenBusiReq(false, false);
+            var busiGrpc = ITTestHelper.BuisgRPCUrl;
+            msg.Add(busiGrpc + "/busi.Busi/TransOut", req)
+                .Add(busiGrpc + "/busi.Busi/TransIn", req);
+
+            await msg.Prepare(busiGrpc + "/busi.Busi/QueryPrepared");
+            await msg.Submit();
+
+
+            // Since the downstream execution is delayed by 10 seconds, it will be 'submitted' after 2 seconds and 'succeed' after 15 seconds
+            await Task.Delay(TimeSpan.FromSeconds(0));
+            var status = await ITTestHelper.GetTranStatus(gid);
+            Assert.Equal("submitted", status);
+            
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            status = await ITTestHelper.GetTranStatus(gid);
+            Assert.Equal("submitted", status);
+            
+            await Task.Delay(TimeSpan.FromSeconds(13));
+            status = await ITTestHelper.GetTranStatus(gid);
+            Assert.Equal("succeed", status);
+        }
+        
 
         private static readonly int TransOutUID = 1;
 

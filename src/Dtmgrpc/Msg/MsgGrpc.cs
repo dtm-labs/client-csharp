@@ -22,10 +22,19 @@ namespace Dtmgrpc
         private readonly IBranchBarrierFactory _branchBarrierFactory;
 
         public MsgGrpc(IDtmgRPCClient dtmHttpClient, IBranchBarrierFactory branchBarrierFactory, string server, string gid)
+            : this(dtmHttpClient, branchBarrierFactory, server, gid, default)
+        {
+        }
+
+        public MsgGrpc(IDtmgRPCClient dtmHttpClient, IBranchBarrierFactory branchBarrierFactory, string server, string gid, DateTime nextCronTime)
         {
             this._dtmClient = dtmHttpClient;
             this._branchBarrierFactory = branchBarrierFactory;
             this._transBase = TransBase.NewTransBase(gid, Constant.TYPE_MSG, server, string.Empty);
+            if (nextCronTime != default(DateTime))
+            {
+                this._transBase.NextCronTime = nextCronTime;
+            }
         }
 
         public MsgGrpc Add(string action, IMessage payload)
