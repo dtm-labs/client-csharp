@@ -59,6 +59,10 @@ jobs:
           cd tests/BusiGrpcService
           nohup dotnet run > /home/runner/work/client-csharp/client-csharp/logs/app.log 2>&1 &
       - name: Run Integration Tests
+        env:
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+          DOTNET_NOLOGO: 1
+          DOTNET_CLI_HOME: ${{ runner.temp }}/dotnet-cli-home
         run: |
           dotnet build tests/Dtmgrpc.IntegrationTests/Dtmgrpc.IntegrationTests.csproj 
           dotnet test --framework=net8.0 tests/Dtmgrpc.IntegrationTests/Dtmgrpc.IntegrationTests.csproj
