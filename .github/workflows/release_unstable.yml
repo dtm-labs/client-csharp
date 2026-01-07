@@ -17,6 +17,10 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Build with dotnet
+        env:
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+          DOTNET_NOLOGO: 1
+          DOTNET_CLI_HOME: ${{ runner.temp }}/dotnet-cli-home
         run: |
           dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmcli/Dtmcli.csproj        
           dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/strong-name/Dtmcli.StrongName/Dtmcli.StrongName.csproj
@@ -30,6 +34,10 @@ jobs:
           dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/Dtmworkflow/Dtmworkflow.csproj
           dotnet build --configuration Release --source https://api.nuget.org/v3/index.json src/strong-name/Dtmworkflow.StrongName/Dtmworkflow.StrongName.csproj
       - name: Pack with dotnet
+        env:
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+          DOTNET_NOLOGO: 1
+          DOTNET_CLI_HOME: ${{ runner.temp }}/dotnet-cli-home
         run: |
           ver=alpha`date +%Y%m%d%H%M%S`
           dotnet pack src/Dtmcli/Dtmcli.csproj --version-suffix $ver -o /home/runner/work/nugetpkgs -c Release --no-build
@@ -63,6 +71,10 @@ jobs:
       - name: list nugetpkgs
         run: ls nugetpkgs
       - name: Release
+        env:
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+          DOTNET_NOLOGO: 1
+          DOTNET_CLI_HOME: ${{ runner.temp }}/dotnet-cli-home
         run: |
           for file in nugetpkgs/*.nupkg
           do
