@@ -27,6 +27,9 @@ namespace BusiGrpcService.Services
         public override async Task<Empty> TransIn(BusiReq request, ServerCallContext context)
         {
             _logger.LogInformation("TransIn req={req}", JsonSerializer.Serialize(request));
+            
+            if (request.EffectTime != null && DateTime.UtcNow < request.EffectTime.ToDateTime())
+                throw new Grpc.Core.RpcException(new Status(StatusCode.FailedPrecondition, "ONGOING"));
 
             if (string.IsNullOrWhiteSpace(request.TransInResult) || request.TransInResult.Equals("SUCCESS"))
             {
@@ -48,6 +51,9 @@ namespace BusiGrpcService.Services
         public override async Task<Empty> TransInTcc(BusiReq request, ServerCallContext context)
         {
             _logger.LogInformation("TransIn req={req}", JsonSerializer.Serialize(request));
+
+            if (request.EffectTime != null && request.EffectTime.ToDateTime() < DateTime.Now)
+                throw new Grpc.Core.RpcException(new Status(StatusCode.FailedPrecondition, "ONGOING"));
 
             if (string.IsNullOrWhiteSpace(request.TransInResult) || request.TransInResult.Equals("SUCCESS"))
             {
@@ -87,6 +93,10 @@ namespace BusiGrpcService.Services
         public override async Task<Empty> TransOut(BusiReq request, ServerCallContext context)
         {
             _logger.LogInformation("TransOut req={req}", JsonSerializer.Serialize(request));
+
+            if (request.EffectTime != null && DateTime.UtcNow < request.EffectTime.ToDateTime())
+                throw new Grpc.Core.RpcException(new Status(StatusCode.FailedPrecondition, "ONGOING"));
+
             await Task.CompletedTask;
             return new Empty();
         }

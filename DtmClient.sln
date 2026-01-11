@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dtmgrpc.StrongName", "src\s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dtmworkflow.StrongName", "src\strong-name\Dtmworkflow.StrongName\Dtmworkflow.StrongName.csproj", "{96634D84-A11E-448C-8033-CC643F96558A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dtmcli.IntegrationTests", "tests\Dtmcli.IntegrationTests\Dtmcli.IntegrationTests.csproj", "{500E31D7-71A3-4DE6-8CFF-8AEB416A968F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +127,10 @@ Global
 		{96634D84-A11E-448C-8033-CC643F96558A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96634D84-A11E-448C-8033-CC643F96558A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96634D84-A11E-448C-8033-CC643F96558A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{500E31D7-71A3-4DE6-8CFF-8AEB416A968F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{500E31D7-71A3-4DE6-8CFF-8AEB416A968F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{500E31D7-71A3-4DE6-8CFF-8AEB416A968F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{500E31D7-71A3-4DE6-8CFF-8AEB416A968F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -149,6 +155,7 @@ Global
 		{3196931A-26B1-4C48-BA66-003356153C34} = {A8DF688D-43CE-4227-B5FD-F65760DE7967}
 		{60051A80-A987-43B7-A5D1-284B8FD330D4} = {A8DF688D-43CE-4227-B5FD-F65760DE7967}
 		{96634D84-A11E-448C-8033-CC643F96558A} = {A8DF688D-43CE-4227-B5FD-F65760DE7967}
+		{500E31D7-71A3-4DE6-8CFF-8AEB416A968F} = {ED5B84F1-876F-4617-A4F4-5C160319310C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A872C3EE-D0B6-4943-8C7D-9ADD28AC029A}
