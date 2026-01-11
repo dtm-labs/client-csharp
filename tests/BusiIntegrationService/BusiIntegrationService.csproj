@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <!--<Nullable>enable</Nullable>-->
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BusiIntegrationService</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Dtmcli\Dtmcli.csproj" />
     <ProjectReference Include="..\..\src\Dtmgrpc\Dtmgrpc.csproj" />
     <ProjectReference Include="..\..\src\DtmSERedisBarrier\DtmSERedisBarrier.csproj" />
   </ItemGroup>
