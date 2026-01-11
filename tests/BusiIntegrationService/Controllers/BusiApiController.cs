@@ -1,8 +1,8 @@
 using System.Text.Json;
-using BusiGrpcService.Dtos;
+using BusiIntegrationService.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BusiGrpcService.Controllers
+namespace BusiIntegrationService.Controllers
 {
     [ApiController]
     [Route("http/busi.Busi")]

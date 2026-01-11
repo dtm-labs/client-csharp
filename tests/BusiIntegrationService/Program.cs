@@ -1,5 +1,5 @@
-using BusiGrpcService;
-using BusiGrpcService.Services;
+using BusiIntegrationService;
+using BusiIntegrationService.Services;
 using Dtmcli;
 using Dtmgrpc;
 using Microsoft.AspNetCore.Server.Kestrel.Core;

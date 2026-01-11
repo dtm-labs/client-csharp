@@ -8,7 +8,7 @@ using System.Data.Common;
 using DtmCommon;
 using DtmSERedisBarrier;
 
-namespace BusiGrpcService.Services
+namespace BusiIntegrationService.Services
 {
     public class BusiApiService : Busi.BusiBase
     {

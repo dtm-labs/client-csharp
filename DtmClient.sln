@@ -25,7 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AFCF4E29-660
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{ED5B84F1-876F-4617-A4F4-5C160319310C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusiGrpcService", "tests\BusiGrpcService\BusiGrpcService.csproj", "{FFF41358-6974-4E87-840D-C61E1B6BEDC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusiIntegrationService", "tests\BusiIntegrationService\BusiIntegrationService.csproj", "{FFF41358-6974-4E87-840D-C61E1B6BEDC3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dtmgrpc.IntegrationTests", "tests\Dtmgrpc.IntegrationTests\Dtmgrpc.IntegrationTests.csproj", "{AFDB3DCD-55CE-402F-A1B0-FCD4737FE314}"
 EndProject

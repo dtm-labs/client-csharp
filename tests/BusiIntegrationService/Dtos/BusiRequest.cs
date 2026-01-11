@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BusiGrpcService.Dtos
+namespace BusiIntegrationService.Dtos
 {
     public class BusiRequest
     {

@@ -1,6 +1,6 @@
-{
+﻿{
   "profiles": {
-    "BusiGrpcService": {
+    "BusiIntegrationService": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,

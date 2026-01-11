@@ -56,7 +56,7 @@ jobs:
           curl "127.0.0.1:36789/api/dtmsvr/newGid"
       - name: Setup Busi Service
         run: |
-          cd tests/BusiGrpcService
+          cd tests/BusiIntegrationService
           nohup dotnet run > /home/runner/work/client-csharp/client-csharp/logs/app.log 2>&1 &
       - name: Run Integration Tests (Dtmgrpc)
         env:
