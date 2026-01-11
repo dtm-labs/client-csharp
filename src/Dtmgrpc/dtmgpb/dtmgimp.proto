@@ -3,6 +3,7 @@
 option csharp_namespace = "dtmgpb";
 option go_package = "./dtmgpb";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 package dtmgimp;
 
@@ -40,6 +41,7 @@ message DtmRequest {
   string Steps = 7;
   map<string, string> ReqExtra = 8;
   string RollbackReason = 9;
+  google.protobuf.Timestamp NextCronTime = 10;
 }
 
 message DtmGidReply {

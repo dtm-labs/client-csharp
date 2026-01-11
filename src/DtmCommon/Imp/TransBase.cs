@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace DtmCommon
@@ -75,6 +76,8 @@ namespace DtmCommon
 
         [JsonIgnore]
         public string Dtm { get; set; }
+
+        public DateTime NextCronTime { get; set; }
 
         public static TransBase NewTransBase(string gid, string transType, string dtm, string branchID)
         {

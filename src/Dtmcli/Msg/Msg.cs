@@ -17,13 +17,22 @@ namespace Dtmcli
         private readonly IDtmClient _dtmClient;
         private readonly IBranchBarrierFactory _branchBarrierFactory;
 
-        public Msg(IDtmClient dtmHttpClient, IBranchBarrierFactory branchBarrierFactory, string gid)
+        public Msg(IDtmClient dtmHttpClient, IBranchBarrierFactory branchBarrierFactory, string gid):
+            this(dtmHttpClient, branchBarrierFactory, gid, default)
+        {
+        }
+        
+        public Msg(IDtmClient dtmHttpClient, IBranchBarrierFactory branchBarrierFactory, string gid, DateTime nextCronTime)
         {
             this._dtmClient = dtmHttpClient;
             this._branchBarrierFactory = branchBarrierFactory;
             this._transBase = TransBase.NewTransBase(gid, DtmCommon.Constant.TYPE_MSG, string.Empty, string.Empty);
+            if (nextCronTime != default(DateTime))
+            {
+                this._transBase.NextCronTime = nextCronTime;
+            }
         }
-
+        
         public Msg Add(string action, object postData)
         {
             if (this._transBase.Steps == null) this._transBase.Steps = new List<Dictionary<string, string>>();

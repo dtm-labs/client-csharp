@@ -1,4 +1,5 @@
-﻿using DtmCommon;
+﻿using System;
+using DtmCommon;
 using Dtmgrpc.DtmGImp;
 using Microsoft.Extensions.Options;
 
@@ -19,10 +20,21 @@ namespace Dtmgrpc
 
         public MsgGrpc NewMsgGrpc(string gid)
         {
-            var msg = new MsgGrpc(_rpcClient, _branchBarrierFactory, _options.DtmGrpcUrl.GetWithoutPrefixgRPCUrl(), gid);
+            return this.NewMsgGrpc(gid, default);
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gid"></param>
+        /// <param name="nextCronTime">The desired execution time, which can be used to delay downstream consumption</param>
+        /// <returns></returns>
+        public MsgGrpc NewMsgGrpc(string gid, DateTime nextCronTime)
+        {
+            var msg = new MsgGrpc(_rpcClient, _branchBarrierFactory, _options.DtmGrpcUrl.GetWithoutPrefixgRPCUrl(), gid, nextCronTime);
             return msg;
         }
-
+      
         public SagaGrpc NewSagaGrpc(string gid)
         {
             var saga = new SagaGrpc(_rpcClient, _options.DtmGrpcUrl.GetWithoutPrefixgRPCUrl(), gid);

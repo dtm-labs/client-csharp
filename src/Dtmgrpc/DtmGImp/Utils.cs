@@ -167,6 +167,8 @@ namespace Dtmgrpc.DtmGImp
                 Steps = transBase.Steps == null ? string.Empty : Utils.ToJsonString(transBase.Steps),
                 RollbackReason = transBase.RollbackReason ?? string.Empty,
             };
+            if (transBase.NextCronTime != default)
+                dtmRequest.NextCronTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(transBase.NextCronTime.ToUniversalTime());
 
             foreach (var item in transBase.BinPayloads ?? new List<byte[]>())
             {
