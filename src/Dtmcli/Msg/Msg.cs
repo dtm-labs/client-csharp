@@ -152,6 +152,16 @@ namespace Dtmcli
             this._delay = delay;
             return this;
         }
+        
+        /// <summary>
+        /// Set delay to call branch
+        /// </summary>
+        /// <returns></returns>
+        public Msg SetDelay(TimeSpan delay)
+        {
+            this._delay = (long)delay.TotalSeconds;
+            return this;
+        }
 
         private void BuildCustomOptions()
         {
