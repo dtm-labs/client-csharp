@@ -163,6 +163,16 @@ namespace Dtmgrpc
             this._delay = delay;
             return this;
         }
+        
+        /// <summary>
+        /// Set delay to call branch, unit second
+        /// </summary>
+        /// <returns></returns>
+        public MsgGrpc SetDelay(TimeSpan delay)
+        {
+            this._delay = (long)delay.TotalSeconds;
+            return this;
+        }
 
         private void BuildCustomOptions()
         {
